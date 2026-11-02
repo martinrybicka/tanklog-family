@@ -1,0 +1,110 @@
+# Technická architektura
+
+Návrh, 2. 11. 2026. Žádná níže popsaná služba zatím není implementovaná.
+
+## 1. Modulární monolit
+
+Jedno úložiště zdrojů, jedna Django aplikace rozdělená do domén, PostgreSQL a webová vstupní služba. React je SPA. Bez Redis, Celery, message brokeru, mikroservis nebo objektového úložiště, dokud nebude doložená potřeba. Nákupní i měřicí statistiky počítá backend, frontend pouze vykresluje a lokálně navrhuje částku formuláře.
+
+Plánované rozložení (ve fázi 0 existují pouze dokumenty a `.gitignore`):
+
+```text
+frontend/                 React, komponenty, feature moduly a testy
+backend/
+  config/settings/        base.py, development.py, production.py, test.py
+  apps/accounts/          vlastní User od první migrace, autentizace a správa
+  apps/vehicles/          auta, granty a autorizační selektory
+  apps/refuelings/        záznamy, validace, soukromé účtenky, XLSX
+  apps/analytics/         čisté výpočty intervalů a dashboardové služby
+  apps/audit/             audit významných změn
+infra/                    Dockerfiles, nginx a později provozní postupy
+docs/                     specifikace a rozhodnutí
+compose.yaml              společné interní služby a svazky
+compose.dev.yaml          hot reload a 127.0.0.1:8080
+compose.prod.yaml         produkční build, Gunicorn, externí síť NPM
+.env.example              názvy proměnných bez tajných hodnot, od fáze 1
+.dockerignore             vyloučení tajných/provozních dat z buildu, od fáze 1
+```
+
+Django: views/serializers ověřují kontrakt, selektory omezují čtení podle práv, servisní funkce provádějí zápisy v transakcích a audit. `analytics` nepřistupuje k HTTP ani uživatelským sessions; dostává typované a seřazené vstupy. Statistické endpointy nejprve vyberou autorizovaná vozidla. Sdílené autorizační funkce používá i Django admin nebo je zápis mimo servisní vrstvu zakázaný.
+
+React: feature moduly `auth`, `vehicles`, `refuelings`, `dashboard`, `administration`; společný API klient, komponenty, formátování a tokeny vzhledu. TanStack Query pro serverová data a invalidaci po změnách; React Hook Form + Zod pro formuláře. Žádný druhý globální store bez potřeby. Při odhlášení nebo ztrátě session vyčistit query cache a soukromé náhledy.
+
+## 2. Technologie a ověřené řady
+
+Následuje výběr podporovaných řad, nikoli existující lock soubor. Při fázi 1 znovu ověřit dostupnost a kompatibilitu a zamknout přesné bezpečnostně aktuální patche. Nové major verze se nepřebírají automaticky.
+
+| Oblast | Návrh | Důvod a oficiální zdroj |
+| --- | --- | --- |
+| Python | 3.14, nejnovější patch | Podporovaná řada kompatibilní s Django 5.2; [stav Python verzí](https://devguide.python.org/versions/), [kompatibilita Django](https://docs.djangoproject.com/en/5.2/releases/5.2/) |
+| Django | 5.2 LTS, nejnovější patch | Podpora do dubna 2028; novější 6.1 má kratší horizont podpory. [Oficiální přehled](https://www.djangoproject.com/download/) |
+| DRF | 3.18, nejnovější patch | V době průzkumu release notes uvádějí 3.18.3; [požadavky](https://www.django-rest-framework.org/), [vydání](https://www.django-rest-framework.org/community/release-notes/) |
+| PostgreSQL | 18, nejnovější minor | Podporovaná řada do listopadu 2030; [versioning policy](https://www.postgresql.org/support/versioning/) |
+| Node.js | 26 LTS | Aktuální LTS k datu návrhu, jen build a vývoj; [release schedule](https://github.com/nodejs/Release) |
+| React | 19.3 | Aktuální dokumentovaná řada; [React versions](https://react.dev/versions) |
+| Vite | 8.3 | Aktuálně podporovaná řada pro pravidelné opravy; [Vite releases](https://vite.dev/releases) |
+| Tailwind | 4.3 | Vite integrace v aktuální dokumentaci; [oficiální návod](https://tailwindcss.com/docs/installation/using-vite) |
+| Další frontend | TypeScript, shadcn/ui, Lucide, Recharts, TanStack Query, RHF, Zod | Přesné stabilní kompatibilní verze prověřit při zavedení konkrétní funkce |
+| Další backend | psycopg, Gunicorn, openpyxl, Pillow, django-axes | Přesné verze a podporu Python/Django uzamknout při zavedení |
+
+Frontend používá npm a verzovaný `package-lock.json`, instalace přes `npm ci`. Backend `pyproject.toml` + `uv.lock`, synchronizace `uv sync --frozen` (v produkci bez vývojových závislostí). Verze uv i base images jsou připnuté; produkční obrazy na konkrétní tag a digest. Vygenerované shadcn komponenty se verzují a kontrolují jako vlastní zdrojový kód. Aktualizace locků jsou samostatná ověřená změna. Upgrade Django před koncem podpory je součást údržby.
+
+## 3. Lokální Docker Compose
+
+| Služba | Vývoj | Produkce |
+| --- | --- | --- |
+| `web` | nginx → Vite a Django | nginx se sestaveným SPA → Gunicorn |
+| `frontend` | Vite, interní 5173, bind mount a HMR | Pouze build stage, žádný trvalý Node server |
+| `backend` | Django runserver, interní 8000, bind mount | Gunicorn WSGI, interní 8000, immutable image |
+| `db` | PostgreSQL, interní 5432 | PostgreSQL, interní 5432 |
+
+Hostitel publikuje ve vývoji pouze `127.0.0.1:8080` na `web`. `/api/` jde na Django, ostatní cesty na Vite včetně websocketového upgradu pro HMR na stejném originu. Není potřeba CORS. Produkční nginx vrací SPA fallback jen pro frontendové cesty; `/api/` a privátní přílohy nikdy nesmějí skončit HTML fallbackem.
+
+Základní Compose nemá host porty, vývojové mounty ani dev příkazy. Varianty se spouštějí vždy explicitně s base + jedním override; nikdy obě varianty najednou. Tím se zabrání zdědění vývojových portů a volumes při slučování. [Pravidla slučování Compose](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/) se ověří na výsledku `config`.
+
+`db` má `pg_isready` healthcheck; backend kontrolu živosti a oddělenou připravenost s DB. Start pořadí není náhradou za retry databázového připojení. Migrace se provádí explicitním jednorázovým krokem před startem nové verze, nikoli současně v každém workeru. První správce se zakládá interaktivně přes management příkaz, bez výchozího hesla v `.env.example`. Syntetická demo data jen explicitním příkazem a pouze ve vývoji/testech.
+
+Svazky: `postgres_data`, `private_media`, případně `static_data` pro Django statické soubory. Vývoj má vlastní jméno projektu a svazky, produkce jiné. Svazek není záloha. Backend běží bez root oprávnění, pokud to image umožňuje; web má soukromé přílohy připojené jen pro čtení. Databázový svazek používá oprávnění vyžadovaná oficiálním PostgreSQL image.
+
+## 4. Produkční síť a jeden origin
+
+```mermaid
+flowchart LR
+  B[Prohlížeč] -->|HTTPS| NPM[Externí Nginx Proxy Manager]
+  NPM -->|privátní proxy síť| W[web: nginx / SPA]
+  W -->|/api/| A[backend: Gunicorn + Django]
+  A --> DB[(PostgreSQL)]
+  A --> M[(Soukromé přílohy)]
+  W -. interní autorizované čtení .-> M
+```
+
+Produkční web je připojen k externí Docker síti NPM a interní aplikační síti, bez veřejného host portu. Backend a DB nejsou připojeny k síti NPM; DB je dostupná pouze backendu v datové síti. Interní sítě nesmějí znemožnit budoucí řízené HTTPS volání RSV z backendu; do fáze 8 se externí integrace nepovoluje ani nespouští.
+
+NPM nastaví důvěryhodné schéma a IP, web odstraní podvržené proxy hlavičky a předá jen hodnoty od důvěryhodné proxy. Backend důvěřuje `X-Forwarded-Proto` pouze přes tuto uzavřenou cestu, nikoli libovolnému klientovi. Nesmí se přepsat `https` na interní `$scheme=http`; to by rozbilo CSRF, secure cookies a mohlo způsobit smyčku redirectu. Přesnou konfiguraci a ochranu před podvržením ověřit v etapě nasazení. Změna domény/IP se řeší prostředím a proxy, bez přestavby API klienta používajícího relativní `/api/`.
+
+## 5. Konfigurace prostředím
+
+Plánované názvy do budoucího `.env.example`:
+
+| Proměnné | Význam |
+| --- | --- |
+| `TANKLOG_ENV`, `DJANGO_SETTINGS_MODULE` | Explicitní prostředí a modul nastavení |
+| `DJANGO_SECRET_KEY` | Povinná samostatná tajná hodnota, žádný produkční fallback |
+| `DJANGO_ALLOWED_HOSTS` | Výčet hostů bez schématu; žádné `*` v produkci |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | Úplné originy s HTTPS; ve vývoji konkrétní localhost origin |
+| `DJANGO_DEBUG`, `DJANGO_SECURE_COOKIES` | Produkční konfigurace odmítne nebezpečné hodnoty |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Připojení k interní `db`; heslo bez výchozí hodnoty |
+| `TANKLOG_PUBLIC_ORIGIN` | Budoucí doména nebo http://localhost:8080 |
+| `TANKLOG_PRIVATE_MEDIA_ROOT`, `TANKLOG_UPLOAD_MAX_BYTES` | Privátní svazek a nejvýše 10 MiB na soubor |
+| `NPM_NETWORK_NAME` | Externí síť pro produkční `web` |
+| `RSV_API_KEY` | Teprve fáze 8; nikdy prefix `VITE_` |
+
+Jazyk cs, `TIME_ZONE=Europe/Prague`, `USE_TZ=True`. Technické timestampy jsou UTC, obchodní datum tankování je `DATE` a nepřevádí se přes UTC půlnoc. Žádné tajemství v build args, obrazu nebo klientském bundlu. Konkrétní timeouty, workery a limity paměti se nastaví podle ověřeného serveru, ne odhadem v dokumentaci.
+
+## 6. Zápisy, přílohy a statistiky
+
+Změna vozidla nebo jeho historie uzamkne řádek vozidla; zápis, revize a audit proběhnou v jedné DB transakci. Klient posílá očekávanou revizi proti ztraceným úpravám. Po mutaci se invalidují dotčené query; měřicí intervaly se pro MVP dopočítávají nad celou historií vozidla, až potom se filtrují podle koncového dne. Bez uložených duplicitních intervalů a bez cache, která by mohla přežít změnu oprávnění.
+
+Nahrávání do dočasného soukromého prostoru, ověření a bezpečné přemístění pod náhodný interní název; DB odkaz se vytvoří až na připravený soubor. Selhání se kompenzuje úklidem. Soubory odstraňovat až po úspěšném commitu, opakovatelným úklidem osiřelých souborů s ochrannou lhůtou. V MVP stačí management příkaz bez dalšího workeru. Detail procesu, ochrana originálu a zálohy jsou v [SECURITY.md](SECURITY.md).
+
+Pro čtení příloh Django nejprve zkontroluje aktuální práva a může vydat nginx `X-Accel-Redirect` na `internal` lokaci. Ve vývoji stejný autorizovaný endpoint streamuje soubor. Žádný veřejný `/media/` alias. Export openpyxl vytváří přímo backend; limity chrání paměť bez zavádění fronty.

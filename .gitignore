@@ -1,0 +1,41 @@
+# Lokální nastavení a tajné hodnoty
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Python a testy
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Frontend a prohlížečové testy
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Soukromá a provozní data
+media/
+private_media/
+uploads/
+backups/
+data/
+staticfiles/
+*.sqlite3
+*.dump
+*.sql
+*.log
+
+# Systém a editor
+.DS_Store
+.idea/
+.vscode/
