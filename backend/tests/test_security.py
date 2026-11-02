@@ -85,13 +85,14 @@ def test_production_refuses_unsafe_configuration(overrides):
 
 
 @pytest.mark.django_db
-def test_openapi_is_authenticated_json_and_describes_phase1_only(admin_client):
+def test_openapi_is_authenticated_json_and_describes_current_phase(admin_client):
     response = admin_client.get("/api/v1/admin/schema/")
     assert response.status_code == 200
     assert response["Content-Type"].startswith("application/json")
     paths = response.json()["paths"]
     assert "/api/v1/auth/login/" in paths and "/api/v1/admin/users/" in paths
-    assert all("vehicles" not in path and "refuelings" not in path for path in paths)
+    assert "/api/v1/vehicles/" in paths and "/api/v1/admin/vehicles/" in paths
+    assert all("refuelings" not in path and "dashboard" not in path for path in paths)
 
 
 @pytest.mark.django_db

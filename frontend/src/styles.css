@@ -283,6 +283,7 @@ a.button:hover {
   min-height: 100vh;
 }
 .sidebar {
+  overflow-y: auto;
   width: 250px;
   position: fixed;
   inset: 0 auto 0 0;
@@ -1456,4 +1457,127 @@ code {
     border: 1px solid var(--border);
     font-weight: 600;
   }
+}
+
+/* Vozidla navazují na společné neutrální tokeny a dostupné ovládací prvky. */
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 20px;
+}
+.vehicle-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 0;
+}
+.vehicle-card h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.vehicle-card p {
+  margin: 0;
+}
+.vehicle-card .button {
+  margin-top: auto;
+  align-self: flex-start;
+}
+.vehicle-card-top,
+.vehicle-actions,
+.vehicle-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.vehicle-card-top {
+  justify-content: space-between;
+}
+.vehicle-role {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.vehicle-filters {
+  margin-bottom: 24px;
+}
+.vehicle-filters .input {
+  width: auto;
+  min-width: 160px;
+}
+.vehicle-actions {
+  margin: 16px 0;
+}
+.vehicle-form-grid,
+.vehicle-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+}
+.vehicle-optional {
+  margin: 8px 0 24px;
+}
+.vehicle-optional summary {
+  cursor: pointer;
+  padding: 16px 0;
+  font-weight: 600;
+}
+.vehicle-facts div {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+.vehicle-facts dt {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.vehicle-facts dd {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.grant-list {
+  list-style: none;
+  padding: 0;
+}
+.grant-list li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.grant-list li > div {
+  flex: 1;
+  min-width: 140px;
+  overflow-wrap: anywhere;
+}
+.grant-list .input {
+  width: auto;
+}
+.sharing-form {
+  max-width: 580px;
+  margin-top: 24px;
+}
+.user-picker {
+  margin-top: 16px;
+}
+@media (max-width: 640px) {
+  .vehicle-form-grid,
+  .vehicle-facts {
+    grid-template-columns: 1fr;
+  }
+  .vehicle-card {
+    padding: 22px;
+  }
+  .grant-list li {
+    align-items: flex-start;
+  }
+  .grant-list li > div {
+    flex-basis: 100%;
+  }
+}
+
+.sidebar > * {
+  flex-shrink: 0;
 }

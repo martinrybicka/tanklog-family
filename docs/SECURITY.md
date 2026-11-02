@@ -1,6 +1,6 @@
 # Oprávnění, bezpečnost a provozní integrita
 
-Stav: bezpečnostní požadavky průběžně implementované po etapách. Ve fázi 1 se testují účty, sessions, CSRF, reset, audit a produkční konfigurace. Výsledky a výjimky ověření viz PHASE_1.md; nejde o obecnou bezpečnostní certifikaci aplikace.
+Stav: bezpečnostní požadavky průběžně implementované po etapách. Ve fázi 1 se testují účty, sessions, CSRF, reset, audit a produkční konfigurace. Fáze 2 přidává objektová práva vozidel, granty, převody a negativní/souběžné testy. Výsledky a výjimky ověření viz PHASE_1.md a PHASE_2.md; nejde o obecnou bezpečnostní certifikaci aplikace.
 
 ## 1. Matice práv
 

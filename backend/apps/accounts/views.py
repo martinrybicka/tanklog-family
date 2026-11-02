@@ -194,8 +194,8 @@ class SystemView(APIView):
         return Response(
             {
                 "application": "TankLog",
-                "version": "0.1.0",
-                "phase": 1,
+                "version": "0.2.0",
+                "phase": 2,
                 "django_version": django.get_version(),
                 "database": "ok",
             }
@@ -214,6 +214,7 @@ class AuditSerializer(serializers.ModelSerializer):
             "action",
             "entity_type",
             "entity_id",
+            "vehicle_id",
             "request_id",
             "changes",
         ]

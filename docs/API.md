@@ -1,6 +1,6 @@
 # Plán API v1
 
-Kontrakt API v1. Ve fázi 1 jsou implementované sekce autentizace, profil, uživatelé, systém, audit a health; vozidla, tankování a statistiky jsou plán dalších fází. Základ `/api/v1/` pod stejným originem jako SPA. Všechny cesty níže mají koncové lomítko. Strojově generovaný aktuální kontrakt je [openapi.yaml](openapi.yaml), také dostupný přihlášenému ADMIN na `admin/schema/`. Limity ověření jsou v PHASE_1.md.
+Kontrakt API v1. Implementované jsou autentizace, profil, uživatelé, systém, audit, health a od fáze 2 vozidla/sdílení; tankování a statistiky jsou plán dalších fází. Základ `/api/v1/` pod stejným originem jako SPA. Všechny cesty níže mají koncové lomítko. Strojově generovaný aktuální kontrakt je [openapi.yaml](openapi.yaml), také dostupný přihlášenému ADMIN na `admin/schema/`. Limity ověření jsou v PHASE_1.md.
 
 ## 1. Společná pravidla
 
@@ -73,11 +73,16 @@ Reset vlastního účtu tímto administračním endpointem vrátí 409 `self_res
 | GET `admin/vehicles/` | ADMIN, všechna auta včetně archivovaných |
 | GET `admin/vehicles/{id}/access/` | ADMIN, granty s vlastními ETag; vlastník odděleně |
 | POST `admin/vehicles/{id}/access/` | ADMIN, `{user_id, role}` VIEWER/CONTRIBUTOR, 201; duplicita 409 |
+| GET `admin/vehicle-access/{id}/` | ADMIN, detail grantu a ETag |
 | PATCH `admin/vehicle-access/{id}/` | ADMIN + If-Match, změna role grantu |
 | DELETE `admin/vehicle-access/{id}/` | ADMIN + If-Match, 204 |
 | POST `admin/vehicles/{id}/transfer-owner/` | ADMIN + If-Match vozidla + current_password; `{new_owner_id, previous_owner_role?}`; absence role odebere přístup původního vlastníka |
 
-Norma a technické údaje odpovídají datovému modelu. Neexistuje veřejný seznam všech uživatelů pro běžného uživatele. Pro volbu plátce slouží GET `vehicles/{id}/payer-options/` (právo přidat/upravit tankování), vrátí pouze ID a zobrazované jméno aktivních účtů s přístupem k danému autu; e-maily a systémové role nevrací.
+Seznamy vehicles jsou stránkované `{count, next, previous, results}` se stabilním řazením podle názvu a UUID; `admin/vehicles/` má výchozí status all a podporuje jen čtení. Běžný seznam má výchozí active (ADMIN i zde vidí všechna vozidla dle filtru). Detail vozidla vrací ETag `"vehicle:<id>:<version>"`, grant `"vehicle-access:<id>:<version>"`. Každá změna sdílení zvyšuje i version vozidla; zastaralý převod vrátí 412. Missing If-Match vrací 428. Archive/restore přijímají prázdný JSON objekt a vracejí detail vozidla. Veřejné mazání vozidla není implementované; použijte archivaci.
+
+Access seznam vrací `{owner_id, owner: {username, display_name}, results: [...]}` bez dalších údajů účtů. Grant obsahuje id/vehicle_id/user_id, username/display_name/is_active, role/granted_by_id/version a timestamps. Neaktivní účet nelze nově sdílet ani zvolit jako nového vlastníka. Explicitní grant původnímu vlastníkovi lze zachovat i při jeho neaktivitě; aktivní přístup tím nevzniká. Systémový ADMIN má vždy globální oprávnění, i po převodu či odebrání grantu.
+
+Norma a technické údaje odpovídají datovému modelu. Neexistuje veřejný seznam všech uživatelů pro běžného uživatele. Až ve fázi 3 bude pro volbu plátce sloužit GET `vehicles/{id}/payer-options/` (právo přidat/upravit tankování), vrátí pouze ID a zobrazované jméno aktivních účtů s přístupem k danému autu; e-maily a systémové role nevrací.
 
 ## 5. Tankování a účtenky – fáze 3
 

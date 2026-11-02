@@ -11,6 +11,7 @@ class AuditEvent(models.Model):
     action = models.CharField(max_length=60)
     entity_type = models.CharField(max_length=40, default="user")
     entity_id = models.UUIDField(null=True)
+    vehicle_id = models.UUIDField(null=True)
     request_id = models.CharField(max_length=36, blank=True)
     changes = models.JSONField(default=dict)
 
@@ -18,11 +19,13 @@ class AuditEvent(models.Model):
         ordering = ["-occurred_at", "-id"]
 
 
-def record(request, action, target=None, changes=None, actor=None):
+def record(request, action, target=None, changes=None, actor=None, vehicle_id=None):
     return AuditEvent.objects.create(
         actor=actor or (request.user if request.user.is_authenticated else None),
         action=action,
         entity_id=target.pk if target else None,
+        entity_type=target._meta.model_name if target else "user",
+        vehicle_id=vehicle_id,
         request_id=getattr(request, "request_id", ""),
         changes=changes or {},
     )

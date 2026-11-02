@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "axes",
     "apps.accounts",
     "apps.audit",
+    "apps.vehicles",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -93,9 +94,10 @@ REST_FRAMEWORK = {
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "TankLog API",
-    "DESCRIPTION": "Fáze 1 – účty a autentizace",
+    "DESCRIPTION": "Fáze 2 – účty, vozidla a sdílení",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "ENUM_NAME_OVERRIDES": {"VehicleAccessRoleEnum": [("VIEWER", "Čtenář"), ("CONTRIBUTOR", "Přispěvatel")]},
 }
 AXES_HANDLER = "axes.handlers.database.AxesDatabaseHandler"
 AXES_FAILURE_LIMIT = 5

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView
 from rest_framework.renderers import JSONRenderer
 
@@ -9,6 +9,7 @@ handler404 = "apps.core.errors.not_found"
 handler500 = "apps.core.errors.server_error"
 
 urlpatterns = [
+    path("api/v1/", include("apps.vehicles.urls")),
     path("api/health/live/", views.live),
     path("api/health/ready/", views.ready),
     path("api/v1/auth/csrf/", views.CsrfView.as_view()),

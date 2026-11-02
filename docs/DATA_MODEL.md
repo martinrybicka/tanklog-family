@@ -1,6 +1,6 @@
 # Datový model
 
-PostgreSQL/Django. Ve fázi 1 jsou implementovány User, DB sessions, audit a ochrana přihlášení; vozidla a tankování zůstávají návrhem. UUID jsou veřejné identifikátory, nikoli bezpečnostní mechanismus. Technické timestampy jsou timezone-aware UTC; obchodní datum je lokální `DATE`. Podle dodatku uživatele z fáze 1 se veškerá uložená aplikační data včetně budoucích příloh nacházejí v DB; prohlížeč není trvalým úložištěm.
+PostgreSQL/Django. Implementovány jsou User, DB sessions, audit, ochrana přihlášení a od fáze 2 také Vehicle/VehicleAccess; tankování zůstává návrhem. UUID jsou veřejné identifikátory, nikoli bezpečnostní mechanismus. Technické timestampy jsou timezone-aware UTC; obchodní datum je lokální `DATE`. Podle dodatku uživatele z fáze 1 se veškerá uložená aplikační data včetně budoucích příloh nacházejí v DB; prohlížeč není trvalým úložištěm.
 
 ## 1. Vztahy
 
@@ -46,7 +46,7 @@ Session data používají standardní tabulku Django sessions. Omezená session 
 | `id`, `owner_id` | UUID PK; FK User s `PROTECT`, právě jeden vlastník |
 | `name`, `make`, `model` | povinné řetězce, max. 100 každý |
 | `manufacture_year` | nullable smallint; rozumný rozsah 1886 až aktuální rok + 1 |
-| `registration_plate` | nullable max. 20; normalizace mezer/písmen, bez globální UNIQUE |
+| `registration_plate` | prázdný řetězec nebo max. 20; normalizace mezer/písmen, bez globální UNIQUE |
 | `vin` | nullable max. 17; normalizované, neprázdné hodnoty UNIQUE; běžný VIN formát |
 | `fuel_type` | PETROL / DIESEL / LPG / ETHANOL / OTHER_LIQUID |
 | `consumption_mode` | SINGLE_TANK / UNSUPPORTED_MULTI_TANK; druhý režim blokuje měření, zachová výdaje |
@@ -117,7 +117,7 @@ Příloha dědí čtecí práva výhradně z tankování a auta. Její změna vy
 
 ## 7. AuditEvent a RequestDeduplication
 
-`AuditEvent`: UUID, `occurred_at`, nullable `actor_id` (systémová operace nemá uživatele), `action`, `entity_type`, `entity_id`, `vehicle_id` pokud existuje, `request_id`, povolený JSON diff a případný důvod. Objekty se odkazují také identifikátorem, aby audit přežil jejich smazání. Žádná hesla, resetovací tokeny, cookie, API klíč, obrázky, úplné request body ani celé prostředí. Auditovat správu účtů/rolí/sdílení, převody, archivaci, změny a mazání tankování a příloh, změny pořadí a bezpečnostní události. API umožní pouze čtení auditu ADMIN. DB role provozní aplikace nesmí běžným rozhraním audit měnit; to není kryptografická ochrana před správcem DB.
+`AuditEvent`: UUID, `occurred_at`, nullable `actor_id` (systémová operace nemá uživatele), `action`, `entity_type`, `entity_id`, `vehicle_id` jako nullable UUID (implementováno ve fázi 2) pokud existuje, `request_id`, povolený JSON diff a případný důvod. Objekty se odkazují také identifikátorem, aby audit přežil jejich smazání. Žádná hesla, resetovací tokeny, cookie, API klíč, obrázky, úplné request body ani celé prostředí. Auditovat správu účtů/rolí/sdílení, převody, archivaci, změny a mazání tankování a příloh, změny pořadí a bezpečnostní události. API umožní pouze čtení auditu ADMIN. DB role provozní aplikace nesmí běžným rozhraním audit měnit; to není kryptografická ochrana před správcem DB.
 
 `RequestDeduplication` od fáze 3: uživatel, klientské UUID klíče, hash normalizovaného payloadu, výsledné ID objektu/stav a čas expirace. UNIQUE `(user_id, key)`, platnost minimálně 24 h. Záznam i vytvoření tankování se potvrzují společně. Opakování stejného těla vrátí již vytvořený objekt po nové kontrole práv; jiné tělo pod stejným klíčem vrátí 409. Pokud objekt mezitím zmizel nebo byl odebrán přístup, nesmí se znovu vytvořit ani prozradit jeho obsah. Po expiraci klient při nejasném výsledku nejprve ověří historii, místo slepého opakování. Neúspěšná validace klíč nespotřebuje.
 
@@ -132,3 +132,9 @@ Příloha dědí čtecí práva výhradně z tankování a auta. Její změna vy
 Každá změna historie, vlastnictví, archivace a grantu používá společný zámek řádku vozidla, znovu ověří práva, provede změnu a audit v transakci. Zvýšení `history_revision` při tankování, pořadí a relevantní příloze umožní invalidovat klientská data. Metadatové `version` se zvyšuje při změně vlastního objektu. Převody/zámky více uživatelů mají stabilní pořadí ID, aby se omezily deadlocky.
 
 Statistiky čtou jednu konzistentní DB snapshot transakci, aby nákupní součty a intervaly ve stejné odpovědi pocházely ze shodné historie. Uložení binárních příloh do PostgreSQL odstraňuje potřebu koordinovat jejich trvalý filesystem s transakcí. Konzistentní záloha DB obsahuje i originály/náhledy; prostorové nároky a obnova se ověří podle [SECURITY.md](SECURITY.md).
+
+## 9. Implementační pravidla fáze 2
+
+Vehicle/VehicleAccess a UUID vehicle_id v auditu mají verzované migrace. Nevyplněný VIN se normalizuje na NULL, registrační značka na velká písmena a jednotlivé mezery; nepovinné zdroje/poznámky jsou prázdné řetězce. Číselné technické údaje zůstávají Decimal a API vrací desetinné řetězce. Rok má při zápisu dynamickou horní mez aktuální rok v Praze + 1, DB hlídá dolní mez 1886. DB kontroluje také rozsah tachometru, kladné technické hodnoty, konzistenci archivace, role grantů a unikátní VIN/dvojici grantů.
+
+Version vozidla začíná 1, history_revision 0 (historie se implementuje až ve fázi 3). Verze vozidla roste i při změně grantů; verze existujícího grantu při změně jeho role. Veřejný DELETE vozidla není dostupný ani pro auto bez historie; uživatelský postup je archivace. Všechny podporované zápisy jdou přes služby, přímé zápisy modelů jsou vyhrazené migracím a testům. Testy fáze 2 prokazují konzistenci současných entit; ochrana budoucích tankování se doplní s jejich modelem.

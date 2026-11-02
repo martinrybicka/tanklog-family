@@ -1,6 +1,6 @@
 # Návrh UI a UX
 
-Návrh obrazovek a designového systému. Ve fázi 1 jsou implementovány přihlášení, profil, zabezpečení a administrace účtů; vozidla a analytický dashboard teprve přijdou. Dodatek uživatele z 2. 11. 2026 mění vizuální směr na **neutrální modrou, šedou a bílou**, s klidnou typografií a střídmým modrým akcentem. Žádné ilustrační grafy s vymyšlenými statistikami ve skutečném dashboardu.
+Návrh obrazovek a designového systému. Implementovány jsou přihlášení, profil, zabezpečení, administrace účtů a od fáze 2 vozidla/sdílení; tankování a analytický dashboard teprve přijdou. Dodatek uživatele z 2. 11. 2026 mění vizuální směr na **neutrální modrou, šedou a bílou**, s klidnou typografií a střídmým modrým akcentem. Žádné ilustrační grafy s vymyšlenými statistikami ve skutečném dashboardu.
 
 ## 1. Navigace a rozvržení
 
@@ -15,7 +15,7 @@ Plánované frontendové cesty:
 | `/prihlaseni` | Login, bez registrace |
 | `/zmena-hesla` | Povinná změna po prvním dočasném přihlášení |
 | `/` | Přehled |
-| `/auta`, `/auta/nove`, `/auta/:id` | Karty, založení a detail vozidla |
+| `/auta`, `/auta/nove`, `/auta/:id`, `/auta/:id/upravit` | Karty, založení a detail vozidla |
 | `/tankovani`, `/tankovani/nove`, `/tankovani/:id` | Historie, rychlý formulář a detail/editace |
 | `/nastaveni` | Profil, změna hesla, režim vzhledu |
 | `/administrace/*` | Uživatelé, vozidla, sdílení, systém a audit |
@@ -117,3 +117,9 @@ Nastavení: vlastní zobrazované jméno, kontakt, změna hesla a systémový/sv
 | Odebraný přístup | „K tomuto záznamu už nemáte přístup“, bezpečný návrat |
 
 Každý input má label a čitelnou chybu napojenou přes `aria-describedby`; jednotka není náhradou názvu. Min. dotykové cíle 44×44 px, výrazný focus, logické tab pořadí, skip-link a landmarky. Dialogy mají focus trap, Escape a návrat focusu na spouštěč. Akce nesmějí být dostupné jen přes hover, stav se nevyjadřuje pouze barvou. Ověřit zoom 200 %, šířky 360/390/768/1024/1440 px, VoiceOver nebo NVDA, kontrasty a klávesnici v obou motivech.
+
+## 8. Dostupné obrazovky fáze 2
+
+Moje auta nabízí stránkované karty a stav active/archived/all v URL. ADMIN má navíc Všechna vozidla a sdílení (`/administrace/vozidla`). Detail obsahuje technické údaje a skutečnou roli, podle práv editaci a potvrzenou archivaci/obnovení. Historie a spotřeba jsou označené jako budoucí funkce, bez falešných statistik. Administrační sdílení je na detailu vozidla; nabízí hledání/stránkování aktivních účtů, granty, změnu rolí, potvrzené odebrání a převod s aktuálním heslem. Konflikt ETag zachová formulář a nabídne načtení aktuálních údajů; nezapisuje automaticky novou verzí přes cizí změny.
+
+Karta sdíleného auta rozlišuje Čtenář/Přispěvatel, vlastní auto a administrátorský přístup. Technické údaje a norma jsou v rozbalitelné oblasti formuláře. Podporuje se desetinná čárka; API dostává přesné řetězce s tečkou. Neznámá norma je prázdná/null. Postranní panel se na nižším desktopu posouvá, aby rozšířená navigace nezablokovala odhlášení. Motivy a paleta z fáze 1 zůstávají. Ilustrační fotografie budou až součástí VIN integrace podle INTEGRATIONS.md.

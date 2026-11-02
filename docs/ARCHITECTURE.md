@@ -1,12 +1,12 @@
 # Technická architektura
 
-Architektura, aktualizace 2. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Vozidla, tankování a analytika nejsou implementované. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně budoucích příloh patří do PostgreSQL.
+Architektura, aktualizace 2. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Ve fázi 2 vznikl modul vehicles s modely, selektory, servisní vrstvou, API a UI; tankování a analytika zůstávají neimplementované. Ověření viz PHASE_2.md. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně budoucích příloh patří do PostgreSQL.
 
 ## 1. Modulární monolit
 
 Jedno úložiště zdrojů, jedna Django aplikace rozdělená do domén, PostgreSQL a webová vstupní služba. React je SPA. Bez Redis, Celery, message brokeru, mikroservis nebo objektového úložiště, dokud nebude doložená potřeba. Nákupní i měřicí statistiky počítá backend, frontend pouze vykresluje a lokálně navrhuje částku formuláře.
 
-Rozložení repozitáře (domény vehicles/refuelings/analytics vzniknou až v dalších etapách):
+Rozložení repozitáře (vehicles je implementované; refuelings/analytics vzniknou v dalších etapách):
 
 ```text
 frontend/                 React, komponenty, feature moduly a testy
@@ -106,3 +106,9 @@ Změna vozidla nebo jeho historie uzamkne řádek vozidla; zápis, revize a audi
 Budoucí upload se nejprve ověří v omezené pracovní paměti nebo dočasném privátním prostoru. Originál, očištěný náhled a metadata se pak uloží jako bytea v jedné DB transakci s auditem. Žádný trvalý soubor není mimo PostgreSQL. Požadavek uživatele tím nahrazuje původně navržený privátní filesystem; binární data a větší DB zálohy jsou vědomý kompromis pro tuto malou self-hosted aplikaci. Limity a ochranu popisuje [SECURITY.md](SECURITY.md).
 
 Pro čtení příloh Django nejprve zkontroluje aktuální práva a vrátí omezený binární obsah z DB s bezpečnými hlavičkami. Žádný veřejný `/media/` alias ani X-Accel-Redirect na filesystem. Export openpyxl vytváří přímo backend; limity chrání paměť bez zavádění fronty. V prohlížeči je query cache jen v paměti; po odhlášení nebo zániku session se čistí. Uložené údaje a motiv se vždy znovu načtou z DB podle uživatele.
+
+## 7. Upřesnění implementace fáze 2
+
+Všechny zápisy vehicles nejprve zamknou relevantní účty ve stabilním pořadí UUID (aktéra a případný cílový účet), ověří aktuální session/aktivaci/roli, pak zamknou řádek Vehicle a znovu vyhodnotí přístup. Po zámku vozidla se již další účty nezamykají. Tím nevzniká opačné pořadí vůči službám accounts. Sdílení i převody používají shodný zámek vozidla; každý zásah do grantů zvýší i verzi vozidla, takže rozpracovaný převod s původním ETag skončí 412. Změna role/odebrání grantu navíc kontroluje vlastní ETag grantu. Převod potvrzuje heslo před transakcí podle ADR-028.
+
+Čtecí selektor používá EXISTS a skalární poddotaz role, nikoli násobící JOIN. Detail i seznam vracejí pouze aktuálně dostupná auta. Administrační seznam grantů čte vlastníka i granty v transakci pod zámkem vozidla. Odpovědi permissions nyní obsahují pouze edit/archive/restore/manage_access; práva k tankování se přidají v příslušné etapě. Nevznikl Django admin se zapisovacím rozhraním mimo služby.

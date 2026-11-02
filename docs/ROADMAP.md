@@ -2,7 +2,7 @@
 
 Každá fáze má vlastní pokyn k zahájení. Lokální dokončení aplikace a testů předchází GitHubu; GitHub a produkce mají další výslovné schválení. Odhady termínů a kapacity nejsou součást zadání.
 
-Aktuálně uživatel výslovně povolil fázi 1. Její implementaci a přesné výsledky ověření sleduje PHASE_1.md. Dodatek během této fáze ukládá všechna trvalá aplikační data do DB, vyžaduje zachování profilu a motivu po smazání cookies / na dalším zařízení a neutrální modrošedý/bílý vzhled. Funkce dalších etap se nepřidávají.
+Aktuálně uživatel výslovně povolil fázi 2 (po upřesnění rozporu v zadání). Implementaci a výsledky ověření sleduje PHASE_2.md; historické předání fáze 1 zůstává v PHASE_1.md. Dodatek během této fáze ukládá všechna trvalá aplikační data do DB, vyžaduje zachování profilu a motivu po smazání cookies / na dalším zařízení a neutrální modrošedý/bílý vzhled. Funkce dalších etap se nepřidávají.
 
 ## Fáze 0 – návrh a dokumentace
 
@@ -71,7 +71,7 @@ Testy: `check --deploy` nad skutečnou produkční konfigurací, smoke přes ve�
 
 ## Fáze 8 – samostatně schvalovaná rozšíření
 
-VIN adaptér: znovu ověřit oficiální API, limity a podmínky, pouze backendový klíč, preview/ruční potvrzení a raw provenance. OCR: lokální engine s limity, návrhy a jistotou, vždy potvrzení, zachovat originál. Viz [INTEGRATIONS.md](INTEGRATIONS.md).
+VIN adaptér a ilustrační fotografie: po potvrzeném dohledání auta nabídnout fotografii modelu z ověřeného veřejného zdroje, s licencí/atribucí, potvrzením shody a uložením obrázku/náhledu i původu do PostgreSQL. Podrobnosti a omezení v INTEGRATIONS.md. Znovu ověřit oficiální API, limity a podmínky, pouze backendový klíč, preview/ruční potvrzení a raw provenance. OCR: lokální engine s limity, návrhy a jistotou, vždy potvrzení, zachovat originál. Viz [INTEGRATIONS.md](INTEGRATIONS.md).
 
 Servis/STK/pojištění/připomínky/import/offline a nová paliva/jednotky jsou další samostatné podetapy s vlastní specifikací, migracemi, právy a akceptací. Nezačínají automaticky dokončením nasazení. Integrace testovat proti kontrolovaným fixture odpovědím i skutečnému autorizovanému zdroji, jasně odlišit obě úrovně.
 

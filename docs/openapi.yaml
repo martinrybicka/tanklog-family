@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: TankLog API
   version: 1.0.0
-  description: Fáze 1 – účty a autentizace
+  description: Fáze 2 – účty, vozidla a sdílení
 paths:
   /api/v1/admin/audit/:
     get:
@@ -266,6 +266,178 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/admin/vehicle-access/{access_id}/:
+    get:
+      operationId: admin_vehicle_access_retrieve
+      parameters:
+      - in: path
+        name: access_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Access'
+          description: ''
+    patch:
+      operationId: admin_vehicle_access_partial_update
+      parameters:
+      - in: path
+        name: access_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccessUpdate'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Access'
+          description: ''
+    delete:
+      operationId: admin_vehicle_access_destroy
+      parameters:
+      - in: path
+        name: access_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/admin/vehicles/:
+    get:
+      operationId: admin_vehicles_list
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: status
+        schema:
+          enum:
+          - active
+          - archived
+          - all
+          type: string
+          minLength: 1
+        description: |-
+          * `active` - active
+          * `archived` - archived
+          * `all` - all
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vehicle'
+          description: ''
+  /api/v1/admin/vehicles/{vehicle_id}/access/:
+    get:
+      operationId: admin_vehicles_access_retrieve
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: admin_vehicles_access_create
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Access'
+          description: ''
+  /api/v1/admin/vehicles/{vehicle_id}/transfer-owner/:
+    post:
+      operationId: admin_vehicles_transfer_owner_create
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
   /api/v1/auth/csrf/:
     get:
       operationId: auth_csrf_retrieve
@@ -377,8 +549,216 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: ''
+  /api/v1/vehicles/:
+    get:
+      operationId: vehicles_list
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: status
+        schema:
+          enum:
+          - active
+          - archived
+          - all
+          type: string
+          minLength: 1
+        description: |-
+          * `active` - active
+          * `archived` - archived
+          * `all` - all
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vehicle'
+          description: ''
+    post:
+      operationId: vehicles_create
+      tags:
+      - vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/:
+    get:
+      operationId: vehicles_retrieve
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
+    patch:
+      operationId: vehicles_partial_update
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleInput'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/archive/:
+    post:
+      operationId: vehicles_archive_create
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/restore/:
+    post:
+      operationId: vehicles_restore_create
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
 components:
   schemas:
+    Access:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        vehicle_id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        display_name:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/VehicleAccessRoleEnum'
+          readOnly: true
+        granted_by_id:
+          type: string
+          format: uuid
+          readOnly: true
+        version:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - display_name
+      - granted_by_id
+      - id
+      - is_active
+      - role
+      - updated_at
+      - user_id
+      - username
+      - vehicle_id
+      - version
+    AccessInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        role:
+          $ref: '#/components/schemas/VehicleAccessRoleEnum'
+      required:
+      - role
+      - user_id
     AdminCreate:
       type: object
       properties:
@@ -432,6 +812,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        vehicle_id:
+          type: string
+          format: uuid
+          nullable: true
         request_id:
           type: string
           maxLength: 36
@@ -440,6 +824,28 @@ components:
       - action
       - id
       - occurred_at
+    ConsumptionModeEnum:
+      enum:
+      - SINGLE_TANK
+      - UNSUPPORTED_MULTI_TANK
+      type: string
+      description: |-
+        * `SINGLE_TANK` - Jedna nádrž
+        * `UNSUPPORTED_MULTI_TANK` - Více nádrží
+    FuelTypeEnum:
+      enum:
+      - PETROL
+      - DIESEL
+      - LPG
+      - ETHANOL
+      - OTHER_LIQUID
+      type: string
+      description: |-
+        * `PETROL` - Benzín
+        * `DIESEL` - Nafta
+        * `LPG` - LPG
+        * `ETHANOL` - Ethanol
+        * `OTHER_LIQUID` - Jiné kapalné palivo
     Login:
       type: object
       properties:
@@ -466,6 +872,11 @@ components:
           maxLength: 256
       required:
       - new_password
+    PatchedAccessUpdate:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/VehicleAccessRoleEnum'
     PatchedAdminUpdate:
       type: object
       properties:
@@ -500,6 +911,65 @@ components:
             maxLength: 0
         theme:
           $ref: '#/components/schemas/ThemeEnum'
+    PatchedVehicleInput:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        make:
+          type: string
+          maxLength: 100
+        model:
+          type: string
+          maxLength: 100
+        fuel_type:
+          $ref: '#/components/schemas/FuelTypeEnum'
+        initial_odometer_km:
+          type: integer
+          maximum: 99999999
+          minimum: 0
+        manufacture_year:
+          type: integer
+          minimum: 1886
+          nullable: true
+        registration_plate:
+          type: string
+          maxLength: 20
+        vin:
+          type: string
+          nullable: true
+          maxLength: 17
+        consumption_mode:
+          $ref: '#/components/schemas/ConsumptionModeEnum'
+        engine_displacement_cc:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        power_kw:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        tank_capacity_l:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,3})?$
+          nullable: true
+        standard_consumption_l_100km:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,3})?$
+          nullable: true
+        standard_methodology:
+          $ref: '#/components/schemas/StandardMethodologyEnum'
+        standard_source:
+          type: string
+          maxLength: 500
+        standard_source_note:
+          type: string
+          maxLength: 2000
     Reauthenticate:
       type: object
       properties:
@@ -529,6 +999,28 @@ components:
       - id
       - must_change_password
       - username
+    StandardMethodologyEnum:
+      enum:
+      - WLTP
+      - NEDC
+      - MANUFACTURER
+      - USER_ESTIMATE
+      - UNKNOWN
+      type: string
+      description: |-
+        * `WLTP` - WLTP
+        * `NEDC` - NEDC
+        * `MANUFACTURER` - Výrobce
+        * `USER_ESTIMATE` - Vlastní odhad
+        * `UNKNOWN` - Neznámá
+    StatusEnum:
+      enum:
+      - ACTIVE
+      - ARCHIVED
+      type: string
+      description: |-
+        * `ACTIVE` - Aktivní
+        * `ARCHIVED` - Archivované
     SystemRoleEnum:
       enum:
       - ADMIN
@@ -547,6 +1039,21 @@ components:
         * `SYSTEM` - Podle systému
         * `LIGHT` - Světlý
         * `DARK` - Tmavý
+    TransferInput:
+      type: object
+      properties:
+        new_owner_id:
+          type: string
+          format: uuid
+        previous_owner_role:
+          $ref: '#/components/schemas/VehicleAccessRoleEnum'
+        current_password:
+          type: string
+          writeOnly: true
+          maxLength: 256
+      required:
+      - current_password
+      - new_owner_id
     User:
       type: object
       properties:
@@ -605,6 +1112,211 @@ components:
       - updated_at
       - username
       - version
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        owner_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        make:
+          type: string
+          readOnly: true
+        model:
+          type: string
+          readOnly: true
+        fuel_type:
+          allOf:
+          - $ref: '#/components/schemas/FuelTypeEnum'
+          readOnly: true
+        initial_odometer_km:
+          type: integer
+          readOnly: true
+        manufacture_year:
+          type: integer
+          readOnly: true
+          nullable: true
+        registration_plate:
+          type: string
+          readOnly: true
+        vin:
+          type: string
+          readOnly: true
+          nullable: true
+        consumption_mode:
+          allOf:
+          - $ref: '#/components/schemas/ConsumptionModeEnum'
+          readOnly: true
+        engine_displacement_cc:
+          type: integer
+          readOnly: true
+          nullable: true
+        power_kw:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          readOnly: true
+          nullable: true
+        tank_capacity_l:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,3})?$
+          readOnly: true
+          nullable: true
+        standard_consumption_l_100km:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,3})?$
+          readOnly: true
+          nullable: true
+        standard_methodology:
+          allOf:
+          - $ref: '#/components/schemas/StandardMethodologyEnum'
+          readOnly: true
+        standard_source:
+          type: string
+          readOnly: true
+        standard_source_note:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        version:
+          type: integer
+          readOnly: true
+        history_revision:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        archived_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        effective_role:
+          type: string
+          readOnly: true
+        permissions:
+          type: object
+          additionalProperties:
+            type: boolean
+          readOnly: true
+      required:
+      - archived_at
+      - consumption_mode
+      - created_at
+      - effective_role
+      - engine_displacement_cc
+      - fuel_type
+      - history_revision
+      - id
+      - initial_odometer_km
+      - make
+      - manufacture_year
+      - model
+      - name
+      - owner_id
+      - permissions
+      - power_kw
+      - registration_plate
+      - standard_consumption_l_100km
+      - standard_methodology
+      - standard_source
+      - standard_source_note
+      - status
+      - tank_capacity_l
+      - updated_at
+      - version
+      - vin
+    VehicleAccessRoleEnum:
+      enum:
+      - VIEWER
+      - CONTRIBUTOR
+      type: string
+      description: |-
+        * `VIEWER` - Čtenář
+        * `CONTRIBUTOR` - Přispěvatel
+    VehicleInput:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        make:
+          type: string
+          maxLength: 100
+        model:
+          type: string
+          maxLength: 100
+        fuel_type:
+          $ref: '#/components/schemas/FuelTypeEnum'
+        initial_odometer_km:
+          type: integer
+          maximum: 99999999
+          minimum: 0
+        manufacture_year:
+          type: integer
+          minimum: 1886
+          nullable: true
+        registration_plate:
+          type: string
+          maxLength: 20
+        vin:
+          type: string
+          nullable: true
+          maxLength: 17
+        consumption_mode:
+          $ref: '#/components/schemas/ConsumptionModeEnum'
+        engine_displacement_cc:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        power_kw:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        tank_capacity_l:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,3})?$
+          nullable: true
+        standard_consumption_l_100km:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,3})?$
+          nullable: true
+        standard_methodology:
+          $ref: '#/components/schemas/StandardMethodologyEnum'
+        standard_source:
+          type: string
+          maxLength: 500
+        standard_source_note:
+          type: string
+          maxLength: 2000
+      required:
+      - fuel_type
+      - initial_odometer_km
+      - make
+      - model
+      - name
   securitySchemes:
     sessionAuth:
       type: apiKey

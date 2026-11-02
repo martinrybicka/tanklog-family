@@ -1,6 +1,6 @@
 # Funkční specifikace
 
-Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 1. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
+Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 2. Účty, vozidla a sdílení jsou implementované; další funkce níže jsou stále plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
 
 ## 1. Cíl a hranice první verze
 
@@ -31,7 +31,7 @@ Normovaná spotřeba může chybět; nula ji nenahrazuje. Metodika: WLTP, NEDC, 
 
 Uživatel spravuje vlastní auta. Archivace zachová historii a čtení; zablokuje nové tankování, ale OWNER/ADMIN mohou opravovat historické záznamy. CONTRIBUTOR nemůže archivovaná data měnit. Obnovení auta provádí OWNER/ADMIN. Trvalé mazání auta s historií nebude v MVP veřejnou funkcí.
 
-VIN se při vyplnění normalizuje na velká písmena; běžný formát 17 znaků bez I/O/Q. Historická nestandardní identifikace se zaznamená do poznámky, ne falešným VIN. Jedinečnost vyplněného VIN brání duplicitě stejného auta; případný konflikt vrátí obecné upozornění bez prozrazení jiného vlastníka. RZ není globálně jedinečná, může se měnit. Loga jen s doloženým oprávněním, výchozí zobrazení používá Lucide ikonu a typografii.
+VIN se při vyplnění normalizuje na velká písmena; běžný formát 17 znaků bez I/O/Q. Historická nestandardní identifikace se zaznamená do poznámky, ne falešným VIN. Jedinečnost vyplněného VIN brání duplicitě stejného auta; případný konflikt vrátí obecné upozornění bez prozrazení jiného vlastníka. RZ není globálně jedinečná, může se měnit. Loga jen s doloženým oprávněním, výchozí zobrazení používá Lucide ikonu a typografii. Dodatek uživatele během fáze 2: při budoucím dohledání VIN (fáze 8) nabídnout ilustrační fotografii modelu z veřejného zdroje s ověřenou licencí, atribucí a označením ilustračního charakteru; obrázek, náhled i původ uložit do PostgreSQL. Přesný návrh je v INTEGRATIONS.md; ve fázi 2 zůstává ruční VIN bez integrace.
 
 ## 4. Tankování a validace
 

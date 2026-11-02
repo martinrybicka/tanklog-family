@@ -1,6 +1,6 @@
 # Architektonická rozhodnutí
 
-Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Stav konkrétní implementace a ověření viz PHASE_1.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
+Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Uživatel následně samostatně potvrdil fázi 2. Stav konkrétní implementace a ověření viz PHASE_1.md a PHASE_2.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
 
 | ID | Rozhodnutí | Důvod / důsledek |
 | --- | --- | --- |
@@ -32,6 +32,10 @@ Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci f
 | ADR-026 | Vlastní administrační reset odmítnout; změna vlastního hesla přes Nastavení | Správce nemůže přijít o session před zobrazením jednorázového hesla; reset jiných účtů odvolá jejich staré sessions |
 | ADR-027 | Před produkcí HSTS=0, cookies Secure a HTTPS redirect již zapnuté | HSTS vyžaduje ověřenou skutečnou doménu v etapě 7; check --deploy proto ve fázi 1 vrací zdokumentované security.W004, neskrýváme ho |
 | ADR-028 | Potvrzení hesla a jeho limity před transakcí doménového zápisu | Selhání nesmí rollbackem vymazat čítač neúspěšných pokusů. Po úspěchu se v transakci znovu ověří auth_epoch, role, verze a zámky; neobchází se aktuální oprávnění. |
+
+| ADR-029 | Změna grantů zvýší také verzi vozidla | Převod s rozpracovaným ETag nesmí přepsat mezitím změněné sdílení; společný row lock vozidla drží převod a granty atomické. Účty se zamykají před vozidlem, ve stabilním pořadí UUID. |
+| ADR-030 | Ve fázi 2 bez veřejného DELETE vozidla | Jedinou cestou odebrání z aktivního seznamu je archivace; žádné nevratné odstranění dat nebo předčasný model tankování. |
+| ADR-031 | Budoucí VIN doplní potvrzovanou ilustrační fotografii v DB | Dodatek uživatele během fáze 2. Fotografie modelu vyžaduje ověřenou shodu a licenci/atribuci; originál, náhled i původ patří do PostgreSQL. Bez spolehlivé shody zůstane ikona. Integrace je součástí fáze 8, viz INTEGRATIONS.md. |
 
 ## Původní zásadní body fáze 0
 

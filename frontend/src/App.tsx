@@ -51,6 +51,16 @@ const Users = lazy(() =>
   import("./pages/Users").then((module) => ({ default: module.Users })),
 );
 
+const Vehicles = lazy(() =>
+  import("./pages/Vehicles").then((m) => ({ default: m.Vehicles })),
+);
+const VehicleEditor = lazy(() =>
+  import("./pages/Vehicles").then((m) => ({ default: m.VehicleEditor })),
+);
+const VehicleDetail = lazy(() =>
+  import("./pages/Vehicles").then((m) => ({ default: m.VehicleDetail })),
+);
+
 function Theme({ value }: { value?: string }) {
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -103,10 +113,10 @@ function Shell({ user }: { user: Session }) {
             <LayoutDashboard size={20} />
             Přehled
           </NavLink>
-          <span className="nav-disabled" title="Vozidla přidáme ve fázi 2.">
+          <NavLink to="/auta">
             <CarFront size={20} />
-            Moje auta<span className="soon">Brzy</span>
-          </span>
+            Moje auta
+          </NavLink>
           <span className="nav-disabled" title="Tankování přidáme ve fázi 3.">
             <Fuel size={20} />
             Tankování<span className="soon">Brzy</span>
@@ -123,6 +133,10 @@ function Shell({ user }: { user: Session }) {
               <NavLink to="/administrace/uzivatele">
                 <UsersRound size={20} />
                 Uživatelé
+              </NavLink>
+              <NavLink to="/administrace/vozidla">
+                <CarFront size={20} />
+                Vozidla a sdílení
               </NavLink>
               <NavLink to="/administrace/audit">
                 <ScrollText size={20} />
@@ -201,7 +215,7 @@ function Shell({ user }: { user: Session }) {
           <span>
             TankLog <span className="muted">/</span> Osobní automobilový deník
           </span>
-          <span>Fáze 1 · Účty a zabezpečení</span>
+          <span>Fáze 2 · Vozidla a sdílení</span>
         </footer>
       </div>
       <nav className="mobile-nav" aria-label="Mobilní navigace">
@@ -209,10 +223,10 @@ function Shell({ user }: { user: Session }) {
           <LayoutDashboard size={19} />
           Přehled
         </NavLink>
-        <span aria-disabled="true">
+        <NavLink to="/auta">
           <CarFront size={19} />
-          Auta · brzy
-        </span>
+          Auta
+        </NavLink>
         <span aria-disabled="true">
           <Fuel size={19} />
           Tankování · brzy
@@ -283,8 +297,8 @@ function Overview() {
             dobrým přehledem.
           </h2>
           <p>
-            Váš účet a bezpečné přihlášení jsou připravené. Nyní si můžete
-            upravit profil a zabezpečení
+            Můžete přidat vlastní auto, upravit jeho technické údaje a prohlížet
+            vozidla sdílená správcem. Také můžete upravit profil
             {user?.system_role === "ADMIN"
               ? " nebo pozvat další uživatele"
               : ""}
@@ -320,7 +334,7 @@ function Overview() {
       </section>
       <div className="section-title">
         <h2>Váš TankLog, krok za krokem</h2>
-        <span className="muted">Aktuálně fáze 1</span>
+        <span className="muted">Aktuálně fáze 2</span>
       </div>
       <div className="stage-grid">
         <article className="stage-card completed">
@@ -344,7 +358,10 @@ function Overview() {
           </span>
           <h3>Vaše vozidla</h3>
           <p>Vlastní auta, technické údaje a sdílení s dalšími uživateli.</p>
-          <span className="coming-label">Připravujeme</span>
+          <Link to="/auta">
+            Otevřít auta
+            <ChevronRight size={16} />
+          </Link>
         </article>
         <article className="stage-card">
           <span className="icon-tile neutral">
@@ -378,6 +395,7 @@ function AdminOnly() {
     <>
       <nav className="admin-mobile-tabs" aria-label="Administrace na mobilu">
         <NavLink to="/administrace/uzivatele">Uživatelé</NavLink>
+        <NavLink to="/administrace/vozidla">Vozidla a sdílení</NavLink>
         <NavLink to="/administrace/audit">Audit</NavLink>
         <NavLink to="/administrace/system">Systém</NavLink>
       </nav>
@@ -450,8 +468,13 @@ export function App() {
           <Route element={<Protected />}>
             <Route index element={<Overview />} />
             <Route path="nastaveni" element={<Profile />} />
+            <Route path="auta" element={<Vehicles />} />
+            <Route path="auta/nove" element={<VehicleEditor />} />
+            <Route path="auta/:id" element={<VehicleDetail />} />
+            <Route path="auta/:id/upravit" element={<VehicleEditor />} />
             <Route element={<AdminOnly />}>
               <Route path="administrace/uzivatele" element={<Users />} />
+              <Route path="administrace/vozidla" element={<Vehicles admin />} />
               <Route path="administrace/audit" element={<Audit />} />
               <Route path="administrace/system" element={<System />} />
             </Route>
