@@ -1,6 +1,6 @@
 # Architektonická rozhodnutí
 
-Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Uživatel následně samostatně potvrdil fáze 2 a 3. Stav konkrétní implementace a ověření viz PHASE_1.md, PHASE_2.md a PHASE_3.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
+Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Uživatel následně samostatně potvrdil fáze 2, 3 a 4. Stav konkrétní implementace a ověření viz PHASE_1.md, PHASE_2.md, PHASE_3.md a PHASE_4.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
 
 | ID | Rozhodnutí | Důvod / důsledek |
 | --- | --- | --- |
@@ -41,6 +41,11 @@ Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci f
 | ADR-033 | Přílohy v transakční DB, očištěný JPEG náhled a dvoustupňová kontrola práv | Neúspěšný upload nezaloží další nákup, náhrada respektuje ETag; práva se ověří před drahým dekódováním a znovu pod zámkem. |
 | ADR-034 | Přesná částka má prioritu, varování jakékoliv haléřové odchylky | Autoritativní Decimal výpočet je na serveru, UI navrhuje částku přes BigInt; potvrzení varování neobchází validaci. |
 | ADR-035 | XLSX texty explicitně jako text, výběr jedním omezeným SQL dotazem | Stejný selektor jako historie, všechny řádky filtru do 50 000, typovaná data/čísla, žádné formule ani URL účtenek; XML-nepřípustné řídicí znaky se ve výstupu odstraní. |
+
+| ADR-036 | Analytika čte ve vlastní REPEATABLE READ READ ONLY transakci | Práva, metadata, podklady a revize patří jednomu snapshotu; auth middleware před ním, session persistence po něm. Bez ATOMIC_REQUESTS; nové čtení po odvolání práv již neprojde. |
+| ADR-037 | Intervaly se odvozují na požádání z celé DB historie | Žádná tabulka nebo přetrvávající klientská kopie výsledků; zpětné změny se projeví novým výpočtem. Dvojice ID je aktuální kandidát, po změně hranic může být 404. |
+| ADR-038 | Recharts 3.10.1, oddělené řady auto/palivo a tabulkové alternativy | Grafické souřadnice mohou použít Number, účetnictví zůstává Decimal na serveru a přesný řetězec v UI. Null přeruší čáru, nepředstírá nulu. |
+| ADR-039 | Nejvýše 5 000 nákupních skupin; norma pouze pro odpovídající palivo jednoho vybraného auta | Extrémní rozsah má zvolit hrubší seskupení. Různá paliva ani chybějící/nulovou normu nelze smysluplně spojit; porovnání se zdrojem a metodikou. |
 
 ## Původní zásadní body fáze 0
 

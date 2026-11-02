@@ -109,3 +109,9 @@ Negativní testy pokrývají cizí URL/FK, VIEWER/CONTRIBUTOR/OWNER/ADMIN, vlast
 Pokus o upload se po ověření základních práv/ETag auditně zaznamená před dekódováním, mimo transakci samotné náhrady. Limit 20/min na účet se pod zámkem účtu neztratí rollbackem poškozeného souboru. Nginx doplňuje 30/min/IP a body limit 12 MiB pro receipt; binární limit serveru zůstává 10 MiB. Selhání náhrady ponechá původní obrázek i verzi. Export vynucuje textový typ včetně prefixů whitespace/=/+/-/@ a odstraňuje XML-nepřípustné řídicí znaky pouze ve výstupu.
 
 Docker/produkční nginx runtime ani skutečná obnova zálohy se bez místního daemonu neověřily. Úspěšné nativní testy tyto limity nenahrazují. Před veřejným provozem nadále platí oddělení aplikační DB role a fáze 5/7.
+
+## 10. Analytické čtení fáze 4
+
+Statistické endpointy a intervalové podklady používají plnou session a opakovanou kontrolu aktivního User/auth_epoch uvnitř read-only REPEATABLE READ snapshotu. V témže snapshotu se vyhodnotí selektor vozidel i celá historie. Neaktivní/dočasné session nedostanou doménová data, cizí vehicle_id/start_id/end_id nic neodhalí. Výběr aut je deduplikovaný přes EXISTS; nikoli násobící JOIN na granty. Binární obrázky, plátci a další soukromé údaje nejsou součástí statistického JSON.
+
+Rozpracované čtení může dokončit snapshot získaný před souběžným odebráním grantu; následné nově zahájené čtení již vozidlo nenajde. Klient po chybě nezobrazuje předchozí data, po logoutu maže cache a soukromé API zůstává no-store. Po místní změně historie/metadat/grantů se invaliduje i analytická cache; ostatní okna znovu ověřují při focusu a po 30 s. Již zobrazené údaje nelze zpětně odvolat. Testy pokrývají konzistenci snapshotu během zápisu, souběžné pořadí, tvorbu proti odebrání grantu, IDOR, omezenou session a redundantní granty. Konkrétní výsledky a Docker omezení viz PHASE_4.md.

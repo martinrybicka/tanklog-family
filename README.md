@@ -4,13 +4,13 @@
 
 ## Aktuální stav
 
-**Implementována fáze 3 – tankování, účtenky, historie a XLSX (2. 11. 2026).** Přesné částky s Decimal, potvrzovaná varování, pořadí dne, mezery v evidenci, autor/plátce, ochrana opakovaného vytvoření, soukromé JPEG/PNG v PostgreSQL, responzivní historie s filtry a typovaný export celého výběru. Navazuje na účty, vozidla, sdílení a převody z fází 1–2. Jeden origin a API pod `/api/v1/`.
+**Implementována fáze 4 – spotřeba, intervalové podklady a dashboard (2. 11. 2026).** Čistý Decimal výpočet plná–plná, vážené součty podle paliv, pokrytí a důvody vyřazení, porovnání normy, kalendářní období a grafy s tabulkovými podklady. Navazuje na účty, vozidla, sdílení, tankování, soukromé DB účtenky a XLSX z fází 1–3. Jeden origin a API pod `/api/v1/`.
 
 Podle doplňujícího požadavku jsou **všechna uložená aplikační data v PostgreSQL**. Cookie pouze identifikuje přihlášení; smazání cookies vás odhlásí, ale po přihlášení zůstane profil i nastavení stejné na všech zařízeních. Osobní data ani motiv nejsou v localStorage/IndexedDB. Originály i očištěné náhledy účtenek jsou v DB jako binární obsah. Citlivá konfigurace je v proměnných prostředí. Vzhled je neutrální modrý/šedý/bílý.
 
-Spotřeba, analytický dashboard a OCR se zatím neimplementují. VIN lze zadat ručně; automatické dohledání a požadované ilustrační fotografie modelu patří do fáze 8 podle [návrhu integrací](docs/INTEGRATIONS.md). Fáze 4 čeká na samostatný pokyn.
+OCR se zatím neimplementuje. VIN lze zadat ručně; automatické dohledání a požadované ilustrační fotografie modelu patří do fáze 8 podle [návrhu integrací](docs/INTEGRATIONS.md). Fáze 5 ani další nezačínají bez samostatného pokynu.
 
-**Ověření:** backend a prohlížečové testy běžely lokálně proti skutečnému PostgreSQL. Obě konfigurace Compose byly strojově zkontrolované. Docker daemon zde chybí; kontejnery, jejich restart/persistence a produkční Docker build nebylo možné spustit. Aktuálně prošlo 127 backendových, 17 frontendových a 14 E2E testů. Podrobnosti a omezení jsou v [předání fáze 3](docs/PHASE_3.md), historicky také v [předání fáze 1](docs/PHASE_1.md).
+**Ověření:** backend a prohlížečové testy běží nativně proti skutečnému PostgreSQL. Dev/prod Compose konfigurace prošly strojovou kontrolou. Docker daemon zde chybí; skutečný kontejnerový start, restart/persistence a produkční Docker build nelze ověřit. Přesné výsledky testů, limity a příkazy uvádí [předání fáze 4](docs/PHASE_4.md); historické výsledky zůstávají v předáních fází 1–3.
 
 ## Lokální spuštění přes Docker
 
@@ -57,7 +57,7 @@ Pytest explicitně používá testovací settings a vlastní databázi `test_tan
 
 ## Ruční ověření
 
-1. Přihlaste se prvním ADMIN. Přehled ukazuje stav fáze 3 a odkazy na skutečně dostupné funkce.
+1. Přihlaste se prvním ADMIN. Přehled ukazuje nákupní součty a podložené měření za výchozí měsíc; bez dat vysvětlí nedostatek podkladů.
 2. V Nastavení změňte zobrazované jméno, kontakt a motiv. Uložte, obnovte stránku a ověřte zachování údajů.
 3. Smažte cookies pro localhost; po novém přihlášení zůstanou stejné údaje i motiv. Totéž ověřte v anonymním okně nebo druhém prohlížeči.
 4. V administraci vytvořte USER. Vlastní heslo správce potvrzuje operaci; jednorázové heslo si přečtěte před zavřením dialogu a předejte soukromě.
@@ -89,9 +89,20 @@ Pytest explicitně používá testovací settings a vlastní databázi `test_tan
 7. Jako ADMIN odeberte sdílení. Uživatel po novém načtení neotevře historii ani přímý receipt endpoint, i pokud dané tankování sám vytvořil. Autor/plátce nejsou přístupová oprávnění.
 8. OWNER/ADMIN může se jmenovitým potvrzením smazat tankování i jeho přílohu; audit zůstane. Smažte cookies, přihlaste se na dalším zařízení a ověřte ostatní uložené údaje. Po instalaci Dockeru zopakujte také restart kontejnerů bez mazání volumes.
 
+## Ruční ověření spotřeby a dashboardu (fáze 4)
+
+1. Přidejte syntetické auto s počátečním tachometrem 0, palivem Benzín a normou 6 l/100 km (WLTP, zdroj „Syntetická norma“).
+2. Vložte 31. 1. 2026 plnou při 10 000 km / 50 l / 2 000 Kč, 1. 2. částečnou při 10 300 km / 20 l / 800 Kč a 5. 2. plnou při 10 600 km / 25 l / 1 000 Kč.
+3. Na detailu auta otevřete Statistiky a spotřeba a vyberte únor 2026. Nákupy jsou 45 l / 1 800 Kč, spotřeba 7,50 l/100 km, nákupní náklad 300 Kč/100 km. Pokrytí 600 km, porovnání normy +1,50 a +25 %.
+4. Rozbalte pokrytí → Prohlédnout intervaly a podklady → hranice intervalu. Kotva 31. 1. je mimo filtr a její 50 l / 2 000 Kč se do měření nezapočte. Zkontrolujte všechny tři řádky.
+5. Přepněte vlastní rozsah jen 1. 2.: nákup 20 l zůstane, spotřeba je Nedostatek dat. Šipky posunou stejně dlouhý rozsah; týden vždy začíná pondělím. Vyzkoušejte měsíce/rok a tabulkové alternativy grafů.
+6. Opravte prostřední nákup na 15 l / 600 Kč. Únorová spotřeba se přepočte na 6,67. Označte u něj mezeru: interval bude vyřazený s důvodem a graf bez platného bodu. Po opravě se výsledek vrátí.
+7. Vyzkoušejte sdílený VIEWER, archivaci a odebrání grantu: archivace zachová statistiky, odebrání přístupu po novém načtení vrátí 404. Různá paliva mají samostatné výsledky. Po smazání cookies nebo na druhém zařízení se čtou stejné podklady z DB.
+8. Po instalaci Dockeru proveďte start/migrace a restart bez mazání volumes; ověřte zachování stejných statistik a příloh. Tento kontejnerový krok zde zůstává neověřený.
+
 ## Nativní náhled na tomto Macu
 
-Docker zde není dostupný, ale již připravený místní náhled běží na `http://127.0.0.1:8080` s oddělenou syntetickou databází `tanklog_e2e`. Není to produkční instalace. Přesné příkazy pro opakované spuštění tohoto existujícího prostředí, testy a ruční Docker akceptaci jsou v [PHASE_3.md](docs/PHASE_3.md). Testovací účet je definovaný pouze v chráněné E2E přípravě; do běžné DB se žádné výchozí heslo nezavádí.
+Docker zde není dostupný, ale již připravený místní náhled běží na `http://127.0.0.1:8080` s oddělenou syntetickou databází `tanklog_e2e`. Není to produkční instalace. Přesné příkazy pro opakované spuštění tohoto existujícího prostředí, testy a ruční Docker akceptaci jsou v [PHASE_4.md](docs/PHASE_4.md). Testovací účet je definovaný pouze v chráněné E2E přípravě; do běžné DB se žádné výchozí heslo nezavádí.
 
 ## Produkční varianta
 
@@ -101,15 +112,16 @@ Docker zde není dostupný, ale již připravený místní náhled běží na `h
 
 | Dokument | Obsah |
 | --- | --- |
+| [Předání fáze 4](docs/PHASE_4.md) | Spotřeba, intervaly, dashboard, ověření a přesné příkazy |
 | [Předání fáze 3](docs/PHASE_3.md) | Tankování/účtenky/XLSX, aktuální ověření a přesné příkazy |
 | [Předání fáze 2](docs/PHASE_2.md) | Vozidla, sdílení, aktuální testy a omezení |
 | [Předání fáze 1](docs/PHASE_1.md) | Funkce, skutečné testy, přesné ověření a omezení |
 | [Specifikace](docs/SPECIFICATION.md) | Pravidla a hranice MVP |
 | [Architektura](docs/ARCHITECTURE.md) | Moduly, Docker, síť a proměnné |
 | [Datový model](docs/DATA_MODEL.md) | Implementované účty i návrh dalších entit |
-| [API](docs/API.md), [OpenAPI](docs/openapi.yaml) | Kontrakt endpointů; OpenAPI generuje aktuální implementace fází 1–3 |
+| [API](docs/API.md), [OpenAPI](docs/openapi.yaml) | Kontrakt endpointů; OpenAPI generuje aktuální implementace fází 1–4 |
 | [UI a UX](docs/UI_UX.md) | Navigace a neutrální designový systém |
-| [Výpočty](docs/CONSUMPTION.md) | Budoucí algoritmus a 34 testovacích specifikací pro fázi 4 |
+| [Výpočty](docs/CONSUMPTION.md) | Implementovaný algoritmus a 34 skutečně testovaných scénářů |
 | [Bezpečnost](docs/SECURITY.md) | Práva, ochrany a budoucí obnova |
 | [Roadmapa](docs/ROADMAP.md), [Rozhodnutí](docs/DECISIONS.md) | Etapy, akceptace a změny návrhu |
 | [Integrace](docs/INTEGRATIONS.md) | Budoucí VIN/OCR |

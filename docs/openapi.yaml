@@ -517,6 +517,71 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: ''
+  /api/v1/dashboard/:
+    get:
+      operationId: dashboard_retrieve
+      parameters:
+      - in: query
+        name: anchor_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: group_by
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          type: string
+          minLength: 1
+        description: |-
+          * `day` - day
+          * `week` - week
+          * `month` - month
+      - in: query
+        name: period
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          - year
+          - custom
+          type: string
+          minLength: 1
+        description: |-
+          * `day` - day
+          * `week` - week
+          * `month` - month
+          * `year` - year
+          * `custom` - custom
+      - in: query
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - dashboard
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOutput'
+          description: ''
   /api/v1/profile/:
     get:
       operationId: profile_retrieve
@@ -1072,6 +1137,171 @@ paths:
               schema:
                 $ref: '#/components/schemas/Vehicle'
           description: ''
+  /api/v1/vehicles/{vehicle_id}/consumption-intervals/:
+    get:
+      operationId: vehicles_consumption_intervals_retrieve
+      parameters:
+      - in: query
+        name: anchor_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: group_by
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          type: string
+          minLength: 1
+        description: |-
+          * `day` - day
+          * `week` - week
+          * `month` - month
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+      - in: query
+        name: period
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          - year
+          - custom
+          type: string
+          minLength: 1
+        description: |-
+          * `day` - day
+          * `week` - week
+          * `month` - month
+          * `year` - year
+          * `custom` - custom
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntervalPageOutput'
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/consumption-intervals/detail/:
+    get:
+      operationId: vehicles_consumption_intervals_detail_retrieve
+      parameters:
+      - in: query
+        name: anchor_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: end_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: group_by
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          type: string
+          minLength: 1
+        description: |-
+          * `day` - day
+          * `week` - week
+          * `month` - month
+      - in: query
+        name: period
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          - year
+          - custom
+          type: string
+          minLength: 1
+        description: |-
+          * `day` - day
+          * `week` - week
+          * `month` - month
+          * `year` - year
+          * `custom` - custom
+      - in: query
+        name: start_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntervalDetailOutput'
+          description: ''
   /api/v1/vehicles/{vehicle_id}/payer-options/:
     get:
       operationId: vehicles_payer_options_retrieve
@@ -1169,6 +1399,77 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Vehicle'
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/statistics/:
+    get:
+      operationId: vehicles_statistics_retrieve
+      parameters:
+      - in: query
+        name: anchor_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: group_by
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          type: string
+          minLength: 1
+        description: |-
+          * `day` - day
+          * `week` - week
+          * `month` - month
+      - in: query
+        name: period
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          - year
+          - custom
+          type: string
+          minLength: 1
+        description: |-
+          * `day` - day
+          * `week` - week
+          * `month` - month
+          * `year` - year
+          * `custom` - custom
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOutput'
           description: ''
 components:
   schemas:
@@ -1303,9 +1604,59 @@ components:
       - action
       - id
       - occurred_at
+    AvailableVehicleOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+      required:
+      - id
+      - name
+      - status
     BlankEnum:
       enum:
       - ''
+    ChartsOutput:
+      type: object
+      properties:
+        purchases:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchasePointOutput'
+        consumption:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntervalOutput'
+      required:
+      - consumption
+      - purchases
+    ComparisonOutput:
+      type: object
+      properties:
+        standard:
+          type: string
+        difference_l_100km:
+          type: string
+        difference_percent:
+          type: string
+        methodology:
+          type: string
+        source:
+          type: string
+        source_note:
+          type: string
+      required:
+      - difference_l_100km
+      - difference_percent
+      - methodology
+      - source
+      - source_note
+      - standard
     ConsumptionModeEnum:
       enum:
       - SINGLE_TANK
@@ -1314,6 +1665,156 @@ components:
       description: |-
         * `SINGLE_TANK` - Jedna nádrž
         * `UNSUPPORTED_MULTI_TANK` - Více nádrží
+    CoverageOutput:
+      type: object
+      properties:
+        valid_intervals:
+          type: integer
+        excluded_intervals:
+          type: integer
+        distance_km:
+          type: integer
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        reasons:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReasonCountOutput'
+        vehicles:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleCoverageOutput'
+      required:
+      - distance_km
+      - end_date
+      - excluded_intervals
+      - reasons
+      - start_date
+      - valid_intervals
+      - vehicles
+    DashboardOutput:
+      type: object
+      properties:
+        period:
+          $ref: '#/components/schemas/PeriodOutput'
+        available_vehicles:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailableVehicleOutput'
+        assignment_rule:
+          type: string
+        explanation:
+          type: string
+        purchases:
+          $ref: '#/components/schemas/PurchaseOutput'
+        consumption_l_100km:
+          type: string
+          nullable: true
+        purchase_cost_czk_100km:
+          type: string
+          nullable: true
+        consumption_by_fuel:
+          type: array
+          items:
+            $ref: '#/components/schemas/FuelOutput'
+        comparison:
+          allOf:
+          - $ref: '#/components/schemas/ComparisonOutput'
+          nullable: true
+        coverage:
+          $ref: '#/components/schemas/CoverageOutput'
+        charts:
+          $ref: '#/components/schemas/ChartsOutput'
+        recent_refuelings:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecentRefuelingOutput'
+      required:
+      - assignment_rule
+      - available_vehicles
+      - charts
+      - comparison
+      - consumption_by_fuel
+      - consumption_l_100km
+      - coverage
+      - explanation
+      - period
+      - purchase_cost_czk_100km
+      - purchases
+      - recent_refuelings
+    EvidenceOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        day_sequence:
+          type: integer
+        liters:
+          type: string
+        total_amount:
+          type: string
+        fuel_type:
+          type: string
+        odometer_km:
+          type: integer
+          nullable: true
+        is_full_tank:
+          type: boolean
+        break_before:
+          type: boolean
+        used_for_totals:
+          type: boolean
+      required:
+      - break_before
+      - date
+      - day_sequence
+      - fuel_type
+      - id
+      - is_full_tank
+      - liters
+      - odometer_km
+      - total_amount
+      - used_for_totals
+    FuelOutput:
+      type: object
+      properties:
+        liters:
+          type: string
+        amount:
+          type: string
+        distance_km:
+          type: integer
+        valid_intervals:
+          type: integer
+        excluded_intervals:
+          type: integer
+        consumption_l_100km:
+          type: string
+          nullable: true
+        purchase_cost_czk_100km:
+          type: string
+          nullable: true
+        fuel_type:
+          type: string
+      required:
+      - amount
+      - consumption_l_100km
+      - distance_km
+      - excluded_intervals
+      - fuel_type
+      - liters
+      - purchase_cost_czk_100km
+      - valid_intervals
     FuelTypeEnum:
       enum:
       - PETROL
@@ -1328,6 +1829,195 @@ components:
         * `LPG` - LPG
         * `ETHANOL` - Ethanol
         * `OTHER_LIQUID` - Jiné kapalné palivo
+    IntervalDetailOutput:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+          format: uuid
+        start_id:
+          type: string
+          format: uuid
+        end_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        start_odometer_km:
+          type: integer
+        end_odometer_km:
+          type: integer
+        liters:
+          type: string
+        amount:
+          type: string
+        distance_km:
+          type: integer
+        fuel_type:
+          type: string
+        status:
+          type: string
+        reasons:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        consumption_l_100km:
+          type: string
+          nullable: true
+        purchase_cost_czk_100km:
+          type: string
+          nullable: true
+        crosses_period_start:
+          type: boolean
+        assignment_rule:
+          type: string
+        explanation:
+          type: string
+        record_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidenceOutput'
+        period:
+          $ref: '#/components/schemas/PeriodOutput'
+        history_revision:
+          type: integer
+      required:
+      - amount
+      - assignment_rule
+      - consumption_l_100km
+      - crosses_period_start
+      - distance_km
+      - end_date
+      - end_id
+      - end_odometer_km
+      - explanation
+      - fuel_type
+      - history_revision
+      - liters
+      - period
+      - purchase_cost_czk_100km
+      - reasons
+      - record_ids
+      - records
+      - start_date
+      - start_id
+      - start_odometer_km
+      - status
+      - vehicle_id
+      - warnings
+    IntervalOutput:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+          format: uuid
+        start_id:
+          type: string
+          format: uuid
+        end_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        start_odometer_km:
+          type: integer
+        end_odometer_km:
+          type: integer
+        liters:
+          type: string
+        amount:
+          type: string
+        distance_km:
+          type: integer
+        fuel_type:
+          type: string
+        status:
+          type: string
+        reasons:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        consumption_l_100km:
+          type: string
+          nullable: true
+        purchase_cost_czk_100km:
+          type: string
+          nullable: true
+        crosses_period_start:
+          type: boolean
+        assignment_rule:
+          type: string
+        explanation:
+          type: string
+        record_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - amount
+      - assignment_rule
+      - consumption_l_100km
+      - crosses_period_start
+      - distance_km
+      - end_date
+      - end_id
+      - end_odometer_km
+      - explanation
+      - fuel_type
+      - liters
+      - purchase_cost_czk_100km
+      - reasons
+      - record_ids
+      - start_date
+      - start_id
+      - start_odometer_km
+      - status
+      - vehicle_id
+      - warnings
+    IntervalPageOutput:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntervalOutput'
+      required:
+      - count
+      - next
+      - previous
+      - results
     Login:
       type: object
       properties:
@@ -1523,6 +2213,80 @@ components:
         standard_source_note:
           type: string
           maxLength: 2000
+    PeriodOutput:
+      type: object
+      properties:
+        period:
+          type: string
+        anchor_date:
+          type: string
+          format: date
+          nullable: true
+        date_from:
+          type: string
+          format: date
+        date_to:
+          type: string
+          format: date
+        timezone:
+          type: string
+        group_by:
+          type: string
+      required:
+      - anchor_date
+      - date_from
+      - date_to
+      - group_by
+      - period
+      - timezone
+    PurchaseOutput:
+      type: object
+      properties:
+        amount:
+          type: string
+        liters:
+          type: string
+        count:
+          type: integer
+        realized_unit_price:
+          type: string
+          nullable: true
+      required:
+      - amount
+      - count
+      - liters
+      - realized_unit_price
+    PurchasePointOutput:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        amount:
+          type: string
+        liters:
+          type: string
+        count:
+          type: integer
+        unit_price:
+          type: string
+          nullable: true
+      required:
+      - amount
+      - count
+      - date
+      - liters
+      - unit_price
+    ReasonCountOutput:
+      type: object
+      properties:
+        code:
+          type: string
+        count:
+          type: integer
+      required:
+      - code
+      - count
     Reauthenticate:
       type: object
       properties:
@@ -1532,6 +2296,47 @@ components:
           maxLength: 256
       required:
       - current_password
+    RecentRefuelingOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        day_sequence:
+          type: integer
+        liters:
+          type: string
+        total_amount:
+          type: string
+        fuel_type:
+          type: string
+        odometer_km:
+          type: integer
+          nullable: true
+        is_full_tank:
+          type: boolean
+        break_before:
+          type: boolean
+        vehicle_id:
+          type: string
+          format: uuid
+        vehicle_name:
+          type: string
+      required:
+      - break_before
+      - date
+      - day_sequence
+      - fuel_type
+      - id
+      - is_full_tank
+      - liters
+      - odometer_km
+      - total_amount
+      - vehicle_id
+      - vehicle_name
     RefuelingInput:
       type: object
       properties:
@@ -1885,6 +2690,63 @@ components:
       description: |-
         * `VIEWER` - Čtenář
         * `CONTRIBUTOR` - Přispěvatel
+    VehicleCoverageOutput:
+      type: object
+      properties:
+        liters:
+          type: string
+        amount:
+          type: string
+        distance_km:
+          type: integer
+        valid_intervals:
+          type: integer
+        excluded_intervals:
+          type: integer
+        consumption_l_100km:
+          type: string
+          nullable: true
+        purchase_cost_czk_100km:
+          type: string
+          nullable: true
+        vehicle_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+        reasons:
+          type: array
+          items:
+            type: string
+        history_revision:
+          type: integer
+        missing_odometer_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        open_record_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - amount
+      - consumption_l_100km
+      - distance_km
+      - excluded_intervals
+      - history_revision
+      - liters
+      - missing_odometer_ids
+      - name
+      - open_record_ids
+      - purchase_cost_czk_100km
+      - reasons
+      - status
+      - valid_intervals
+      - vehicle_id
     VehicleInput:
       type: object
       properties:

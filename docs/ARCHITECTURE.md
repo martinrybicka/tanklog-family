@@ -1,12 +1,12 @@
 # Technická architektura
 
-Architektura, aktualizace 2. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Ve fázi 2 vznikl modul vehicles s modely, selektory, servisní vrstvou, API a UI; ve fázi 3 vznikl refuelings (tankování, přílohy v DB, historie a XLSX). Analytika zůstává neimplementovaná. Aktuální ověření viz PHASE_3.md. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně originálů/náhledů účtenek patří do PostgreSQL.
+Architektura, aktualizace 2. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Ve fázi 2 vznikl modul vehicles s modely, selektory, servisní vrstvou, API a UI; ve fázi 3 vznikl refuelings (tankování, přílohy v DB, historie a XLSX). Fáze 4 přidává analytics, intervalové podklady a dashboard. Aktuální ověření viz PHASE_4.md. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně originálů/náhledů účtenek patří do PostgreSQL.
 
 ## 1. Modulární monolit
 
 Jedno úložiště zdrojů, jedna Django aplikace rozdělená do domén, PostgreSQL a webová vstupní služba. React je SPA. Bez Redis, Celery, message brokeru, mikroservis nebo objektového úložiště, dokud nebude doložená potřeba. Nákupní i měřicí statistiky počítá backend, frontend pouze vykresluje a lokálně navrhuje částku formuláře.
 
-Rozložení repozitáře (vehicles/refuelings jsou implementované; analytics vznikne ve fázi 4):
+Rozložení repozitáře (vehicles/refuelings/analytics jsou implementované):
 
 ```text
 frontend/                 React, komponenty, feature moduly a testy
@@ -26,7 +26,7 @@ compose.prod.yaml         produkční build, Gunicorn, externí síť NPM
 .dockerignore             vyloučení tajných/provozních dat z buildu, od fáze 1
 ```
 
-Django: views/serializers ověřují kontrakt, selektory omezují čtení podle práv, servisní funkce provádějí zápisy v transakcích a audit. `analytics` nepřistupuje k HTTP ani uživatelským sessions; dostává typované a seřazené vstupy. Statistické endpointy nejprve vyberou autorizovaná vozidla. Sdílené autorizační funkce používá i Django admin nebo je zápis mimo servisní vrstvu zakázaný.
+Django: views/serializers ověřují kontrakt, selektory omezují čtení podle práv, servisní funkce provádějí zápisy v transakcích a audit. Čisté jádro `analytics/consumption.py` nepřistupuje k HTTP, ORM ani uživatelským sessions; dostává immutable typované a seřazené vstupy. `analytics/services.py` obsluhuje autorizované načtení a skládání API výsledků. Statistické endpointy nejprve vyberou autorizovaná vozidla. Sdílené autorizační funkce používá i Django admin nebo je zápis mimo servisní vrstvu zakázaný.
 
 React: feature moduly `auth`, `vehicles`, `refuelings`, `dashboard`, `administration`; společný API klient, komponenty, formátování a tokeny vzhledu. TanStack Query pro serverová data a invalidaci po změnách; React Hook Form + Zod pro formuláře. Žádný druhý globální store bez potřeby. Při odhlášení nebo ztrátě session vyčistit query cache a soukromé náhledy.
 
@@ -124,3 +124,11 @@ Pořadí dne má odložitelný unikátní constraint. Vložení/přesun/mazání
 Pillow 13.0.0 validuje formát, MIME, velikost, počet snímků i skutečné dekódování; originál zůstává bytea, náhled JPEG je znovu vytvořený v RGB bez EXIF. DB kontroluje délky binárních polí. Oprávnění/ETag se ověřují před dekódováním a znovu po něm pod zámkem. Pokusy o upload mají DB limit 20/min na účet přes audit a zámek účtu; selhání dekódování čítač nevrátí rollbackem. Nginx navíc omezuje požadavky na receipt 30/min/IP s burst 10 a má samostatný body limit 12 MiB; ostatní API 1 MiB. Skutečný nginx runtime v kontejneru zůstává bez Dockeru neověřený.
 
 XLSX používá openpyxl 3.1.5 a stejný autorizační/filtrovací selektor jako historie. Jeden omezený SQL dotaz načte nejvýše limit+1 řádků bez obrázků, write-only workbook zachová typovaná data a čísla. Textové buňky mají výslovný typ s, nikoli formule; nepovolené XML řídicí znaky se v exportu odstraní. Návrh částky v UI používá BigInt, autoritativní částka je Decimal na serveru.
+
+## 8. Analytika – fáze 4
+
+`consumption.py` obsahuje čisté frozen DTO a Decimal výpočty. `periods.py` řeší kalendářní obchodní datum bez konverze na timestamp. API služba načte celou historii přístupných aut (bez binárních příloh), vytvoří intervaly a teprve potom filtruje podle konce intervalu; nákupy filtruje jejich vlastním datem. Výsledky se neukládají do nové tabulky ani externí cache; zdrojem pravdy zůstává PostgreSQL. Změny historie, metadat a práv invalidují dočasné analytické query na klientu. Při návratu na stránku, focusu a po 30 s se data znovu ověřují.
+
+Statistiky používají vlastní PostgreSQL transakci `REPEATABLE READ READ ONLY`. Uvnitř se znovu načte účet a ověří auth_epoch, aktivita i povinná změna hesla; stejný snapshot zahrnuje oprávnění, metadata a historii. Middleware proběhne před transakcí a případný zápis session po ní. `ATOMIC_REQUESTS` není zapnutý a analytické služby nepřijmou vnější atomic blok, v němž již mohly proběhnout dotazy. Transakční API testy proto používají `django_db(transaction=True)`. Souběžná změna nepromíchá staré intervaly s novými litry ani novou revizí. Již zahájený snapshot může dokončit čtení před odvoláním práv; každý nový snapshot po odvolání přístup zamítne.
+
+Recharts 3.10.1 je přesně uzamčený v npm locku; grafy mají tabulkové alternativy. Převod Decimal na Number je jen pro souřadnice grafů. UI zobrazuje API řetězce s HALF_UP přes BigInt; nepočítá vlastní účetní agregace. Každé auto/palivo má vlastní spotřební řadu, neplatný interval přeruší čáru. Nákupní grafy mají denní/týdenní/měsíční skupiny; do 5 000 skupin, jinak validační chyba vybídne ke zkrácení rozsahu nebo hrubšímu seskupení.

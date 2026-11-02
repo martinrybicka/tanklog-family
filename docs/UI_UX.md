@@ -1,6 +1,6 @@
 # Návrh UI a UX
 
-Návrh obrazovek a designového systému. Implementovány jsou přihlášení, profil, zabezpečení, administrace účtů a od fáze 2 vozidla/sdílení a od fáze 3 také tankování/historie/účtenky/XLSX; analytický dashboard teprve přijde. Dodatek uživatele z 2. 11. 2026 mění vizuální směr na **neutrální modrou, šedou a bílou**, s klidnou typografií a střídmým modrým akcentem. Žádné ilustrační grafy s vymyšlenými statistikami ve skutečném dashboardu.
+Návrh obrazovek a designového systému. Implementovány jsou přihlášení, profil, zabezpečení, administrace účtů a od fáze 2 vozidla/sdílení a od fáze 3 také tankování/historie/účtenky/XLSX; od fáze 4 také analytický dashboard a intervalové podklady. Dodatek uživatele z 2. 11. 2026 mění vizuální směr na **neutrální modrou, šedou a bílou**, s klidnou typografií a střídmým modrým akcentem. Žádné ilustrační grafy s vymyšlenými statistikami ve skutečném dashboardu.
 
 ## 1. Navigace a rozvržení
 
@@ -120,7 +120,7 @@ Každý input má label a čitelnou chybu napojenou přes `aria-describedby`; je
 
 ## 8. Dostupné obrazovky fáze 2
 
-Moje auta nabízí stránkované karty a stav active/archived/all v URL. ADMIN má navíc Všechna vozidla a sdílení (`/administrace/vozidla`). Detail obsahuje technické údaje a skutečnou roli, podle práv editaci a potvrzenou archivaci/obnovení. Historie a spotřeba jsou označené jako budoucí funkce, bez falešných statistik. Administrační sdílení je na detailu vozidla; nabízí hledání/stránkování aktivních účtů, granty, změnu rolí, potvrzené odebrání a převod s aktuálním heslem. Konflikt ETag zachová formulář a nabídne načtení aktuálních údajů; nezapisuje automaticky novou verzí přes cizí změny.
+Moje auta nabízí stránkované karty a stav active/archived/all v URL. ADMIN má navíc Všechna vozidla a sdílení (`/administrace/vozidla`). Detail obsahuje technické údaje a skutečnou roli, podle práv editaci a potvrzenou archivaci/obnovení. Ve fázi 2 byly historie a spotřeba označené jako budoucí funkce, bez falešných statistik; skutečné obrazovky vznikly ve fázích 3–4. Administrační sdílení je na detailu vozidla; nabízí hledání/stránkování aktivních účtů, granty, změnu rolí, potvrzené odebrání a převod s aktuálním heslem. Konflikt ETag zachová formulář a nabídne načtení aktuálních údajů; nezapisuje automaticky novou verzí přes cizí změny.
 
 Karta sdíleného auta rozlišuje Čtenář/Přispěvatel, vlastní auto a administrátorský přístup. Technické údaje a norma jsou v rozbalitelné oblasti formuláře. Podporuje se desetinná čárka; API dostává přesné řetězce s tečkou. Neznámá norma je prázdná/null. Postranní panel se na nižším desktopu posouvá, aby rozšířená navigace nezablokovala odhlášení. Motivy a paleta z fáze 1 zůstávají. Ilustrační fotografie budou až součástí VIN integrace podle INTEGRATIONS.md.
 
@@ -130,4 +130,12 @@ Karta sdíleného auta rozlišuje Čtenář/Přispěvatel, vlastní auto a admin
 
 Po uložení vede detail na samostatný upload. Chyba přílohy jasně říká, že tankování už existuje; opakování jde k témuž záznamu. Detail ukazuje soukromý náhled, stažení originálu a podle práva náhradu/smazání. Historie má desktopovou tabulku a mobilní seznam; filtry a řazení zůstávají v URL při detailu/editaci/mazání. Export používá celý filtr, ne jen stránku. Celodenní pořadí může měnit OWNER/ADMIN, vlastní pozici přispěvatel v editaci. Dialogy vracejí focus na původní ovladač nebo hlavní obsah, pokud byl ovladač odstraněn.
 
-Statistiky/spotřeba nejsou implementované; UI to na detailu auta výslovně uvádí. Plný audit přístupnosti a měření rychlosti podle fáze 5 se nepředstírá jako dokončený.
+Ve fázi 3 byly statistiky ještě budoucí. Fáze 4 nyní přidává na detail auta odkaz Statistiky a spotřeba. Plný audit přístupnosti a měření rychlosti podle fáze 5 se nepředstírá jako dokončený.
+
+## 10. Dostupné obrazovky fáze 4
+
+Přehled `/` zachovává osobní uvítání a nahrazuje původní úvodní karty skutečným dashboardem. Výběr auta (včetně archivovaných) a období je v URL. `/auta/:id/statistiky` má shodné statistiky konkrétního auta, `/auta/:id/intervaly` stránkovanou tabulku a `/auta/:id/intervaly/detail?start_id=…&end_id=…` aktuální podklady. Všechny odkazy zachovávají analytické období; návrat k opravě otevře existující detail tankování.
+
+Výchozí je měsíc podle pražského data serveru. Ovladače mají den/týden/měsíc/rok/vlastní, od–do, explicitní Použít období a šipky předchozí/následující; vlastní rozsah se posouvá stejně dlouhý. Nákupní součty, vážená realizovaná cena a měření jsou oddělené. Chybějící hodnota je text Nedostatek dat, skutečná nulová částka je 0,00. Spotřeba je oddělená podle paliva, srovnání normy má metodiku/zdroj a je jen pro explicitní auto.
+
+Pokrytí ukazuje km, platné/vyřazené intervaly, datumové hranice a rozbalitelné důvody/opravu pro každé auto. Grafy výdajů a vážené ceny mají seskupení den/týden/měsíc a jednotky Kč/Kč/l; spotřební graf je pro každé auto/palivo zvlášť v l/100 km s mezerami místo neplatných bodů. Každý graf má rozbalitelnou tabulku. Tabulka podkladů označuje počáteční kotvu mimo filtr i její nezapočtený nákup. Na mobilu jsou karty pod sebou a široké podklady mají vlastní vodorovný posuv, nikoli přesah stránky. Modrošedá/bílá paleta i DB nastavení motivu zůstávají; kompletní audit přístupnosti patří do fáze 5.

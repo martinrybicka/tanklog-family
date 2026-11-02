@@ -1,6 +1,6 @@
 # Metodika spotřeby a předem připravené testy
 
-Stav: závazný návrh algoritmu a testovacích očekávání pro budoucí implementaci. **Níže uvedené případy nejsou spuštěné jednotkové testy.** Jejich přepis do testů musí předcházet implementaci výpočetní služby ve fázi 4. Tvrdá validace vstupů a práva se testují již ve fázi 3.
+Stav: implementovaná metodika fáze 4. **C01–C34 jsou skutečné spuštěné testy** v backend/tests/test_consumption.py. Byly napsané a spuštěné před implementací služby: první běh skončil na ModuleNotFoundError chybějící apps.analytics.consumption. Poté prošlo všech 35 čistých testů včetně neměnnosti/determinismu. Kalendář a API ověřují test_periods.py a transakční test_analytics.py; souhrn všech výsledků viz PHASE_4.md. Tvrdá validace vstupů a práva z fáze 3 zůstávají zahrnuté.
 
 ## 1. Vstup a předpoklady
 
@@ -13,7 +13,7 @@ Každý vstup obsahuje ID, datum, pořadí, litry Decimal, skutečnou částku D
 - `INVALID_DATA`: známé chyby znemožňují výpočet; UI vysvětlí opravu.
 - `UNSUPPORTED`: nevhodný režim vozidla/jednotek; výdaje zůstávají dostupné.
 
-K dispozici jsou důvody `MISSING_ANCHOR`, `OPEN_INTERVAL`, `ZERO_DISTANCE`, `ODOMETER_DECREASE`, `BELOW_INITIAL_ODOMETER`, `HISTORY_GAP`, `MIXED_FUEL`, `MISSING_ODOMETER`, `UNSUPPORTED_MULTI_TANK` a `INVALID_ORDER`. Více důvodů lze vrátit současně. Chybějící hodnota je JSON `null`, nikdy 0, NaN nebo nekonečno.
+K dispozici jsou důvody `MISSING_ANCHOR`, `OPEN_INTERVAL`, `ZERO_DISTANCE`, `ODOMETER_DECREASE`, `BELOW_INITIAL_ODOMETER`, `HISTORY_GAP`, `MIXED_FUEL`, `MISSING_ODOMETER`, `UNSUPPORTED_MULTI_TANK` a `INVALID_ORDER`. API navíc používá `NO_CLOSED_INTERVAL`, pokud v období nekončí kandidát, ač v jiné části historie existuje. Více důvodů lze vrátit současně. Chybějící hodnota je JSON `null`, nikdy 0, NaN nebo nekonečno.
 
 ## 2. Přesné pravidlo intervalů
 
@@ -100,4 +100,7 @@ Testy navíc ověří determinismus po explicitním seřazení a neměnnost vstu
 
 ## 6. Rozhraní služby pro implementaci
 
-Navržené čisté funkce: `build_intervals(vehicle_context, ordered_records)`, `aggregate_intervals(intervals, period, fuel_group)` a `aggregate_purchases(records, period)`. Návratové typy jsou immutable DTO s Decimal hodnotami, ID použitých záznamů, důvody a pokrytím. Doménové chyby se mapují na stabilní API kódy až v HTTP vrstvě. Finální testy nemají kopírovat algoritmus; používají výše uvedené ručně stanovené očekávané výsledky.
+Implementované čisté funkce: `build_intervals(vehicle_context, ordered_records)`, `aggregate_intervals(intervals, start, end)`, `aggregate_groups(results, start, end)` a `aggregate_purchases(records, start, end)`. Návratové typy jsou immutable DTO s Decimal hodnotami, ID použitých záznamů, důvody a pokrytím. Doménové chyby se mapují na stabilní API kódy až v HTTP vrstvě. Finální testy nemají kopírovat algoritmus; používají výše uvedené ručně stanovené očekávané výsledky.
+
+
+Funkce jsou v `backend/apps/analytics/consumption.py`, kalendář v `periods.py`, autorizovaný snapshot a JSON sestavení v `services.py`. DTO jsou frozen dataclasses s tuple kolekcemi. API zaokrouhluje poměry na 6 míst, částky na 2 a litry na 3; mezivýsledky intervalů se před vážením nezaokrouhlují. UI zobrazuje 2 místa HALF_UP, podklady litrů na 3 místa. Rozsah pro nákupní grafy má nejvýše 5 000 skupin. Konkrétní API kontrakt je v API.md a generovaném openapi.yaml.

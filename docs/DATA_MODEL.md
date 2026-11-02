@@ -146,3 +146,7 @@ Refueling má PROTECT na vozidlo, autora/editora a plátce. ReceiptAttachment m�
 RequestDeduplication má nezávislé result_id UUID bez FK na tankování, aby odstranění výsledku nemazalo ochranu před duplicitou. Klíč je unikátní pro účet, hash ignoruje confirmed_warning_codes, replay platí 24 h. Automatický cleanup zatím není zaveden; klient po expiraci nejprve ověří historii. Zápis výsledku/klíče/auditu je jedna transakce.
 
 Day_sequence má DEFERRABLE DEFERRED UNIQUE. Vložení/úprava/mazání udržuje souvislé pořadí od 1, zvyšuje verzi posunutých záznamů a zachovává autora. Autor není přístupové oprávnění. Převody/granty/archivace používají stejný row lock Vehicle jako tankování. Historický plátce může později ztratit přístup, jeho FK je zachované; nové přiřazení dovoluje jen aktivní účet s přístupem. Žádná automatická zpětná atribuce nebo rozdělení nákladů nevzniká.
+
+## 11. Odvozené podklady fáze 4
+
+Analytika nezavádí nové trvalé entity ani migraci. PostgreSQL zůstává jediným zdrojem historie, profilů a metadat. `Context`, `Record`, `Interval`, `BuildResult`, `Totals`, `Purchases`, `FuelGroup` a `Comparison` jsou pouze immutable paměťové DTO výpočetní vrstvy. Kandidát je určen aktuální dvojicí start_id/end_id, nikoli samostatně uloženým historickým výsledkem; po změně hranic může zaniknout. Revize historie v odpovědi pochází ze stejného snapshotu jako intervaly. Autorizační EXISTS a deduplikace podle vozidla v čisté agregaci brání násobení při sdílení. Prohlížeč neukládá statistiky trvale.

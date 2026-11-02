@@ -190,6 +190,7 @@ export function VehicleEditor() {
               },
             );
             await client.invalidateQueries({ queryKey: ["vehicles"] });
+            await client.invalidateQueries({ queryKey: ["analytics"] });
             client.setQueryData(["vehicle", saved.data.id], saved);
             navigate(`/auta/${saved.data.id}`);
           }}
@@ -282,8 +283,7 @@ export function VehicleDetail() {
         </dl>
         {vehicle.consumption_mode === "UNSUPPORTED_MULTI_TANK" && (
           <p className="alert">
-            Více nádrží / souběžná paliva: budoucí měření spotřeby nebude
-            dostupné.
+            Více nádrží / souběžná paliva: měření spotřeby není dostupné.
           </p>
         )}
       </section>
@@ -305,7 +305,14 @@ export function VehicleDetail() {
             </Link>
           )}
         </div>
-        <p className="muted">Výpočty spotřeby budou dostupné ve fázi 4.</p>
+        <p>
+          <Link
+            className="button button-secondary"
+            to={`/auta/${id}/statistiky`}
+          >
+            Statistiky a spotřeba
+          </Link>
+        </p>
         {vehicle.status === "ARCHIVED" && (
           <p>
             Archivace zachovává historii. Nové tankování bude možné po obnovení
@@ -320,6 +327,7 @@ export function VehicleDetail() {
           onChange={async () => {
             await client.invalidateQueries({ queryKey: ["vehicle", id] });
             await client.invalidateQueries({ queryKey: ["vehicles"] });
+            await client.invalidateQueries({ queryKey: ["analytics"] });
           }}
         />
       )}
@@ -350,6 +358,7 @@ export function VehicleDetail() {
                 { method: "POST", body: {}, etag: query.data.etag! },
               );
               await client.invalidateQueries({ queryKey: ["vehicles"] });
+              await client.invalidateQueries({ queryKey: ["analytics"] });
               await query.refetch();
               setConfirm(false);
             } catch (e) {

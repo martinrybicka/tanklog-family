@@ -1,12 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowRight,
   CarFront,
-  ChevronRight,
-  CircleCheck,
-  Clock3,
   Fuel,
-  Gauge,
   LayoutDashboard,
   LogOut,
   Settings2,
@@ -69,6 +64,16 @@ const RefuelingEditor = lazy(() =>
 );
 const RefuelingDetail = lazy(() =>
   import("./pages/Refuelings").then((m) => ({ default: m.RefuelingDetail })),
+);
+
+const Overview = lazy(() =>
+  import("./pages/Dashboard").then((m) => ({ default: m.Dashboard })),
+);
+const Intervals = lazy(() =>
+  import("./pages/Dashboard").then((m) => ({ default: m.Intervals })),
+);
+const IntervalDetails = lazy(() =>
+  import("./pages/Dashboard").then((m) => ({ default: m.IntervalDetails })),
 );
 
 function Theme({ value }: { value?: string }) {
@@ -222,7 +227,7 @@ function Shell({ user }: { user: Session }) {
           <span>
             TankLog <span className="muted">/</span> Osobní automobilový deník
           </span>
-          <span>Fáze 3 · Tankování a účtenky</span>
+          <span>Fáze 4 · Spotřeba a přehledy</span>
         </footer>
       </div>
       <nav className="mobile-nav" aria-label="Mobilní navigace">
@@ -269,136 +274,6 @@ function Shell({ user }: { user: Session }) {
         </Button>
       </div>
     </div>
-  );
-}
-
-function Overview() {
-  const { data: user } = useSession();
-  return (
-    <>
-      <div className="page-heading">
-        <div>
-          <span className="eyebrow">VÍTEJTE ZPÁTKY</span>
-          <h1>
-            Dobrý den{user?.display_name ? `, ${user.display_name}` : ""}.
-          </h1>
-          <p className="muted">Váš prostor pro každou další cestu.</p>
-        </div>
-        <span className="date-chip">
-          {new Date().toLocaleDateString("cs-CZ", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-            timeZone: "Europe/Prague",
-          })}
-        </span>
-      </div>
-      <section className="welcome-card">
-        <div className="welcome-copy">
-          <span className="welcome-badge">
-            <CircleCheck size={15} /> ZÁKLAD APLIKACE JE PŘIPRAVEN
-          </span>
-          <h2>
-            Všechno začíná
-            <br />
-            dobrým přehledem.
-          </h2>
-          <p>
-            Můžete přidat vlastní auto, upravit jeho technické údaje a prohlížet
-            vozidla sdílená správcem. Také můžete upravit profil
-            {user?.system_role === "ADMIN"
-              ? " nebo pozvat další uživatele"
-              : ""}
-            .
-          </p>
-          <Link
-            className="button button-primary"
-            to={
-              user?.system_role === "ADMIN"
-                ? "/administrace/uzivatele"
-                : "/nastaveni"
-            }
-          >
-            {user?.system_role === "ADMIN"
-              ? "Spravovat uživatele"
-              : "Nastavit profil"}
-            <ArrowRight size={17} />
-          </Link>
-        </div>
-        <div className="welcome-art" aria-hidden="true">
-          <div className="art-ring art-ring-outer" />
-          <div className="art-ring art-ring-inner" />
-          <div className="art-car">
-            <CarFront size={92} strokeWidth={1.2} />
-          </div>
-          <div className="art-check">
-            <ShieldCheck size={28} />
-          </div>
-          <div className="art-fuel">
-            <Fuel size={24} />
-          </div>
-        </div>
-      </section>
-      <div className="section-title">
-        <h2>Váš TankLog, krok za krokem</h2>
-        <span className="muted">Aktuálně fáze 3</span>
-      </div>
-      <div className="stage-grid">
-        <article className="stage-card completed">
-          <span className="icon-tile">
-            <ShieldCheck size={24} />
-          </span>
-          <span className="stage-tag">DOSTUPNÉ NYNÍ</span>
-          <h3>Účet a zabezpečení</h3>
-          <p>Soukromé přihlášení, osobní profil a bezpečná správa přístupu.</p>
-          <Link to="/nastaveni">
-            Otevřít nastavení
-            <ChevronRight size={16} />
-          </Link>
-        </article>
-        <article className="stage-card">
-          <span className="icon-tile neutral">
-            <CarFront size={24} />
-          </span>
-          <span className="stage-tag muted">
-            <Clock3 size={12} /> FÁZE 2
-          </span>
-          <h3>Vaše vozidla</h3>
-          <p>Vlastní auta, technické údaje a sdílení s dalšími uživateli.</p>
-          <Link to="/auta">
-            Otevřít auta
-            <ChevronRight size={16} />
-          </Link>
-        </article>
-        <article className="stage-card">
-          <span className="icon-tile neutral">
-            <Gauge size={24} />
-          </span>
-          <span className="stage-tag muted">
-            <Clock3 size={12} /> FÁZE 3–4
-          </span>
-          <h3>Tankování a přehledy</h3>
-          <p>
-            Tankování, soukromé účtenky a XLSX. Výpočty spotřeby přijdou ve fázi
-            4.
-          </p>
-          <Link to="/tankovani">
-            Otevřít tankování
-            <ChevronRight size={16} />
-          </Link>
-        </article>
-      </div>
-      <div className="privacy-banner">
-        <ShieldCheck size={22} />
-        <div>
-          <strong>Vaše data, vaše pravidla.</strong>
-          <p>
-            TankLog běží na vlastním serveru. Nové uživatele vytváří správce a
-            veřejná registrace je vypnutá.
-          </p>
-        </div>
-      </div>
-    </>
   );
 }
 
@@ -488,6 +363,12 @@ export function App() {
             <Route path="auta" element={<Vehicles />} />
             <Route path="auta/nove" element={<VehicleEditor />} />
             <Route path="auta/:id" element={<VehicleDetail />} />
+            <Route path="auta/:id/statistiky" element={<Overview />} />
+            <Route path="auta/:id/intervaly" element={<Intervals />} />
+            <Route
+              path="auta/:id/intervaly/detail"
+              element={<IntervalDetails />}
+            />
             <Route path="auta/:id/upravit" element={<VehicleEditor />} />
             <Route element={<AdminOnly />}>
               <Route path="administrace/uzivatele" element={<Users />} />

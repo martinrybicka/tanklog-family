@@ -402,6 +402,7 @@ export function RefuelingEditor() {
                 },
               );
               await client.invalidateQueries({ queryKey: ["refuelings"] });
+              await client.invalidateQueries({ queryKey: ["analytics"] });
               await client.invalidateQueries({ queryKey: ["vehicle"] });
               client.setQueryData(["refueling", response.data.id], response);
               navigate(`/tankovani/${response.data.id}?${params}`);
@@ -430,6 +431,7 @@ export function RefuelingDetail() {
   async function reload() {
     await query.refetch();
     await client.invalidateQueries({ queryKey: ["refuelings"] });
+    await client.invalidateQueries({ queryKey: ["analytics"] });
     await client.invalidateQueries({ queryKey: ["vehicle"] });
   }
   if (query.isPending) return <Loading />;
@@ -663,6 +665,7 @@ export function RefuelingDetail() {
                 { method: "DELETE", etag: query.data.etag! },
               );
               await client.invalidateQueries({ queryKey: ["refuelings"] });
+              await client.invalidateQueries({ queryKey: ["analytics"] });
               if (confirm === "record") {
                 client.removeQueries({ queryKey: ["refueling", id] });
                 navigate(`/tankovani?${params}`);

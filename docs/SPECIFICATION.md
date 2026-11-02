@@ -1,6 +1,6 @@
 # Funkční specifikace
 
-Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 3. Účty, vozidla, sdílení, tankování, účtenky a XLSX jsou implementované; další funkce níže jsou stále plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
+Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 4. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 a další jsou stále plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
 
 ## 1. Cíl a hranice první verze
 
@@ -89,4 +89,12 @@ Rozdíl částky proti součinu znamená jakoukoli odchylku od výsledku HALF_UP
 
 Aktivní plátce musí mít přístup k autu (vlastník, grant nebo systémový ADMIN); API volby vracejí jen ID/jméno. Historicky uložený plátce zůstává zachován i po ztrátě svého přístupu či deaktivaci, pokud se nemění. Plátcovství nikdy nezakládá oprávnění. Po smazání tankování se odstraní jeho účtenka, audit a záznam ochrany před duplicitou zůstanou. Expirace klíče po 24 h nedovolí automaticky založit druhý nákup; je nutné ověřit historii.
 
-Výpočet spotřeby/dashboard zatím neexistují. Pro budoucí fázi 4 jsou připravené syntetické historie C05/C06/C14/C24; jejich přijetí API je testované, žádné výsledky spotřeby se ve fázi 3 nevydávají za spočtené.
+Ve fázi 3 byly připravené syntetické historie C05/C06/C14/C24 bez samotného výpočtu. Fáze 4 nyní implementuje celou matici C01–C34, čistou výpočetní službu, statistické API, intervalový detail a dashboard. Skutečné ověření a omezení uvádí PHASE_4.md.
+
+## 10. Upřesnění implementace fáze 4
+
+Dashboard na `/` a statistiky konkrétního auta zahrnují i archivovaná přístupná vozidla. Výchozí období je aktuální pražský měsíc; týden pondělí–neděle, vlastní rozsah včetně obou hranic. Předchozí/následující vlastní rozsah má stejný počet kalendářních dnů. Filtry jsou v URL, nikoli v cookies nebo klientském trvalém úložišti.
+
+Spotřeba a nákupní Kč/100 km jsou vážené z platných intervalů a oddělené podle paliva; při více palivech je společná hodnota null. Nákupní součty zahrnují všechny nákupy skutečně v období, i neúplné. Pokrytí ukazuje platné/vyřazené intervaly, km, hranice, konkrétní důvody a odkazy na opravu. Plná nádrž bez km není hranice, ale její litry zůstávají v širším intervalu. Pokles km zablokuje dotčenou část historie až do opravy včetně již uzavřeného kandidáta podle C30. Norma se porovnává jen pro explicitně vybrané auto, kladnou normu a platné měření odpovídajícího paliva; vždy s metodikou a zdrojem.
+
+Detail intervalu obsahuje všechny záznamy od kotvy po koncovou plnou, i kotvu před filtrem. Výslovně odlišuje nákup kotvy (nezapočtený) od nákupů v `(A, B]`. Po změně hranic původní dvojice ID vrátí 404. Vše se přepočítává nad aktuální DB historií s konzistentním snapshotem, bez uložených duplicit výsledků. Fáze 5/PWA ani VIN/OCR se tím nezahajují.
