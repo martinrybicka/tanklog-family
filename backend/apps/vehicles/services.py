@@ -101,6 +101,8 @@ def update_vehicle(request, vehicle_id, data):
             setattr(vehicle, key, value)
     if changes:
         vehicle.version += 1
+        if set(changes) & {"initial_odometer_km", "fuel_type", "tank_capacity_l", "consumption_mode"}:
+            vehicle.history_revision += 1
         save_vehicle(vehicle)
         audit(request, "vehicle.updated", vehicle, changes)
     return vehicle_for(request.user, vehicle.pk)

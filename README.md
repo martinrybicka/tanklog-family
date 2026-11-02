@@ -4,13 +4,13 @@
 
 ## Aktuální stav
 
-**Implementována fáze 2 – vozidla a sdílení (2. 11. 2026).** Karty, detail, vytvoření a úprava vozidla, technické údaje/norma, archivace/obnovení, administrační sdílení a atomický převod vlastnictví. Navazuje na fázi 1: Přihlášení/odhlášení, vlastní profil a motiv, změna hesla, administrace účtů, jednorázová dočasná hesla, aktivace/deaktivace, ochrana loginu, audit a bezpečné systémové informace. React/TypeScript/Vite + Django/DRF/PostgreSQL, jeden origin a API pod `/api/v1/`.
+**Implementována fáze 3 – tankování, účtenky, historie a XLSX (2. 11. 2026).** Přesné částky s Decimal, potvrzovaná varování, pořadí dne, mezery v evidenci, autor/plátce, ochrana opakovaného vytvoření, soukromé JPEG/PNG v PostgreSQL, responzivní historie s filtry a typovaný export celého výběru. Navazuje na účty, vozidla, sdílení a převody z fází 1–2. Jeden origin a API pod `/api/v1/`.
 
-Podle doplňujícího požadavku jsou **všechna uložená aplikační data v PostgreSQL**. Cookie pouze identifikuje přihlášení; smazání cookies vás odhlásí, ale po přihlášení zůstane profil i nastavení stejné na všech zařízeních. Osobní data ani motiv nejsou v localStorage/IndexedDB. Budoucí účtenky budou také v DB jako binární obsah. Citlivá konfigurace je v proměnných prostředí. Vzhled je neutrální modrý/šedý/bílý.
+Podle doplňujícího požadavku jsou **všechna uložená aplikační data v PostgreSQL**. Cookie pouze identifikuje přihlášení; smazání cookies vás odhlásí, ale po přihlášení zůstane profil i nastavení stejné na všech zařízeních. Osobní data ani motiv nejsou v localStorage/IndexedDB. Originály i očištěné náhledy účtenek jsou v DB jako binární obsah. Citlivá konfigurace je v proměnných prostředí. Vzhled je neutrální modrý/šedý/bílý.
 
-Tankování, spotřeba, exporty a OCR se zatím neimplementují. VIN lze zadat ručně; automatické dohledání a požadované ilustrační fotografie modelu patří do fáze 8 podle [návrhu integrací](docs/INTEGRATIONS.md). Fáze 3 čeká na samostatný pokyn.
+Spotřeba, analytický dashboard a OCR se zatím neimplementují. VIN lze zadat ručně; automatické dohledání a požadované ilustrační fotografie modelu patří do fáze 8 podle [návrhu integrací](docs/INTEGRATIONS.md). Fáze 4 čeká na samostatný pokyn.
 
-**Ověření:** backend a prohlížečové testy běžely lokálně proti skutečnému PostgreSQL. Obě konfigurace Compose byly strojově zkontrolované. Docker daemon zde chybí; kontejnery, jejich restart/persistence a produkční Docker build nebylo možné spustit. Aktuálně prošlo 75 backendových, 13 frontendových a 10 E2E testů. Podrobnosti a omezení jsou v [předání fáze 2](docs/PHASE_2.md), historicky také v [předání fáze 1](docs/PHASE_1.md).
+**Ověření:** backend a prohlížečové testy běžely lokálně proti skutečnému PostgreSQL. Obě konfigurace Compose byly strojově zkontrolované. Docker daemon zde chybí; kontejnery, jejich restart/persistence a produkční Docker build nebylo možné spustit. Aktuálně prošlo 127 backendových, 17 frontendových a 14 E2E testů. Podrobnosti a omezení jsou v [předání fáze 3](docs/PHASE_3.md), historicky také v [předání fáze 1](docs/PHASE_1.md).
 
 ## Lokální spuštění přes Docker
 
@@ -57,7 +57,7 @@ Pytest explicitně používá testovací settings a vlastní databázi `test_tan
 
 ## Ruční ověření
 
-1. Přihlaste se prvním ADMIN. Přehled ukazuje stav fáze 2 a odkazy na skutečně dostupné funkce.
+1. Přihlaste se prvním ADMIN. Přehled ukazuje stav fáze 3 a odkazy na skutečně dostupné funkce.
 2. V Nastavení změňte zobrazované jméno, kontakt a motiv. Uložte, obnovte stránku a ověřte zachování údajů.
 3. Smažte cookies pro localhost; po novém přihlášení zůstanou stejné údaje i motiv. Totéž ověřte v anonymním okně nebo druhém prohlížeči.
 4. V administraci vytvořte USER. Vlastní heslo správce potvrzuje operaci; jednorázové heslo si přečtěte před zavřením dialogu a předejte soukromě.
@@ -72,15 +72,26 @@ Pytest explicitně používá testovací settings a vlastní databázi `test_tan
 2. Ověřte detail, upravte RZ a normu. Smažte cookies a přihlaste se znovu nebo z dalšího zařízení: auto i uložené údaje zůstávají.
 3. Archivujte auto, přepněte seznam na Archivovaná a auto obnovte. Data se neodstraňují.
 4. Jako ADMIN otevřete Vozidla a sdílení → detail téhož auta. Přidejte aktivního uživatele jako Čtenář a jiného jako Přispěvatel. Hledání i stránkování výběru účtů jsou dostupné pouze ADMIN.
-5. V oddělených prohlížečích ověřte sdílenou kartu a správnou roli. VIEWER ani CONTRIBUTOR nemohou měnit metadata/archivovat/sdílet; funkce tankování se přidají teprve ve fázi 3.
+5. V oddělených prohlížečích ověřte sdílenou kartu a správnou roli. VIEWER ani CONTRIBUTOR nemohou měnit metadata/archivovat/sdílet; CONTRIBUTOR může přidávat a upravovat vlastní aktivní tankování, VIEWER pouze čte.
 6. ADMIN převede vlastnictví s potvrzením vlastního hesla. Výslovně zvolí odebrání přístupu starému vlastníkovi nebo nový grant; nový vlastník už nemá samostatný grant. Systémový ADMIN má vždy globální přístup.
 7. ADMIN odebere grant. Při novém načtení už daný USER nevidí kartu ani detail (API vrátí 404); dříve doručená data nelze zpětně odvolat.
 8. Ve dvou oknech otevřete editaci. Po uložení v prvním druhé oznámí konflikt a nabídne nové načtení. Stejně je chráněný rozpracovaný převod po změně sdílení.
 9. Zkontrolujte audit vytvoření/úprav/archivace/grantů/převodu. Po restartu Dockeru mají údaje zůstat; tento kontejnerový krok zde není ověřený.
 
+## Ruční ověření tankování a účtenek (fáze 3)
+
+1. Z karty/detailu aktivního auta zvolte Zadat tankování. Dnešní datum je podle Prahy, plná nádrž je výchozí ne. Zadejte například 12,345 l, cenu 38,90 a přesnou částku 480,00 Kč: částka zůstane 480,00, návrh je 480,22.
+2. Nechte tachometr prázdný, potvrďte upozornění. Ověřte autora, skutečnou částku, zdroj částky a upozornění v detailu. Zkuste nulu jen s výslovnou nulovou částkou; neplatná přesnost nebo budoucí datum se neuloží.
+3. V detailu nahrajte syntetickou JPEG/PNG účtenku. Zkuste nejprve vadný soubor: tankování zůstane existovat, lze nahrát správný obrázek k témuž záznamu. Prohlédněte náhled, stáhněte originál, případně nahraďte/smažte jen účtenku.
+4. V historii filtrujte auto, datumy, palivo, stanici a hledání. Exportujte XLSX; obsahuje všechny vyfiltrované řádky, ne jen stránku. Prázdný výběr vrátí sešit se záhlavím, nad 50 000 řádků API vyžádá užší filtr.
+5. Vložte další záznam ve stejném dni, potvrďte/změňte pozici. OWNER/ADMIN může na detailu uložit celé pořadí dne. Stará editace po přesunu vrátí konflikt místo přepsání změn.
+6. Jako CONTRIBUTOR ověřte úpravu a účtenku vlastního aktivního tankování; cizí neupraví a vlastní nesmaže. VIEWER jen čte. Po archivaci opravuje historii jen OWNER/ADMIN; nové tankování není povolené nikomu.
+7. Jako ADMIN odeberte sdílení. Uživatel po novém načtení neotevře historii ani přímý receipt endpoint, i pokud dané tankování sám vytvořil. Autor/plátce nejsou přístupová oprávnění.
+8. OWNER/ADMIN může se jmenovitým potvrzením smazat tankování i jeho přílohu; audit zůstane. Smažte cookies, přihlaste se na dalším zařízení a ověřte ostatní uložené údaje. Po instalaci Dockeru zopakujte také restart kontejnerů bez mazání volumes.
+
 ## Nativní náhled na tomto Macu
 
-Docker zde není dostupný, ale již připravený místní náhled běží na `http://127.0.0.1:8080` s oddělenou syntetickou databází `tanklog_e2e`. Není to produkční instalace. Přesné příkazy pro opakované spuštění tohoto existujícího prostředí, testy a ruční Docker akceptaci jsou v [PHASE_2.md](docs/PHASE_2.md). Testovací účet je definovaný pouze v chráněné E2E přípravě; do běžné DB se žádné výchozí heslo nezavádí.
+Docker zde není dostupný, ale již připravený místní náhled běží na `http://127.0.0.1:8080` s oddělenou syntetickou databází `tanklog_e2e`. Není to produkční instalace. Přesné příkazy pro opakované spuštění tohoto existujícího prostředí, testy a ruční Docker akceptaci jsou v [PHASE_3.md](docs/PHASE_3.md). Testovací účet je definovaný pouze v chráněné E2E přípravě; do běžné DB se žádné výchozí heslo nezavádí.
 
 ## Produkční varianta
 
@@ -90,12 +101,13 @@ Docker zde není dostupný, ale již připravený místní náhled běží na `h
 
 | Dokument | Obsah |
 | --- | --- |
+| [Předání fáze 3](docs/PHASE_3.md) | Tankování/účtenky/XLSX, aktuální ověření a přesné příkazy |
 | [Předání fáze 2](docs/PHASE_2.md) | Vozidla, sdílení, aktuální testy a omezení |
 | [Předání fáze 1](docs/PHASE_1.md) | Funkce, skutečné testy, přesné ověření a omezení |
 | [Specifikace](docs/SPECIFICATION.md) | Pravidla a hranice MVP |
 | [Architektura](docs/ARCHITECTURE.md) | Moduly, Docker, síť a proměnné |
 | [Datový model](docs/DATA_MODEL.md) | Implementované účty i návrh dalších entit |
-| [API](docs/API.md), [OpenAPI](docs/openapi.yaml) | Kontrakt endpointů; OpenAPI generuje aktuální implementace fází 1–2 |
+| [API](docs/API.md), [OpenAPI](docs/openapi.yaml) | Kontrakt endpointů; OpenAPI generuje aktuální implementace fází 1–3 |
 | [UI a UX](docs/UI_UX.md) | Navigace a neutrální designový systém |
 | [Výpočty](docs/CONSUMPTION.md) | Budoucí algoritmus a 34 testovacích specifikací pro fázi 4 |
 | [Bezpečnost](docs/SECURITY.md) | Práva, ochrany a budoucí obnova |

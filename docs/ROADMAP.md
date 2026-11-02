@@ -2,7 +2,7 @@
 
 Každá fáze má vlastní pokyn k zahájení. Lokální dokončení aplikace a testů předchází GitHubu; GitHub a produkce mají další výslovné schválení. Odhady termínů a kapacity nejsou součást zadání.
 
-Aktuálně uživatel výslovně povolil fázi 2 (po upřesnění rozporu v zadání). Implementaci a výsledky ověření sleduje PHASE_2.md; historické předání fáze 1 zůstává v PHASE_1.md. Dodatek během této fáze ukládá všechna trvalá aplikační data do DB, vyžaduje zachování profilu a motivu po smazání cookies / na dalším zařízení a neutrální modrošedý/bílý vzhled. Funkce dalších etap se nepřidávají.
+Aktuálně uživatel výslovně povolil fázi 3. Implementaci a výsledky ověření sleduje PHASE_3.md; historická předání fází 1–2 zůstávají v PHASE_1.md a PHASE_2.md. Dodatek z fáze 1 ukládá všechna trvalá aplikační data do DB, vyžaduje zachování profilu a motivu po smazání cookies / na dalším zařízení a neutrální modrošedý/bílý vzhled. Funkce dalších etap se nepřidávají.
 
 ## Fáze 0 – návrh a dokumentace
 

@@ -92,7 +92,8 @@ def test_openapi_is_authenticated_json_and_describes_current_phase(admin_client)
     paths = response.json()["paths"]
     assert "/api/v1/auth/login/" in paths and "/api/v1/admin/users/" in paths
     assert "/api/v1/vehicles/" in paths and "/api/v1/admin/vehicles/" in paths
-    assert all("refuelings" not in path and "dashboard" not in path for path in paths)
+    assert "/api/v1/refuelings/" in paths and "/api/v1/refuelings/export/" in paths
+    assert all("dashboard" not in path and "statistics" not in path for path in paths)
 
 
 @pytest.mark.django_db

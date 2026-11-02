@@ -40,6 +40,7 @@ def exception_handler(exc, context):
         else "Zkontrolujte zadané údaje."
     )
     response.data = error_body(code, message, context["request"], fields)
+    response.data["error"].update(getattr(exc, "extra", {}))
     return response
 
 

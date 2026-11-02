@@ -61,6 +61,16 @@ const VehicleDetail = lazy(() =>
   import("./pages/Vehicles").then((m) => ({ default: m.VehicleDetail })),
 );
 
+const Refuelings = lazy(() =>
+  import("./pages/Refuelings").then((m) => ({ default: m.Refuelings })),
+);
+const RefuelingEditor = lazy(() =>
+  import("./pages/Refuelings").then((m) => ({ default: m.RefuelingEditor })),
+);
+const RefuelingDetail = lazy(() =>
+  import("./pages/Refuelings").then((m) => ({ default: m.RefuelingDetail })),
+);
+
 function Theme({ value }: { value?: string }) {
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -117,10 +127,10 @@ function Shell({ user }: { user: Session }) {
             <CarFront size={20} />
             Moje auta
           </NavLink>
-          <span className="nav-disabled" title="Tankování přidáme ve fázi 3.">
+          <NavLink to="/tankovani">
             <Fuel size={20} />
-            Tankování<span className="soon">Brzy</span>
-          </span>
+            Tankování
+          </NavLink>
           <NavLink to="/nastaveni">
             <Settings2 size={20} />
             Nastavení
@@ -198,16 +208,13 @@ function Shell({ user }: { user: Session }) {
               <span />
               Lokální aplikace
             </span>
-            <Button
-              disabled
-              title="Zadávání tankování bude dostupné ve fázi 3."
-            >
+            <Link className="button button-primary" to="/tankovani/nove">
               <Plus size={17} />
               Zadat tankování
-            </Button>
+            </Link>
           </div>
         </header>
-        <main id="main-content" className="main-content">
+        <main id="main-content" className="main-content" tabIndex={-1}>
           <ErrorMessage>{error}</ErrorMessage>
           <Outlet />
         </main>
@@ -215,7 +222,7 @@ function Shell({ user }: { user: Session }) {
           <span>
             TankLog <span className="muted">/</span> Osobní automobilový deník
           </span>
-          <span>Fáze 2 · Vozidla a sdílení</span>
+          <span>Fáze 3 · Tankování a účtenky</span>
         </footer>
       </div>
       <nav className="mobile-nav" aria-label="Mobilní navigace">
@@ -227,10 +234,10 @@ function Shell({ user }: { user: Session }) {
           <CarFront size={19} />
           Auta
         </NavLink>
-        <span aria-disabled="true">
+        <NavLink to="/tankovani">
           <Fuel size={19} />
-          Tankování · brzy
-        </span>
+          Tankování
+        </NavLink>
         <NavLink to="/nastaveni">
           <Settings2 size={19} />
           Nastavení
@@ -334,7 +341,7 @@ function Overview() {
       </section>
       <div className="section-title">
         <h2>Váš TankLog, krok za krokem</h2>
-        <span className="muted">Aktuálně fáze 2</span>
+        <span className="muted">Aktuálně fáze 3</span>
       </div>
       <div className="stage-grid">
         <article className="stage-card completed">
@@ -371,8 +378,14 @@ function Overview() {
             <Clock3 size={12} /> FÁZE 3–4
           </span>
           <h3>Tankování a přehledy</h3>
-          <p>Účtenky, výdaje a spotřeba vypočtená z vaší historie.</p>
-          <span className="coming-label">Připravujeme</span>
+          <p>
+            Tankování, soukromé účtenky a XLSX. Výpočty spotřeby přijdou ve fázi
+            4.
+          </p>
+          <Link to="/tankovani">
+            Otevřít tankování
+            <ChevronRight size={16} />
+          </Link>
         </article>
       </div>
       <div className="privacy-banner">
@@ -468,6 +481,10 @@ export function App() {
           <Route element={<Protected />}>
             <Route index element={<Overview />} />
             <Route path="nastaveni" element={<Profile />} />
+            <Route path="tankovani" element={<Refuelings />} />
+            <Route path="tankovani/nove" element={<RefuelingEditor />} />
+            <Route path="tankovani/:id" element={<RefuelingDetail />} />
+            <Route path="tankovani/:id/upravit" element={<RefuelingEditor />} />
             <Route path="auta" element={<Vehicles />} />
             <Route path="auta/nove" element={<VehicleEditor />} />
             <Route path="auta/:id" element={<VehicleDetail />} />

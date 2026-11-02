@@ -1,4 +1,5 @@
 // Komponenty vycházejí z přístupu shadcn/ui (MIT); dialog používá Radix pro správu focusu.
+import { useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
@@ -102,11 +103,33 @@ export function Modal({
   description: string;
   children: ReactNode;
 }) {
+  const returnFocus = useRef<HTMLElement | null>(null);
   return (
     <Dialog.Root open={open} onOpenChange={(value) => !value && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="modal-overlay" />
-        <Dialog.Content className="modal">
+        <Dialog.Content
+          className="modal"
+          onOpenAutoFocus={() => {
+            returnFocus.current =
+              document.activeElement instanceof HTMLElement &&
+              document.activeElement !== document.body &&
+              !document.activeElement.closest('[role="dialog"]')
+                ? document.activeElement
+                : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            // Po uvolnění Radix focus trapu může spouštěč po úspěšné akci již chybět.
+            requestAnimationFrame(() => {
+              if (document.querySelector('[role="dialog"]')) return;
+              const target = returnFocus.current?.isConnected
+                ? returnFocus.current
+                : document.getElementById("main-content");
+              target?.focus({ preventScroll: true });
+            });
+          }}
+        >
           <Dialog.Title className="modal-title">{title}</Dialog.Title>
           <Dialog.Description className="muted">
             {description}

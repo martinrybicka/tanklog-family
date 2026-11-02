@@ -1,6 +1,6 @@
 # Oprávnění, bezpečnost a provozní integrita
 
-Stav: bezpečnostní požadavky průběžně implementované po etapách. Ve fázi 1 se testují účty, sessions, CSRF, reset, audit a produkční konfigurace. Fáze 2 přidává objektová práva vozidel, granty, převody a negativní/souběžné testy. Výsledky a výjimky ověření viz PHASE_1.md a PHASE_2.md; nejde o obecnou bezpečnostní certifikaci aplikace.
+Stav: bezpečnostní požadavky průběžně implementované po etapách. Ve fázi 1 se testují účty, sessions, CSRF, reset, audit a produkční konfigurace. Fáze 2 přidává objektová práva vozidel, granty, převody a negativní/souběžné testy. Fáze 3 přidává autorizační kontroly historie/exportů/účtenek, validaci obrázků a auditovaný DB limit uploadů. Výsledky a výjimky ověření viz PHASE_1.md, PHASE_2.md a PHASE_3.md; nejde o obecnou bezpečnostní certifikaci aplikace.
 
 ## 1. Matice práv
 
@@ -101,3 +101,11 @@ Bez výslovného schválení se nemažou DB ani volumes, nespouští `docker com
 ## 8. Povinné negativní testy
 
 Nepřihlášený a cizí USER nesmí přes známé UUID číst/měnit auto, tankování, účtenku, export, agregaci nebo interval. VIEWER nesmí nic zapisovat, CONTRIBUTOR nesmí cizí úpravu ani smazat vlastní tankování. Zkusit změnu FK v těle i nesoulad ID v URL. Ověřit odebrání grantu po předchozím úspěšném downloadu, archivované auto, deaktivaci s platnou cookie, expirované a souběžně použité dočasné heslo, omezeného ADMIN, chybějící CSRF na loginu, zneužití forwarded hlaviček, formula injection a přímou URL interního souboru. Podrobné rozdělení do etap je v [ROADMAP.md](ROADMAP.md).
+
+## 9. Ověření a omezení fáze 3
+
+Negativní testy pokrývají cizí URL/FK, VIEWER/CONTRIBUTOR/OWNER/ADMIN, vlastní/cizí/archivované záznamy, odebrání přístupu i k původně vlastnímu záznamu a účtence, CSRF převzaté z výchozí autentizace, ETag a opakované klíče. Upload ověřuje MIME podle dekódovaných dat, poškození, animaci, velikost/rozměry a bezpečný název, znovu kóduje náhled bez EXIF. Obrázky/export nemají veřejnou URL a API odpovědi jsou no-store. Již doručené obrázky/soubory nelze zpětně odvolat.
+
+Pokus o upload se po ověření základních práv/ETag auditně zaznamená před dekódováním, mimo transakci samotné náhrady. Limit 20/min na účet se pod zámkem účtu neztratí rollbackem poškozeného souboru. Nginx doplňuje 30/min/IP a body limit 12 MiB pro receipt; binární limit serveru zůstává 10 MiB. Selhání náhrady ponechá původní obrázek i verzi. Export vynucuje textový typ včetně prefixů whitespace/=/+/-/@ a odstraňuje XML-nepřípustné řídicí znaky pouze ve výstupu.
+
+Docker/produkční nginx runtime ani skutečná obnova zálohy se bez místního daemonu neověřily. Úspěšné nativní testy tyto limity nenahrazují. Před veřejným provozem nadále platí oddělení aplikační DB role a fáze 5/7.

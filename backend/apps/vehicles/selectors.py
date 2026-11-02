@@ -33,4 +33,6 @@ def permissions(user, vehicle):
         "archive": manage and vehicle.status == "ACTIVE",
         "restore": manage and vehicle.status == "ARCHIVED",
         "manage_access": user.system_role == "ADMIN",
+        "create_refueling": vehicle.status == "ACTIVE"
+        and effective_role(user, vehicle) in ["ADMIN", "OWNER", "CONTRIBUTOR"],
     }

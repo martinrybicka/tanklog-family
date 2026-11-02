@@ -53,6 +53,14 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
       <Link className="button button-secondary" to={`/auta/${vehicle.id}`}>
         Detail auta
       </Link>
+      {vehicle.permissions?.create_refueling && (
+        <Link
+          className="button button-primary"
+          to={`/tankovani/nove?vehicle_id=${vehicle.id}`}
+        >
+          Zadat tankování
+        </Link>
+      )}
     </article>
   );
 }
@@ -281,9 +289,23 @@ export function VehicleDetail() {
       </section>
       <section className="panel">
         <h2>Historie a spotřeba</h2>
-        <p className="muted">
-          Evidence tankování bude dostupná ve fázi 3, výpočty ve fázi 4.
-        </p>
+        <div className="vehicle-actions">
+          <Link
+            className="button button-secondary"
+            to={`/tankovani?vehicle_id=${id}`}
+          >
+            Historie tankování
+          </Link>
+          {vehicle.permissions.create_refueling && (
+            <Link
+              className="button button-primary"
+              to={`/tankovani/nove?vehicle_id=${id}`}
+            >
+              Zadat tankování
+            </Link>
+          )}
+        </div>
+        <p className="muted">Výpočty spotřeby budou dostupné ve fázi 4.</p>
         {vehicle.status === "ARCHIVED" && (
           <p>
             Archivace zachovává historii. Nové tankování bude možné po obnovení

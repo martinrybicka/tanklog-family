@@ -1,12 +1,12 @@
 # Technická architektura
 
-Architektura, aktualizace 2. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Ve fázi 2 vznikl modul vehicles s modely, selektory, servisní vrstvou, API a UI; tankování a analytika zůstávají neimplementované. Ověření viz PHASE_2.md. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně budoucích příloh patří do PostgreSQL.
+Architektura, aktualizace 2. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Ve fázi 2 vznikl modul vehicles s modely, selektory, servisní vrstvou, API a UI; ve fázi 3 vznikl refuelings (tankování, přílohy v DB, historie a XLSX). Analytika zůstává neimplementovaná. Aktuální ověření viz PHASE_3.md. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně originálů/náhledů účtenek patří do PostgreSQL.
 
 ## 1. Modulární monolit
 
 Jedno úložiště zdrojů, jedna Django aplikace rozdělená do domén, PostgreSQL a webová vstupní služba. React je SPA. Bez Redis, Celery, message brokeru, mikroservis nebo objektového úložiště, dokud nebude doložená potřeba. Nákupní i měřicí statistiky počítá backend, frontend pouze vykresluje a lokálně navrhuje částku formuláře.
 
-Rozložení repozitáře (vehicles je implementované; refuelings/analytics vzniknou v dalších etapách):
+Rozložení repozitáře (vehicles/refuelings jsou implementované; analytics vznikne ve fázi 4):
 
 ```text
 frontend/                 React, komponenty, feature moduly a testy
@@ -103,7 +103,7 @@ Jazyk cs, `TIME_ZONE=Europe/Prague`, `USE_TZ=True`. Technické timestampy jsou U
 
 Změna vozidla nebo jeho historie uzamkne řádek vozidla; zápis, revize a audit proběhnou v jedné DB transakci. Klient posílá očekávanou revizi proti ztraceným úpravám. Po mutaci se invalidují dotčené query; měřicí intervaly se pro MVP dopočítávají nad celou historií vozidla, až potom se filtrují podle koncového dne. Bez uložených duplicitních intervalů a bez cache, která by mohla přežít změnu oprávnění.
 
-Budoucí upload se nejprve ověří v omezené pracovní paměti nebo dočasném privátním prostoru. Originál, očištěný náhled a metadata se pak uloží jako bytea v jedné DB transakci s auditem. Žádný trvalý soubor není mimo PostgreSQL. Požadavek uživatele tím nahrazuje původně navržený privátní filesystem; binární data a větší DB zálohy jsou vědomý kompromis pro tuto malou self-hosted aplikaci. Limity a ochranu popisuje [SECURITY.md](SECURITY.md).
+Upload se nejprve ověří v omezené pracovní paměti nebo dočasném privátním prostoru. Originál, očištěný náhled a metadata se pak uloží jako bytea v jedné DB transakci s auditem. Žádný trvalý soubor není mimo PostgreSQL. Požadavek uživatele tím nahrazuje původně navržený privátní filesystem; binární data a větší DB zálohy jsou vědomý kompromis pro tuto malou self-hosted aplikaci. Limity a ochranu popisuje [SECURITY.md](SECURITY.md).
 
 Pro čtení příloh Django nejprve zkontroluje aktuální práva a vrátí omezený binární obsah z DB s bezpečnými hlavičkami. Žádný veřejný `/media/` alias ani X-Accel-Redirect na filesystem. Export openpyxl vytváří přímo backend; limity chrání paměť bez zavádění fronty. V prohlížeči je query cache jen v paměti; po odhlášení nebo zániku session se čistí. Uložené údaje a motiv se vždy znovu načtou z DB podle uživatele.
 
@@ -112,3 +112,15 @@ Pro čtení příloh Django nejprve zkontroluje aktuální práva a vrátí omez
 Všechny zápisy vehicles nejprve zamknou relevantní účty ve stabilním pořadí UUID (aktéra a případný cílový účet), ověří aktuální session/aktivaci/roli, pak zamknou řádek Vehicle a znovu vyhodnotí přístup. Po zámku vozidla se již další účty nezamykají. Tím nevzniká opačné pořadí vůči službám accounts. Sdílení i převody používají shodný zámek vozidla; každý zásah do grantů zvýší i verzi vozidla, takže rozpracovaný převod s původním ETag skončí 412. Změna role/odebrání grantu navíc kontroluje vlastní ETag grantu. Převod potvrzuje heslo před transakcí podle ADR-028.
 
 Čtecí selektor používá EXISTS a skalární poddotaz role, nikoli násobící JOIN. Detail i seznam vracejí pouze aktuálně dostupná auta. Administrační seznam grantů čte vlastníka i granty v transakci pod zámkem vozidla. Odpovědi permissions nyní obsahují pouze edit/archive/restore/manage_access; práva k tankování se přidají v příslušné etapě. Nevznikl Django admin se zapisovacím rozhraním mimo služby.
+
+## 8. Zápisy a soukromé soubory fáze 3
+
+Refuelings sdílí zámek vozidla se správou grantů/převody/archivací. Relevantní účty se zamykají před vozidlem; před výběrem plátce se kontroluje dostupnost vozidla i povolených plátců, aby tělo požadavku neprozrazovalo cizí účty. Výběr je znovu ověřen pod zámkem. Omezené/deaktivované sessions se řídí stávající autentizací a znovu se kontrolují při zápisu.
+
+Create používá klientský Idempotency-Key UUID a DB RequestDeduplication se sémanticky normalizovanými skalárními hodnotami serializeru, bez transportního seznamu potvrzení. Zámek aktéra serializuje i současné požadavky se stejným klíčem do různých aut. Výsledek se potvrzuje v téže transakci. Opakování vyžaduje aktuální čtecí přístup, stejný payload a neexpirovaný klíč; odstraněný/nepřístupný výsledek nikdy nevytváří znovu. Záznamy klíčů se zatím automaticky nepročišťují: 24 h je platnost replay, nikoli svolení ke smazání ochrany proti duplicitě.
+
+Pořadí dne má odložitelný unikátní constraint. Vložení/přesun/mazání přečísluje dotčené dny v jedné transakci. Posunuté záznamy mají vyšší verzi a zaznamenaného editora; celý den má vlastní ETag historie. History_revision roste při každé změně tankování, přílohy a pořadí i při změně metadat vozidla ovlivňujících kvalitu historie. Metadatový ETag vozidla se při tankování nepřepisuje.
+
+Pillow 13.0.0 validuje formát, MIME, velikost, počet snímků i skutečné dekódování; originál zůstává bytea, náhled JPEG je znovu vytvořený v RGB bez EXIF. DB kontroluje délky binárních polí. Oprávnění/ETag se ověřují před dekódováním a znovu po něm pod zámkem. Pokusy o upload mají DB limit 20/min na účet přes audit a zámek účtu; selhání dekódování čítač nevrátí rollbackem. Nginx navíc omezuje požadavky na receipt 30/min/IP s burst 10 a má samostatný body limit 12 MiB; ostatní API 1 MiB. Skutečný nginx runtime v kontejneru zůstává bez Dockeru neověřený.
+
+XLSX používá openpyxl 3.1.5 a stejný autorizační/filtrovací selektor jako historie. Jeden omezený SQL dotaz načte nejvýše limit+1 řádků bez obrázků, write-only workbook zachová typovaná data a čísla. Textové buňky mají výslovný typ s, nikoli formule; nepovolené XML řídicí znaky se v exportu odstraní. Návrh částky v UI používá BigInt, autoritativní částka je Decimal na serveru.

@@ -1,6 +1,6 @@
 # Datový model
 
-PostgreSQL/Django. Implementovány jsou User, DB sessions, audit, ochrana přihlášení a od fáze 2 také Vehicle/VehicleAccess; tankování zůstává návrhem. UUID jsou veřejné identifikátory, nikoli bezpečnostní mechanismus. Technické timestampy jsou timezone-aware UTC; obchodní datum je lokální `DATE`. Podle dodatku uživatele z fáze 1 se veškerá uložená aplikační data včetně budoucích příloh nacházejí v DB; prohlížeč není trvalým úložištěm.
+PostgreSQL/Django. Implementovány jsou User, DB sessions, audit, ochrana přihlášení a Vehicle/VehicleAccess a od fáze 3 také Refueling, ReceiptAttachment a RequestDeduplication. UUID jsou veřejné identifikátory, nikoli bezpečnostní mechanismus. Technické timestampy jsou timezone-aware UTC; obchodní datum je lokální `DATE`. Podle dodatku uživatele z fáze 1 se veškerá uložená aplikační data včetně budoucích příloh nacházejí v DB; prohlížeč není trvalým úložištěm.
 
 ## 1. Vztahy
 
@@ -89,7 +89,7 @@ Grant vlastníkovi odmítnout v servisní vrstvě pod zámkem vozidla; cross-tab
 | `is_full_tank` | boolean, výchozí false; žádný odhad podle množství |
 | `break_before` | boolean; od předchozího záznamu je známá mezera v evidenci |
 | `fuel_type` | skutečné palivo, při vytvoření předvyplněno z vozidla |
-| `station_code` | nullable ORLEN / SHELL / MOL / OMV / EUROOIL / TANK_ONO / OTHER |
+| `station_code` | prázdný řetězec nebo ORLEN / SHELL / MOL / OMV / EUROOIL / TANK_ONO / OTHER |
 | `station_custom_name` | max. 120; vyplněné jen při OTHER |
 | `note` | nepovinné, max. 2 000 znaků |
 | `created_by_id`, `updated_by_id` | FK User PROTECT, nastavuje server; původní autor se nemění |
@@ -137,4 +137,12 @@ Statistiky čtou jednu konzistentní DB snapshot transakci, aby nákupní součt
 
 Vehicle/VehicleAccess a UUID vehicle_id v auditu mají verzované migrace. Nevyplněný VIN se normalizuje na NULL, registrační značka na velká písmena a jednotlivé mezery; nepovinné zdroje/poznámky jsou prázdné řetězce. Číselné technické údaje zůstávají Decimal a API vrací desetinné řetězce. Rok má při zápisu dynamickou horní mez aktuální rok v Praze + 1, DB hlídá dolní mez 1886. DB kontroluje také rozsah tachometru, kladné technické hodnoty, konzistenci archivace, role grantů a unikátní VIN/dvojici grantů.
 
-Version vozidla začíná 1, history_revision 0 (historie se implementuje až ve fázi 3). Verze vozidla roste i při změně grantů; verze existujícího grantu při změně jeho role. Veřejný DELETE vozidla není dostupný ani pro auto bez historie; uživatelský postup je archivace. Všechny podporované zápisy jdou přes služby, přímé zápisy modelů jsou vyhrazené migracím a testům. Testy fáze 2 prokazují konzistenci současných entit; ochrana budoucích tankování se doplní s jejich modelem.
+Version vozidla začíná 1, history_revision 0 (od fáze 3 roste s historií). Verze vozidla roste i při změně grantů; verze existujícího grantu při změně jeho role. Veřejný DELETE vozidla není dostupný ani pro auto bez historie; uživatelský postup je archivace. Všechny podporované zápisy jdou přes služby, přímé zápisy modelů jsou vyhrazené migracím a testům. Testy fáze 2 prokazují konzistenci vozidel; fáze 3 přidává tankování a přílohy.
+
+## 10. Implementované entity fáze 3
+
+Refueling má PROTECT na vozidlo, autora/editora a plátce. ReceiptAttachment má OneToOne CASCADE na tankování: autorizované smazání tankování odstraní i binární originál/náhled, audit zůstává. Délky obou binárních polí kontroluje PostgreSQL OCTET_LENGTH (originál >0/≤10 MiB, náhled >0/≤2 MiB); doplňují je kontroly kladných rozměrů a size_bytes. Není storage key ani veřejné media úložiště. SHA-256 se počítá z původních přijatých bajtů; metadata JSON neobsahují obrázky.
+
+RequestDeduplication má nezávislé result_id UUID bez FK na tankování, aby odstranění výsledku nemazalo ochranu před duplicitou. Klíč je unikátní pro účet, hash ignoruje confirmed_warning_codes, replay platí 24 h. Automatický cleanup zatím není zaveden; klient po expiraci nejprve ověří historii. Zápis výsledku/klíče/auditu je jedna transakce.
+
+Day_sequence má DEFERRABLE DEFERRED UNIQUE. Vložení/úprava/mazání udržuje souvislé pořadí od 1, zvyšuje verzi posunutých záznamů a zachovává autora. Autor není přístupové oprávnění. Převody/granty/archivace používají stejný row lock Vehicle jako tankování. Historický plátce může později ztratit přístup, jeho FK je zachované; nové přiřazení dovoluje jen aktivní účet s přístupem. Žádná automatická zpětná atribuce nebo rozdělení nákladů nevzniká.

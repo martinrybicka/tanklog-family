@@ -5,6 +5,7 @@ export class ApiError extends Error {
     public code: string,
     message: string,
     public fields: Record<string, string[]> = {},
+    public warnings: { code: string; message: string }[] = [],
   ) {
     super(message);
   }
@@ -26,12 +27,22 @@ export async function refreshCsrf() {
 
 export async function api<T>(
   path: string,
-  options: { method?: string; body?: unknown; etag?: string } = {},
+  options: {
+    method?: string;
+    body?: unknown;
+    etag?: string;
+    headers?: Record<string, string>;
+    binary?: boolean;
+  } = {},
 ) {
   const method = options.method || "GET";
   if (method !== "GET" && !csrfToken) await refreshCsrf();
-  const headers: Record<string, string> = { Accept: "application/json" };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  const headers: Record<string, string> = {
+    Accept: options.binary ? "*/*" : "application/json",
+    ...options.headers,
+  };
+  if (options.body !== undefined && !(options.body instanceof FormData))
+    headers["Content-Type"] = "application/json";
   if (method !== "GET") headers["X-CSRFToken"] = csrfToken!;
   if (options.etag) headers["If-Match"] = options.etag;
   let response: Response;
@@ -42,7 +53,11 @@ export async function api<T>(
       credentials: "same-origin",
       cache: "no-store",
       body:
-        options.body !== undefined ? JSON.stringify(options.body) : undefined,
+        options.body instanceof FormData
+          ? options.body
+          : options.body !== undefined
+            ? JSON.stringify(options.body)
+            : undefined,
     });
   } catch {
     throw new ApiError(
@@ -52,7 +67,11 @@ export async function api<T>(
     );
   }
   const body =
-    response.status === 204 ? null : await response.json().catch(() => null);
+    response.status === 204
+      ? null
+      : options.binary && response.ok
+        ? await response.blob()
+        : await response.json().catch(() => null);
   if (!response.ok) {
     if (body?.error?.code === "csrf_failed") csrfToken = null;
     if (
@@ -70,6 +89,7 @@ export async function api<T>(
       body?.error?.code || "server_error",
       body?.error?.message || "Požadavek se nepodařilo dokončit.",
       body?.error?.fields,
+      body?.error?.warnings,
     );
   }
   return { data: body as T, etag: response.headers.get("ETag") };

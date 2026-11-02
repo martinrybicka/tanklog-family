@@ -1,7 +1,7 @@
 # Pravidla práce na TankLog
 
 - Komunikuj česky. Uživatelské texty, komentáře a projektovou dokumentaci piš česky; technické identifikátory mohou být anglicky.
-- Aktuálně je uživatelem výslovně povolena fáze 2: vozidla a sdílení, navazující na fázi 1. Fázi 3 ani další nezačínej bez samostatného pokynu. Schválení výsledku samo není pokynem k další implementaci.
+- Aktuálně je uživatelem výslovně povolena fáze 3: ruční tankování, účtenky v DB, historie a XLSX, navazující na fáze 1–2. Fázi 4 ani další nezačínej bez samostatného pokynu. Schválení výsledku samo není pokynem k další implementaci.
 - Přečti README a relevantní dokumenty v `docs/`. Udržuj specifikaci, API, model a rozhodnutí ve shodě. Návrhy neoznačuj za hotové funkce.
 - Pracuj postupně podle `docs/ROADMAP.md`. Nepřepisuj funkční části bez potřeby. Preferuj jednoduchý modulární monolit.
 - Zachovej React/TypeScript/Vite a Django/DRF/PostgreSQL, jeden origin a `/api/`, serverové sessions a CSRF. Žádné JWT v localStorage, veřejná registrace ani veřejný port databáze.

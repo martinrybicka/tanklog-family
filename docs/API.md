@@ -1,6 +1,6 @@
 # Plán API v1
 
-Kontrakt API v1. Implementované jsou autentizace, profil, uživatelé, systém, audit, health a od fáze 2 vozidla/sdílení; tankování a statistiky jsou plán dalších fází. Základ `/api/v1/` pod stejným originem jako SPA. Všechny cesty níže mají koncové lomítko. Strojově generovaný aktuální kontrakt je [openapi.yaml](openapi.yaml), také dostupný přihlášenému ADMIN na `admin/schema/`. Limity ověření jsou v PHASE_1.md.
+Kontrakt API v1. Implementované jsou autentizace, profil, uživatelé, systém, audit, health, vozidla/sdílení a od fáze 3 tankování/účtenky/XLSX; statistiky jsou plán fáze 4. Základ `/api/v1/` pod stejným originem jako SPA. Všechny cesty níže mají koncové lomítko. Strojově generovaný aktuální kontrakt je [openapi.yaml](openapi.yaml), také dostupný přihlášenému ADMIN na `admin/schema/`. Aktuální výsledky a limity ověření jsou v PHASE_3.md.
 
 ## 1. Společná pravidla
 
@@ -82,7 +82,7 @@ Seznamy vehicles jsou stránkované `{count, next, previous, results}` se stabil
 
 Access seznam vrací `{owner_id, owner: {username, display_name}, results: [...]}` bez dalších údajů účtů. Grant obsahuje id/vehicle_id/user_id, username/display_name/is_active, role/granted_by_id/version a timestamps. Neaktivní účet nelze nově sdílet ani zvolit jako nového vlastníka. Explicitní grant původnímu vlastníkovi lze zachovat i při jeho neaktivitě; aktivní přístup tím nevzniká. Systémový ADMIN má vždy globální oprávnění, i po převodu či odebrání grantu.
 
-Norma a technické údaje odpovídají datovému modelu. Neexistuje veřejný seznam všech uživatelů pro běžného uživatele. Až ve fázi 3 bude pro volbu plátce sloužit GET `vehicles/{id}/payer-options/` (právo přidat/upravit tankování), vrátí pouze ID a zobrazované jméno aktivních účtů s přístupem k danému autu; e-maily a systémové role nevrací.
+Norma a technické údaje odpovídají datovému modelu. Neexistuje veřejný seznam všech uživatelů pro běžného uživatele. Od fáze 3 pro volbu plátce slouží GET `vehicles/{id}/payer-options/` (právo přidat/upravit tankování), vrátí pouze ID a zobrazované jméno aktivních účtů s přístupem k danému autu; e-maily a systémové role nevrací.
 
 ## 5. Tankování a účtenky – fáze 3
 
@@ -148,3 +148,19 @@ Odpověď obsahuje konkrétní vyřešené období a `timezone`, `purchases` (v�
 GET `/api/health/live/`: veřejná stručná živost, bez verze/DB/konfigurace. GET `/api/health/ready/`: dostupný internímu healthchecku, kontroluje DB, nevrací credentials ani chyby připojení. Tyto cesty nejsou doménové API v1.
 
 VIN lookup a OCR budou mít nové backendové endpointy až ve fázi 8, s vlastními limity a oprávněním upravovat cílové auto/záznam. Nedeklarovat je jako dostupné a nerezervovat veřejné nechráněné uploady. Klient nikdy nevolá RSV přímo. Návrhy z externích dat/OCR se neukládají automaticky.
+
+## 8. Implementovaný kontrakt fáze 3 – doplnění
+
+Refueling detail i položka seznamu vracejí účetní pole modelu (UUID/datumy/Decimal řetězce), názvy auta/autora/editora/plátce, effective_unit_price (4 desetinná místa), permissions create/edit/delete/reorder, history_revision, quality_warnings a nullable receipt pouze s metadaty id/content_type/size_bytes/width/height/original_filename/version. Žádné binární pole není v JSON. Detail má ETag `"refueling:<id>:<version>"`. Seznam má výchozí stránku 25, volitelně page_size 1–100; UI načítá všechny stránky volby aut a export vynechá parametr page.
+
+Chyba potvrzení má `error.code=confirmation_required` a `error.warnings=[{code,message}]`. Kódy: fuel_mismatch, amount_difference, tank_capacity_exceeded, missing_odometer, odometer_below_initial, odometer_decrease, similar_record, day_order, zero_amount. Potvrzují se v confirmed_warning_codes; nejde o obcházení tvrdé validace. Pole date je při vytvoření nepovinné (server Prague), při PATCH se vynechaná pole zachovávají. Prázdná stanice je `station_code=""`, ostatní stanice vyžaduje station_custom_name. Nový plátce vyžaduje aktivní přístup, neplatné/cizí ID plátce má jednotnou validační chybu 400 bez údajů účtu. Neplatný související vehicle_id/detail zůstává 404.
+
+Payer-options vrací `{results:[{id,display_name}],today:"YYYY-MM-DD"}` s pražským dnem. Obsahuje aktivního vlastníka, grantované účty a systémové ADMIN (ti mají přístup ke všem autům), bez e-mailu nebo role. VIEWER volby nedostane.
+
+History GET vrací `{date,ordered_ids}` a ETag `"history:<vehicle_id>:<history_revision>"`. PUT vyžaduje tentýž ETag a přesnou permutaci všech ID daného dne; vrací history_revision a nový ETag. CONTRIBUTOR může v editaci přesunout vlastní záznam, ne přeuspořádat celý den.
+
+Receipt GET variant=original (výchozí) vrací autorizovaný originál jako attachment, variant=preview vrací image/jpeg inline bez EXIF. Neplatný variant je 400. POST/PUT multipart obsahuje právě jediný soubor file a If-Match tankování; vrací aktualizovaný detail tankování s novým ETag (201/200). DELETE vrací 204 a nový detail/ETag získá klient opětovným GET. Poškozený/neodpovídající MIME/nepovolený/animovaný obrázek je 400, překročená velikost 413, chybějící účtenka 404, POST přes existující účtenku 409, starý ETag 412. Výchozí parser mimo tento endpoint stále přijímá jen JSON. Úspěch ani neúspěch uploadu nikdy nezakládá další tankování.
+
+DB upload limit je 20 pokusů/min/účet, nginx 30 požadavků/min/IP s burst 10. Limit vrací 429 upload_limited a Retry-After 60. Nginx request body receipt má 12 MiB, samotný soubor 10 MiB / 24 MP; dočasné request/decoder soubory nejsou trvalým úložištěm. Download/export i chybové odpovědi zůstávají private,no-store.
+
+Export je application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, příloha tankovani.xlsx. Limit je 50 000 datových řádků (REFUELING_EXPORT_LIMIT v serverovém nastavení); překročení vrací 400 export_limit. Prázdný výsledek je validní sešit se záhlavím. Číselné/datumové typy a výslovné textové buňky se ověřují znovuotevřením sešitu v testech. Expirovaný klíč create vrací 409 idempotency_expired; jiný payload pod stejným klíčem 409 idempotency_conflict; nepřístupný/smazaný výsledek 404, bez dalšího vytvoření.

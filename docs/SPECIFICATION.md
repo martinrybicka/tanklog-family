@@ -1,6 +1,6 @@
 # Funkční specifikace
 
-Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 2. Účty, vozidla a sdílení jsou implementované; další funkce níže jsou stále plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
+Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 3. Účty, vozidla, sdílení, tankování, účtenky a XLSX jsou implementované; další funkce níže jsou stále plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
 
 ## 1. Cíl a hranice první verze
 
@@ -45,7 +45,7 @@ Varování před uložením: nesoulad paliva, rozdíl částky proti součinu, p
 
 Více záznamů stejného dne má uložené pořadí `day_sequence`. Nový se nabídne na konec; uživatel potvrdí nebo upraví jeho pozici. Autor může změnit datum vlastního záznamu, ale přeuspořádání celého dne je vyhrazeno OWNER/ADMIN. Podrobnosti souběhu a opakovaných mobilních požadavků jsou v [modelu](DATA_MODEL.md) a [API](API.md).
 
-JPEG/PNG maximálně 10 MiB a 24 megapixelů po dekódování. Odmítnout ostatní formáty včetně SVG, PDF, HEIC a animovaných obrázků. Zachovat původní přijatý obrázek soukromě jako binární obsah v DB; metadata včetně případné polohy jsou soukromou součástí originálu. Náhled bude bezpečně znovu zakódován bez EXIF a také uložen v DB. Nahrání neblokuje existenci tankování: po chybě přílohy nabídnout opakování bez vytvoření druhého tankování. Implementace příloh zůstává až ve fázi 3.
+JPEG/PNG maximálně 10 MiB a 24 megapixelů po dekódování. Odmítnout ostatní formáty včetně SVG, PDF, HEIC a animovaných obrázků. Zachovat původní přijatý obrázek soukromě jako binární obsah v DB; metadata včetně případné polohy jsou soukromou součástí originálu. Náhled bude bezpečně znovu zakódován bez EXIF a také uložen v DB. Nahrání neblokuje existenci tankování: po chybě přílohy nabídnout opakování bez vytvoření druhého tankování. Přílohy jsou implementované od fáze 3.
 
 ## 5. Historie a export
 
@@ -82,3 +82,11 @@ Sekce Uživatelé, Všechna vozidla, Sdílení, Systém a audit. Účty se deakt
 | Deklarovaný hot reload nebo HTTPS nezaručí funkčnost | Ověřit Compose, prohlížeč, cookies a skutečné hlavičky samostatně v příslušné fázi |
 
 Akceptace nefunkčních vlastností: použití od 360 px bez vodorovného posuvu celé stránky, klávesnicový průchod, kontrasty ověřené pro oba režimy, nulový přístup k cizím objektům v negativních testech a prokázaná obnova zálohy před produkcí. Konkrétní testy a podmínky předání jsou v [roadmapě](ROADMAP.md).
+
+## 9. Upřesnění implementace fáze 3
+
+Rozdíl částky proti součinu znamená jakoukoli odchylku od výsledku HALF_UP na haléře, nikoli procentní toleranci. Podobný záznam je stejné vozidlo/den/litry/částka. Každý další záznam stejného dne vyžaduje potvrzení pořadí; výchozí vložení je na konec, při editaci se bez změny data zachová pozice. Potvrzení kódů se vždy znovu vyhodnotí pod zámkem. Upozornění se také odvozují při čtení z aktuálních údajů, nejsou výsledkem měření spotřeby.
+
+Aktivní plátce musí mít přístup k autu (vlastník, grant nebo systémový ADMIN); API volby vracejí jen ID/jméno. Historicky uložený plátce zůstává zachován i po ztrátě svého přístupu či deaktivaci, pokud se nemění. Plátcovství nikdy nezakládá oprávnění. Po smazání tankování se odstraní jeho účtenka, audit a záznam ochrany před duplicitou zůstanou. Expirace klíče po 24 h nedovolí automaticky založit druhý nákup; je nutné ověřit historii.
+
+Výpočet spotřeby/dashboard zatím neexistují. Pro budoucí fázi 4 jsou připravené syntetické historie C05/C06/C14/C24; jejich přijetí API je testované, žádné výsledky spotřeby se ve fázi 3 nevydávají za spočtené.

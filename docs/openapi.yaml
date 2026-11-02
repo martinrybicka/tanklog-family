@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: TankLog API
   version: 1.0.0
-  description: Fáze 2 – účty, vozidla a sdílení
+  description: Fáze 3 – účty, vozidla, tankování a účtenky
 paths:
   /api/v1/admin/audit/:
     get:
@@ -549,6 +549,408 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: ''
+  /api/v1/refuelings/:
+    get:
+      operationId: refuelings_list
+      parameters:
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: fuel_type
+        schema:
+          enum:
+          - PETROL
+          - DIESEL
+          - LPG
+          - ETHANOL
+          - OTHER_LIQUID
+          type: string
+          minLength: 1
+        description: |-
+          * `PETROL` - Benzín
+          * `DIESEL` - Nafta
+          * `LPG` - LPG
+          * `ETHANOL` - Ethanol
+          * `OTHER_LIQUID` - Jiné kapalné palivo
+      - in: query
+        name: ordering
+        schema:
+          enum:
+          - date
+          - -date
+          - total_amount
+          - -total_amount
+          - liters
+          - -liters
+          - odometer_km
+          - -odometer_km
+          type: string
+          minLength: 1
+        description: |-
+          * `date` - date
+          * `-date` - -date
+          * `total_amount` - total_amount
+          * `-total_amount` - -total_amount
+          * `liters` - liters
+          * `-liters` - -liters
+          * `odometer_km` - odometer_km
+          * `-odometer_km` - -odometer_km
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          maxLength: 200
+      - in: query
+        name: station_code
+        schema:
+          enum:
+          - ORLEN
+          - SHELL
+          - MOL
+          - OMV
+          - EUROOIL
+          - TANK_ONO
+          - OTHER
+          - ''
+          type: string
+        description: |-
+          * `ORLEN` - ORLEN
+          * `SHELL` - Shell
+          * `MOL` - MOL
+          * `OMV` - OMV
+          * `EUROOIL` - EuroOil
+          * `TANK_ONO` - Tank ONO
+          * `OTHER` - Ostatní
+      - in: query
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: refuelings_create
+      tags:
+      - refuelings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefuelingInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/refuelings/{item_id}/:
+    get:
+      operationId: refuelings_retrieve
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    patch:
+      operationId: refuelings_partial_update
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRefuelingUpdate'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    delete:
+      operationId: refuelings_destroy
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/refuelings/{item_id}/receipt/:
+    get:
+      operationId: refuelings_receipt_retrieve
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+    post:
+      operationId: refuelings_receipt_create
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+              - file
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    put:
+      operationId: refuelings_receipt_update
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+              - file
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    delete:
+      operationId: refuelings_receipt_destroy
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/refuelings/export/:
+    get:
+      operationId: refuelings_export_retrieve
+      parameters:
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: fuel_type
+        schema:
+          enum:
+          - PETROL
+          - DIESEL
+          - LPG
+          - ETHANOL
+          - OTHER_LIQUID
+          type: string
+          minLength: 1
+        description: |-
+          * `PETROL` - Benzín
+          * `DIESEL` - Nafta
+          * `LPG` - LPG
+          * `ETHANOL` - Ethanol
+          * `OTHER_LIQUID` - Jiné kapalné palivo
+      - in: query
+        name: ordering
+        schema:
+          enum:
+          - date
+          - -date
+          - total_amount
+          - -total_amount
+          - liters
+          - -liters
+          - odometer_km
+          - -odometer_km
+          type: string
+          minLength: 1
+        description: |-
+          * `date` - date
+          * `-date` - -date
+          * `total_amount` - total_amount
+          * `-total_amount` - -total_amount
+          * `liters` - liters
+          * `-liters` - -liters
+          * `odometer_km` - odometer_km
+          * `-odometer_km` - -odometer_km
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          maxLength: 200
+      - in: query
+        name: station_code
+        schema:
+          enum:
+          - ORLEN
+          - SHELL
+          - MOL
+          - OMV
+          - EUROOIL
+          - TANK_ONO
+          - OTHER
+          - ''
+          type: string
+        description: |-
+          * `ORLEN` - ORLEN
+          * `SHELL` - Shell
+          * `MOL` - MOL
+          * `OMV` - OMV
+          * `EUROOIL` - EuroOil
+          * `TANK_ONO` - Tank ONO
+          * `OTHER` - Ostatní
+      - in: query
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+          description: ''
   /api/v1/vehicles/:
     get:
       operationId: vehicles_list
@@ -669,6 +1071,83 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Vehicle'
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/payer-options/:
+    get:
+      operationId: vehicles_payer_options_retrieve
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/refueling-order/:
+    get:
+      operationId: vehicles_refueling_order_retrieve
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+          format: date
+        required: true
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    put:
+      operationId: vehicles_refueling_order_update
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
           description: ''
   /api/v1/vehicles/{vehicle_id}/restore/:
     post:
@@ -824,6 +1303,9 @@ components:
       - action
       - id
       - occurred_at
+    BlankEnum:
+      enum:
+      - ''
     ConsumptionModeEnum:
       enum:
       - SINGLE_TANK
@@ -859,6 +1341,21 @@ components:
       required:
       - password
       - username
+    OrderInput:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        ordered_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 1000
+      required:
+      - date
+      - ordered_ids
     PasswordChange:
       type: object
       properties:
@@ -911,6 +1408,62 @@ components:
             maxLength: 0
         theme:
           $ref: '#/components/schemas/ThemeEnum'
+    PatchedRefuelingUpdate:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        day_sequence:
+          type: integer
+          minimum: 1
+        liters:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+        unit_price_entered:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,4})?$
+          nullable: true
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        odometer_km:
+          type: integer
+          maximum: 99999999
+          minimum: 0
+          nullable: true
+        is_full_tank:
+          type: boolean
+        break_before:
+          type: boolean
+        fuel_type:
+          $ref: '#/components/schemas/FuelTypeEnum'
+        station_code:
+          oneOf:
+          - $ref: '#/components/schemas/StationCodeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        station_custom_name:
+          type: string
+          maxLength: 120
+        note:
+          type: string
+          maxLength: 2000
+        paid_by_user_id:
+          type: string
+          format: uuid
+          nullable: true
+        paid_by_label:
+          type: string
+          maxLength: 150
+        confirmed_warning_codes:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 20
     PatchedVehicleInput:
       type: object
       properties:
@@ -979,6 +1532,68 @@ components:
           maxLength: 256
       required:
       - current_password
+    RefuelingInput:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        day_sequence:
+          type: integer
+          minimum: 1
+        liters:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+        unit_price_entered:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,4})?$
+          nullable: true
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        odometer_km:
+          type: integer
+          maximum: 99999999
+          minimum: 0
+          nullable: true
+        is_full_tank:
+          type: boolean
+        break_before:
+          type: boolean
+        fuel_type:
+          $ref: '#/components/schemas/FuelTypeEnum'
+        station_code:
+          oneOf:
+          - $ref: '#/components/schemas/StationCodeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        station_custom_name:
+          type: string
+          maxLength: 120
+        note:
+          type: string
+          maxLength: 2000
+        paid_by_user_id:
+          type: string
+          format: uuid
+          nullable: true
+        paid_by_label:
+          type: string
+          maxLength: 150
+        confirmed_warning_codes:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 20
+      required:
+      - liters
+      - vehicle_id
     Session:
       type: object
       properties:
@@ -1013,6 +1628,24 @@ components:
         * `MANUFACTURER` - Výrobce
         * `USER_ESTIMATE` - Vlastní odhad
         * `UNKNOWN` - Neznámá
+    StationCodeEnum:
+      enum:
+      - ORLEN
+      - SHELL
+      - MOL
+      - OMV
+      - EUROOIL
+      - TANK_ONO
+      - OTHER
+      type: string
+      description: |-
+        * `ORLEN` - ORLEN
+        * `SHELL` - Shell
+        * `MOL` - MOL
+        * `OMV` - OMV
+        * `EUROOIL` - EuroOil
+        * `TANK_ONO` - Tank ONO
+        * `OTHER` - Ostatní
     StatusEnum:
       enum:
       - ACTIVE

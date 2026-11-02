@@ -67,6 +67,7 @@ export interface Vehicle {
     archive: boolean;
     restore: boolean;
     manage_access: boolean;
+    create_refueling: boolean;
   };
 }
 export interface VehicleAccess {
@@ -78,4 +79,46 @@ export interface VehicleAccess {
   is_active: boolean;
   role: "VIEWER" | "CONTRIBUTOR";
   version: number;
+}
+
+export interface Refueling {
+  id: string;
+  vehicle_id: string;
+  vehicle_name: string;
+  date: string;
+  day_sequence: number;
+  liters: string;
+  unit_price_entered: string | null;
+  total_amount: string;
+  amount_source: "ENTERED" | "CALCULATED";
+  effective_unit_price: string;
+  odometer_km: number | null;
+  is_full_tank: boolean;
+  break_before: boolean;
+  fuel_type: string;
+  station_code: string;
+  station_custom_name: string;
+  note: string;
+  created_by_id: string;
+  created_by_name: string;
+  updated_by_name: string;
+  paid_by_name: string;
+  paid_by_user_id: string | null;
+  paid_by_label: string;
+  version: number;
+  history_revision: number;
+  permissions: {
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+    reorder: boolean;
+  };
+  quality_warnings: { code: string; message: string }[];
+  receipt: {
+    id: string;
+    original_filename: string;
+    content_type: string;
+    size_bytes: number;
+    version: number;
+  } | null;
 }

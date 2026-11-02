@@ -1,6 +1,6 @@
 # Návrh UI a UX
 
-Návrh obrazovek a designového systému. Implementovány jsou přihlášení, profil, zabezpečení, administrace účtů a od fáze 2 vozidla/sdílení; tankování a analytický dashboard teprve přijdou. Dodatek uživatele z 2. 11. 2026 mění vizuální směr na **neutrální modrou, šedou a bílou**, s klidnou typografií a střídmým modrým akcentem. Žádné ilustrační grafy s vymyšlenými statistikami ve skutečném dashboardu.
+Návrh obrazovek a designového systému. Implementovány jsou přihlášení, profil, zabezpečení, administrace účtů a od fáze 2 vozidla/sdílení a od fáze 3 také tankování/historie/účtenky/XLSX; analytický dashboard teprve přijde. Dodatek uživatele z 2. 11. 2026 mění vizuální směr na **neutrální modrou, šedou a bílou**, s klidnou typografií a střídmým modrým akcentem. Žádné ilustrační grafy s vymyšlenými statistikami ve skutečném dashboardu.
 
 ## 1. Navigace a rozvržení
 
@@ -123,3 +123,11 @@ Každý input má label a čitelnou chybu napojenou přes `aria-describedby`; je
 Moje auta nabízí stránkované karty a stav active/archived/all v URL. ADMIN má navíc Všechna vozidla a sdílení (`/administrace/vozidla`). Detail obsahuje technické údaje a skutečnou roli, podle práv editaci a potvrzenou archivaci/obnovení. Historie a spotřeba jsou označené jako budoucí funkce, bez falešných statistik. Administrační sdílení je na detailu vozidla; nabízí hledání/stránkování aktivních účtů, granty, změnu rolí, potvrzené odebrání a převod s aktuálním heslem. Konflikt ETag zachová formulář a nabídne načtení aktuálních údajů; nezapisuje automaticky novou verzí přes cizí změny.
 
 Karta sdíleného auta rozlišuje Čtenář/Přispěvatel, vlastní auto a administrátorský přístup. Technické údaje a norma jsou v rozbalitelné oblasti formuláře. Podporuje se desetinná čárka; API dostává přesné řetězce s tečkou. Neznámá norma je prázdná/null. Postranní panel se na nižším desktopu posouvá, aby rozšířená navigace nezablokovala odhlášení. Motivy a paleta z fáze 1 zůstávají. Ilustrační fotografie budou až součástí VIN integrace podle INTEGRATIONS.md.
+
+## 9. Dostupné obrazovky fáze 3
+
+/tankovani, /tankovani/nove, /tankovani/:id a /tankovani/:id/upravit jsou funkční. Karty i detail auta mají akci podle práva, globální navigace nabízí zadání. Formulář předvyplní serverový pražský den a palivo z vybraného auta; plná nádrž je výchozí ne. Částka z účtenky má přednost, návrh je přesně vypočtený z litrů a ceny. Volitelný tachometr se nepřepisuje odhadem. Další údaje obsahují plátce, stanici, poznámku, pořadí a mezeru v evidenci. Varování mají jeden potvrzovací dialog se skutečnými kódy serveru; nevalidní data nelze potvrdit.
+
+Po uložení vede detail na samostatný upload. Chyba přílohy jasně říká, že tankování už existuje; opakování jde k témuž záznamu. Detail ukazuje soukromý náhled, stažení originálu a podle práva náhradu/smazání. Historie má desktopovou tabulku a mobilní seznam; filtry a řazení zůstávají v URL při detailu/editaci/mazání. Export používá celý filtr, ne jen stránku. Celodenní pořadí může měnit OWNER/ADMIN, vlastní pozici přispěvatel v editaci. Dialogy vracejí focus na původní ovladač nebo hlavní obsah, pokud byl ovladač odstraněn.
+
+Statistiky/spotřeba nejsou implementované; UI to na detailu auta výslovně uvádí. Plný audit přístupnosti a měření rychlosti podle fáze 5 se nepředstírá jako dokončený.

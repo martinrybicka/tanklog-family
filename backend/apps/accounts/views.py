@@ -194,8 +194,8 @@ class SystemView(APIView):
         return Response(
             {
                 "application": "TankLog",
-                "version": "0.2.0",
-                "phase": 2,
+                "version": "0.3.0",
+                "phase": 3,
                 "django_version": django.get_version(),
                 "database": "ok",
             }

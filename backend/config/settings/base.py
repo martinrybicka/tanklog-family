@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.audit",
     "apps.vehicles",
+    "apps.refuelings",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -94,7 +95,7 @@ REST_FRAMEWORK = {
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "TankLog API",
-    "DESCRIPTION": "Fáze 2 – účty, vozidla a sdílení",
+    "DESCRIPTION": "Fáze 3 – účty, vozidla, tankování a účtenky",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "ENUM_NAME_OVERRIDES": {"VehicleAccessRoleEnum": [("VIEWER", "Čtenář"), ("CONTRIBUTOR", "Přispěvatel")]},

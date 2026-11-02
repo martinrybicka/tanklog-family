@@ -1,6 +1,6 @@
 # Architektonická rozhodnutí
 
-Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Uživatel následně samostatně potvrdil fázi 2. Stav konkrétní implementace a ověření viz PHASE_1.md a PHASE_2.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
+Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Uživatel následně samostatně potvrdil fáze 2 a 3. Stav konkrétní implementace a ověření viz PHASE_1.md, PHASE_2.md a PHASE_3.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
 
 | ID | Rozhodnutí | Důvod / důsledek |
 | --- | --- | --- |
@@ -36,6 +36,11 @@ Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci f
 | ADR-029 | Změna grantů zvýší také verzi vozidla | Převod s rozpracovaným ETag nesmí přepsat mezitím změněné sdílení; společný row lock vozidla drží převod a granty atomické. Účty se zamykají před vozidlem, ve stabilním pořadí UUID. |
 | ADR-030 | Ve fázi 2 bez veřejného DELETE vozidla | Jedinou cestou odebrání z aktivního seznamu je archivace; žádné nevratné odstranění dat nebo předčasný model tankování. |
 | ADR-031 | Budoucí VIN doplní potvrzovanou ilustrační fotografii v DB | Dodatek uživatele během fáze 2. Fotografie modelu vyžaduje ověřenou shodu a licenci/atribuci; originál, náhled i původ patří do PostgreSQL. Bez spolehlivé shody zůstane ikona. Integrace je součástí fáze 8, viz INTEGRATIONS.md. |
+
+| ADR-032 | Klíče duplicit se po 24 h automaticky nemažou | Replay má expiraci, ale smazané/nepřístupné tankování se nesmí opakováním znovu vytvořit. Po expiraci klient ověří historii; retenci/cleanup lze samostatně doplnit s bezpečným chováním. |
+| ADR-033 | Přílohy v transakční DB, očištěný JPEG náhled a dvoustupňová kontrola práv | Neúspěšný upload nezaloží další nákup, náhrada respektuje ETag; práva se ověří před drahým dekódováním a znovu pod zámkem. |
+| ADR-034 | Přesná částka má prioritu, varování jakékoliv haléřové odchylky | Autoritativní Decimal výpočet je na serveru, UI navrhuje částku přes BigInt; potvrzení varování neobchází validaci. |
+| ADR-035 | XLSX texty explicitně jako text, výběr jedním omezeným SQL dotazem | Stejný selektor jako historie, všechny řádky filtru do 50 000, typovaná data/čísla, žádné formule ani URL účtenek; XML-nepřípustné řídicí znaky se ve výstupu odstraní. |
 
 ## Původní zásadní body fáze 0
 

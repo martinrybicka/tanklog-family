@@ -1,0 +1,26 @@
+{
+  "description": "Syntetické podklady fáze 3 pro budoucí testy spotřeby. Výpočet není implementovaný.",
+  "scenarios": [
+    {"id":"C05","initial_odometer_km":0,"records":[
+      {"date":"2026-01-01","day_sequence":1,"odometer_km":10000,"liters":"50.000","total_amount":"2000.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false},
+      {"date":"2026-01-05","day_sequence":1,"odometer_km":10300,"liters":"20.000","total_amount":"800.00","fuel_type":"PETROL","is_full_tank":false,"break_before":false},
+      {"date":"2026-01-10","day_sequence":1,"odometer_km":10600,"liters":"25.000","total_amount":"1000.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false}
+    ]},
+    {"id":"C06","initial_odometer_km":0,"records":[
+      {"date":"2026-01-01","day_sequence":1,"odometer_km":10000,"liters":"50.000","total_amount":"2000.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false},
+      {"date":"2026-01-05","day_sequence":1,"odometer_km":null,"liters":"20.000","total_amount":"800.00","fuel_type":"PETROL","is_full_tank":false,"break_before":false},
+      {"date":"2026-01-10","day_sequence":1,"odometer_km":10600,"liters":"25.000","total_amount":"1000.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false}
+    ]},
+    {"id":"C14","initial_odometer_km":0,"records":[
+      {"date":"2026-01-01","day_sequence":1,"odometer_km":10000,"liters":"50.000","total_amount":"2000.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false},
+      {"date":"2026-01-01","day_sequence":2,"odometer_km":10200,"liters":"20.000","total_amount":"800.00","fuel_type":"PETROL","is_full_tank":false,"break_before":false},
+      {"date":"2026-01-01","day_sequence":3,"odometer_km":10600,"liters":"25.000","total_amount":"1000.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false}
+    ]},
+    {"id":"C24","initial_odometer_km":0,"records":[
+      {"date":"2026-01-01","day_sequence":1,"odometer_km":10000,"liters":"50.000","total_amount":"2000.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false},
+      {"date":"2026-01-05","day_sequence":1,"odometer_km":10300,"liters":"20.000","total_amount":"800.00","fuel_type":"PETROL","is_full_tank":false,"break_before":true},
+      {"date":"2026-01-10","day_sequence":1,"odometer_km":10600,"liters":"25.000","total_amount":"1000.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false},
+      {"date":"2026-01-20","day_sequence":1,"odometer_km":11200,"liters":"42.000","total_amount":"1680.00","fuel_type":"PETROL","is_full_tank":true,"break_before":false}
+    ]}
+  ]
+}
