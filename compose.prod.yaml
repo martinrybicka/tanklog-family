@@ -1,0 +1,21 @@
+name: tanklog-prod
+
+services:
+  backend:
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECURE_COOKIES: "true"
+      DJANGO_HSTS_SECONDS: ${DJANGO_HSTS_SECONDS:-0}
+    init: true
+    security_opt: [no-new-privileges:true]
+
+  web:
+    environment:
+      NPM_TRUSTED_CIDR: ${NPM_TRUSTED_CIDR:?Nastavte skutecny CIDR duveryhodne site NPM}
+    networks: [application, proxy]
+    security_opt: [no-new-privileges:true]
+
+networks:
+  proxy:
+    external: true
+    name: ${NPM_NETWORK_NAME:?Nastavte existujici sit NPM}

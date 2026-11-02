@@ -2,6 +2,8 @@
 
 Každá fáze má vlastní pokyn k zahájení. Lokální dokončení aplikace a testů předchází GitHubu; GitHub a produkce mají další výslovné schválení. Odhady termínů a kapacity nejsou součást zadání.
 
+Aktuálně uživatel výslovně povolil fázi 1. Její implementaci a přesné výsledky ověření sleduje PHASE_1.md. Dodatek během této fáze ukládá všechna trvalá aplikační data do DB, vyžaduje zachování profilu a motivu po smazání cookies / na dalším zařízení a neutrální modrošedý/bílý vzhled. Funkce dalších etap se nepřidávají.
+
 ## Fáze 0 – návrh a dokumentace
 
 Rozsah: prozkoumat adresář, připravit README, AGENTS a konkrétní specifikaci, architekturu, model, API, UX, bezpečnost a etapy. Doplnit přesnou metodiku spotřeby a testovací matici, průzkum VIN a rozhodnutí k odsouhlasení. Inicializovat pouze lokální Git, připravit bezpečný ignore a dokumentační commit.
@@ -19,7 +21,7 @@ Akceptace:
 - Reset je jednorázový a expirovatelný, omezená session neotevře doménová data ani ADMIN endpointy. Změna hesla/deaktivace odvolá staré sessions.
 - Lokálně sestavit produkční image a zkontrolovat výslednou produkční Compose konfiguraci; bez připojení na produkční síť/server. Budoucí NPM síť ověřit jako konfigurační podmínku, ne vytvářet na vzdáleném serveru.
 
-Testy: backend pytest/pytest-django nad PostgreSQL, skutečné CSRF testy se zapnutým enforcementem (login včetně anonymního), role a poslední ADMIN, expirace/reset/souběžné použití hesla, login limity a rotace sessions. Frontend Vitest + Testing Library pro login a chyby formuláře; Playwright smoke login → profil → logout a povinná změna. `docker compose config --quiet`, migrační kontrola, frontend typecheck/build a backend systémové kontroly. Pokud Docker chybí, uvést neověřenou část a přesné příkazy; fáze není plně ověřená jen díky statickému návrhu.
+Testy: backend pytest/pytest-django nad PostgreSQL, skutečné CSRF testy se zapnutým enforcementem (login včetně anonymního), role a poslední ADMIN, expirace/reset/souběžné použití hesla, login limity a rotace sessions. Frontend Vitest + Testing Library pro login a chyby formuláře; Playwright smoke login → profil → logout, povinná změna a zachování profilu/motivu po smazání cookies i z druhého prohlížeče. `docker compose config --quiet`, migrační kontrola, frontend typecheck/build a backend systémové kontroly. Pokud Docker chybí, uvést neověřenou část a přesné příkazy; fáze není plně ověřená jen díky statickému návrhu.
 
 ## Fáze 2 – vozidla a sdílení
 

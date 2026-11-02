@@ -1,6 +1,6 @@
 # Návrh UI a UX
 
-Návrh obrazovek a designového systému, bez implementace frontendu. Pracovní vizuální směr: **klidný automobilový deník**, světlé neutrální plochy, tmavá modrozelená typografie a zelený akcent pro hlavní akci. Žádné ilustrační grafy s vymyšlenými statistikami ve skutečném dashboardu.
+Návrh obrazovek a designového systému. Ve fázi 1 jsou implementovány přihlášení, profil, zabezpečení a administrace účtů; vozidla a analytický dashboard teprve přijdou. Dodatek uživatele z 2. 11. 2026 mění vizuální směr na **neutrální modrou, šedou a bílou**, s klidnou typografií a střídmým modrým akcentem. Žádné ilustrační grafy s vymyšlenými statistikami ve skutečném dashboardu.
 
 ## 1. Navigace a rozvržení
 
@@ -26,12 +26,12 @@ Filtry historie/dashboardu v URL umožní návrat z detailu se zachováním obdo
 
 | Token | Světlý režim | Tmavý režim |
 | --- | --- | --- |
-| Pozadí | `#F5F7F6` | `#0E191D` |
-| Plocha karty | `#FFFFFF` | `#15252B` |
-| Základní text | `#162D34` | `#E6EFEC` |
-| Vedlejší text | `#53666D` | `#9EAFB5` |
-| Primární akce | `#087F6B` s bílým textem | `#49D3B0` s textem `#10241E` |
-| Oddělení ploch | `#DCE5E1` | `#30464D` |
+| Pozadí | `#F4F6F9` | `#101722` |
+| Plocha karty | `#FFFFFF` | `#192333` |
+| Základní text | `#243249` | `#EDF1F7` |
+| Vedlejší text | `#58677B` | `#A7B2C3` |
+| Primární akce | `#315FA3` s bílým textem | `#96B7ED` s textem `#18263A` |
+| Oddělení ploch | `#DDE3EC` | `#35445B` |
 
 Oddělovací linka není jediným indikátorem hranice ovládacího prvku; inputy a focus potřebují samostatný dostatečně kontrastní obrys. Varování má ikonu i text, ne jen barvu. Pro dokončený vizuál ověřit běžný text nejméně 4,5:1, velký text a důležité grafické prvky 3:1; testované kombinace tokenů nezaručují automaticky všechny stavy finálních komponent.
 
@@ -100,7 +100,7 @@ Správa uživatelů: seznam, vytvoření, aktivace/deaktivace, změna role a res
 
 Sdílení: vybrat jediné existující auto → vlastníka → seznam grantů → přidat aktivního uživatele a roli. Stručné vysvětlení VIEWER/CONTRIBUTOR a zpřístupnění celé historie včetně účtenek. Převod vlastníka má výraznou informaci, zda předchozí vlastník ztratí přístup nebo dostane nový grant. Poslední ADMIN má ochranu s konkrétním vysvětlením.
 
-Nastavení: vlastní zobrazované jméno, kontakt, změna hesla a systémový/světlý/tmavý vzhled. Preferenci vzhledu uložit do profilu; lokální neosobní volba může zajistit správný motiv před přihlášením. Dashboard ani účtenky se do localStorage neukládají.
+Nastavení: vlastní zobrazované jméno, kontakt, změna hesla a systémový/světlý/tmavý vzhled. Preferenci vzhledu ukládat pouze do profilu v DB, společně pro všechna zařízení. Před přihlášením se nepoužívá uložená lokální preference. Cookies nesou jen identifikátor přihlášení/CSRF, žádná osobní data nebo nastavení. Smazání cookies vyžádá nové přihlášení, uložený profil, motiv a budoucí historie se zachovají.
 
 ## 7. Stavy a přístupnost
 

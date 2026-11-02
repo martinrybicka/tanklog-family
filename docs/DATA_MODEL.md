@@ -1,6 +1,6 @@
 # Datový model
 
-Návrh PostgreSQL/Django, bez migrací v této fázi. UUID jsou veřejné identifikátory, nikoli bezpečnostní mechanismus. Technické timestampy jsou timezone-aware UTC; obchodní datum je lokální `DATE`.
+PostgreSQL/Django. Ve fázi 1 jsou implementovány User, DB sessions, audit a ochrana přihlášení; vozidla a tankování zůstávají návrhem. UUID jsou veřejné identifikátory, nikoli bezpečnostní mechanismus. Technické timestampy jsou timezone-aware UTC; obchodní datum je lokální `DATE`. Podle dodatku uživatele z fáze 1 se veškerá uložená aplikační data včetně budoucích příloh nacházejí v DB; prohlížeč není trvalým úložištěm.
 
 ## 1. Vztahy
 
@@ -107,13 +107,13 @@ Odstranění záznamu provádí OWNER/ADMIN s potvrzením, auditem a přepočtem
 | Pole | Typ / pravidlo |
 | --- | --- |
 | `id`, `refueling_id` | UUID PK a unikátní FK (nejvýše jedna účtenka) |
-| `storage_key`, `preview_storage_key` | interní náhodné relativní klíče, žádná klientem zadaná cesta |
+| `original_bytes`, `preview_bytes` | BinaryField / PostgreSQL bytea; originál do 10 MiB, očištěný náhled do 2 MiB, neveřejné |
 | `content_type`, `size_bytes`, `width`, `height` | ověřené údaje po skutečném dekódování |
 | `sha256` | integrita a detekce identických souborů; bez globálního sdílení souborů mezi auty |
 | `original_filename` | očištěný název pro stažení, nezveřejňovat cestu klientského zařízení |
 | `uploaded_by_id`, `created_at`, `version` | původ a souběh |
 
-Příloha dědí čtecí práva výhradně z tankování a auta. Její změna vyžaduje právo upravit tankování, její smazání stejné právo (nejde o smazání celého tankování). Výměna zachová starý soubor až do potvrzení DB změny; pak úklid po commitu. Osiřelé dočasné soubory řeší opakovatelný příkaz s ochrannou lhůtou. Budoucí OCR model bude samostatný a nebude do tohoto modelu předem přidávat neexistující job infrastrukturu.
+Příloha dědí čtecí práva výhradně z tankování a auta. Její změna vyžaduje právo upravit tankování, její smazání stejné právo (nejde o smazání celého tankování). Validovaný originál a náhled se mění atomicky v DB transakci spolu s metadaty/auditem; rollback zachová původní obsah. Velikosti validovat v aplikaci a při implementaci přidat DB kontroly octet_length. Neexistují trvalé souborové cesty ani storage key; ID přílohy slouží autorizovanému stažení z backendu. Budoucí OCR model bude samostatný a nebude do tohoto modelu předem přidávat neexistující job infrastrukturu.
 
 ## 7. AuditEvent a RequestDeduplication
 
@@ -131,4 +131,4 @@ Příloha dědí čtecí práva výhradně z tankování a auta. Její změna vy
 
 Každá změna historie, vlastnictví, archivace a grantu používá společný zámek řádku vozidla, znovu ověří práva, provede změnu a audit v transakci. Zvýšení `history_revision` při tankování, pořadí a relevantní příloze umožní invalidovat klientská data. Metadatové `version` se zvyšuje při změně vlastního objektu. Převody/zámky více uživatelů mají stabilní pořadí ID, aby se omezily deadlocky.
 
-Statistiky čtou jednu konzistentní DB snapshot transakci, aby nákupní součty a intervaly ve stejné odpovědi pocházely ze shodné historie. Externí souborové operace nelze atomicky zahrnout do PostgreSQL; proto explicitní kompenzace, úklid a konzistentní zálohy podle [SECURITY.md](SECURITY.md).
+Statistiky čtou jednu konzistentní DB snapshot transakci, aby nákupní součty a intervaly ve stejné odpovědi pocházely ze shodné historie. Uložení binárních příloh do PostgreSQL odstraňuje potřebu koordinovat jejich trvalý filesystem s transakcí. Konzistentní záloha DB obsahuje i originály/náhledy; prostorové nároky a obnova se ověří podle [SECURITY.md](SECURITY.md).

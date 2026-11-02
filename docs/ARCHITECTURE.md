@@ -1,12 +1,12 @@
 # Technická architektura
 
-Návrh, 2. 11. 2026. Žádná níže popsaná služba zatím není implementovaná.
+Architektura, aktualizace 2. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Vozidla, tankování a analytika nejsou implementované. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně budoucích příloh patří do PostgreSQL.
 
 ## 1. Modulární monolit
 
 Jedno úložiště zdrojů, jedna Django aplikace rozdělená do domén, PostgreSQL a webová vstupní služba. React je SPA. Bez Redis, Celery, message brokeru, mikroservis nebo objektového úložiště, dokud nebude doložená potřeba. Nákupní i měřicí statistiky počítá backend, frontend pouze vykresluje a lokálně navrhuje částku formuláře.
 
-Plánované rozložení (ve fázi 0 existují pouze dokumenty a `.gitignore`):
+Rozložení repozitáře (domény vehicles/refuelings/analytics vzniknou až v dalších etapách):
 
 ```text
 frontend/                 React, komponenty, feature moduly a testy
@@ -32,7 +32,7 @@ React: feature moduly `auth`, `vehicles`, `refuelings`, `dashboard`, `administra
 
 ## 2. Technologie a ověřené řady
 
-Následuje výběr podporovaných řad, nikoli existující lock soubor. Při fázi 1 znovu ověřit dostupnost a kompatibilitu a zamknout přesné bezpečnostně aktuální patche. Nové major verze se nepřebírají automaticky.
+Ve fázi 1 jsou přesné závislosti zamknuté v `frontend/package-lock.json` a `backend/uv.lock`. Metadata verzí byla znovu ověřena přímo v registrech npm/PyPI a digesty image v oficiálním registry Dockeru. Konkrétní použité verze a testovací prostředí uvádí PHASE_1.md. Nové major verze se nepřebírají automaticky.
 
 | Oblast | Návrh | Důvod a oficiální zdroj |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ Základní Compose nemá host porty, vývojové mounty ani dev příkazy. Varian
 
 `db` má `pg_isready` healthcheck; backend kontrolu živosti a oddělenou připravenost s DB. Start pořadí není náhradou za retry databázového připojení. Migrace se provádí explicitním jednorázovým krokem před startem nové verze, nikoli současně v každém workeru. První správce se zakládá interaktivně přes management příkaz, bez výchozího hesla v `.env.example`. Syntetická demo data jen explicitním příkazem a pouze ve vývoji/testech.
 
-Svazky: `postgres_data`, `private_media`, případně `static_data` pro Django statické soubory. Vývoj má vlastní jméno projektu a svazky, produkce jiné. Svazek není záloha. Backend běží bez root oprávnění, pokud to image umožňuje; web má soukromé přílohy připojené jen pro čtení. Databázový svazek používá oprávnění vyžadovaná oficiálním PostgreSQL image.
+Trvalá aplikační data jsou pouze ve svazku `postgres_data`; profil, motiv, oprávnění, sessions a v budoucnu originály/náhledy účtenek jsou v PostgreSQL. Vývoj navíc používá `frontend_modules` jako cache závislostí, nikoli uživatelská data. Vývoj má vlastní jméno projektu a svazky, produkce jiné. Svazek není záloha. Backend běží jako neprivilegovaný uživatel 10001. PostgreSQL 18 používá mount `/var/lib/postgresql` s verzovaným podadresářem; nejde o starší mount 17.x. Databázový svazek používá oprávnění vyžadovaná oficiálním image.
 
 ## 4. Produkční síť a jeden origin
 
@@ -74,8 +74,6 @@ flowchart LR
   NPM -->|privátní proxy síť| W[web: nginx / SPA]
   W -->|/api/| A[backend: Gunicorn + Django]
   A --> DB[(PostgreSQL)]
-  A --> M[(Soukromé přílohy)]
-  W -. interní autorizované čtení .-> M
 ```
 
 Produkční web je připojen k externí Docker síti NPM a interní aplikační síti, bez veřejného host portu. Backend a DB nejsou připojeny k síti NPM; DB je dostupná pouze backendu v datové síti. Interní sítě nesmějí znemožnit budoucí řízené HTTPS volání RSV z backendu; do fáze 8 se externí integrace nepovoluje ani nespouští.
@@ -95,7 +93,7 @@ Plánované názvy do budoucího `.env.example`:
 | `DJANGO_DEBUG`, `DJANGO_SECURE_COOKIES` | Produkční konfigurace odmítne nebezpečné hodnoty |
 | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Připojení k interní `db`; heslo bez výchozí hodnoty |
 | `TANKLOG_PUBLIC_ORIGIN` | Budoucí doména nebo http://localhost:8080 |
-| `TANKLOG_PRIVATE_MEDIA_ROOT`, `TANKLOG_UPLOAD_MAX_BYTES` | Privátní svazek a nejvýše 10 MiB na soubor |
+| Budoucí limit uploadu | Ve fázi 3 pevný horní limit 10 MiB; obsah přílohy v DB, žádná cesta k privátnímu svazku |
 | `NPM_NETWORK_NAME` | Externí síť pro produkční `web` |
 | `RSV_API_KEY` | Teprve fáze 8; nikdy prefix `VITE_` |
 
@@ -105,6 +103,6 @@ Jazyk cs, `TIME_ZONE=Europe/Prague`, `USE_TZ=True`. Technické timestampy jsou U
 
 Změna vozidla nebo jeho historie uzamkne řádek vozidla; zápis, revize a audit proběhnou v jedné DB transakci. Klient posílá očekávanou revizi proti ztraceným úpravám. Po mutaci se invalidují dotčené query; měřicí intervaly se pro MVP dopočítávají nad celou historií vozidla, až potom se filtrují podle koncového dne. Bez uložených duplicitních intervalů a bez cache, která by mohla přežít změnu oprávnění.
 
-Nahrávání do dočasného soukromého prostoru, ověření a bezpečné přemístění pod náhodný interní název; DB odkaz se vytvoří až na připravený soubor. Selhání se kompenzuje úklidem. Soubory odstraňovat až po úspěšném commitu, opakovatelným úklidem osiřelých souborů s ochrannou lhůtou. V MVP stačí management příkaz bez dalšího workeru. Detail procesu, ochrana originálu a zálohy jsou v [SECURITY.md](SECURITY.md).
+Budoucí upload se nejprve ověří v omezené pracovní paměti nebo dočasném privátním prostoru. Originál, očištěný náhled a metadata se pak uloží jako bytea v jedné DB transakci s auditem. Žádný trvalý soubor není mimo PostgreSQL. Požadavek uživatele tím nahrazuje původně navržený privátní filesystem; binární data a větší DB zálohy jsou vědomý kompromis pro tuto malou self-hosted aplikaci. Limity a ochranu popisuje [SECURITY.md](SECURITY.md).
 
-Pro čtení příloh Django nejprve zkontroluje aktuální práva a může vydat nginx `X-Accel-Redirect` na `internal` lokaci. Ve vývoji stejný autorizovaný endpoint streamuje soubor. Žádný veřejný `/media/` alias. Export openpyxl vytváří přímo backend; limity chrání paměť bez zavádění fronty.
+Pro čtení příloh Django nejprve zkontroluje aktuální práva a vrátí omezený binární obsah z DB s bezpečnými hlavičkami. Žádný veřejný `/media/` alias ani X-Accel-Redirect na filesystem. Export openpyxl vytváří přímo backend; limity chrání paměť bez zavádění fronty. V prohlížeči je query cache jen v paměti; po odhlášení nebo zániku session se čistí. Uložené údaje a motiv se vždy znovu načtou z DB podle uživatele.

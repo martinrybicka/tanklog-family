@@ -1,6 +1,6 @@
 # Oprávnění, bezpečnost a provozní integrita
 
-Stav: požadavky návrhu. Jejich implementace a ověření jsou akceptační podmínky odpovídajících etap, nikoli splněná bezpečnostní garance současného adresáře.
+Stav: bezpečnostní požadavky průběžně implementované po etapách. Ve fázi 1 se testují účty, sessions, CSRF, reset, audit a produkční konfigurace. Výsledky a výjimky ověření viz PHASE_1.md; nejde o obecnou bezpečnostní certifikaci aplikace.
 
 ## 1. Matice práv
 
@@ -39,6 +39,8 @@ Všechny změny grantů, vlastnictví, archivace a historie zamykají vozidlo a 
 - Rotace session a CSRF při loginu, timeout plné session nejvýše 12 hodin, omezené 15 minut; žádné neomezené „zapamatovat“. Logout ruší session, není GET odkaz.
 - `auth_epoch` se kontroluje při každém požadavku. Reset, změna hesla a deaktivace zneplatní předchozí sessions; po vlastní změně hesla lze založit jednu novou aktuální session. Reaktivace neoživí staré sessions.
 - Ochrana přihlášení přes udržovaný django-axes s databázovým handlerem, bez nové služby. Ověřit kompatibilitu a konkurentní chování při fázi 1. Návrh limitů: 5 selhání pro kombinaci účet+IP / 15 minut a samostatný IP limit na nginx; ověřit chování za sdílenou NAT a nemožnost obejití podvrženou hlavičkou. [Oficiální django-axes dokumentace](https://django-axes.readthedocs.io/en/latest/).
+- Stejný DB limit chrání i potvrzování aktuálního hesla při citlivých akcích, aby se ověření hesla nestalo alternativním neomezeným login endpointem.
+- Ověření aktuálního hesla a zápis neúspěšného pokusu proběhnou před transakcí doménové změny. Po získání zámků se znovu kontroluje auth_epoch/aktivace/role/verze. Nezapínat globální ATOMIC_REQUESTS bez úpravy tohoto toku: rollback odmítnuté akce by nesměl vymazat čítač ochrany loginu. Tento scénář má vlastní test.
 - Uživatelsky stejné sdělení pro neexistující/deaktivovaný účet nebo chybu hesla. Neomezit ochranu pouze na DRF throttling, který sám není plnohodnotnou obranou proti distribuovanému hádání.
 
 Založení/reset: ADMIN se znovu autentizuje vlastním aktuálním heslem. Server kryptograficky náhodně vygeneruje alespoň 128 bitů entropie dočasného hesla, uloží pouze Django hash, nastaví `must_change_password`, expiraci 24 hodin a nový `auth_epoch`. Vrátí otevřené heslo jen jednou v HTTPS odpovědi no-store; správce je předá soukromě mimo TankLog. Žádné ukládání do auditu, prohlížečového úložiště nebo logu.
@@ -47,15 +49,19 @@ Přihlášení dočasným heslem musí pod zámkem účtu atomicky zkontrolovat 
 
 Změna role/deaktivace posledního aktivního ADMIN je zakázána v transakci se zámkem. První a nouzový správce se zakládá řízeným management příkazem, bez skrytého výchozího účtu. Povinné MFA není v zadání MVP, lze navrhnout před širším vystavením internetu jako další samostatný rozsah.
 
+Fáze 1 zpřesňuje bezpečné chování: administrační reset vlastního účtu se odmítá, aby správce neztratil přihlášení dřív, než si přečte nové jednorázové heslo. Vlastní heslo mění přes Nastavení. Názvy účtů jsou ASCII (písmena, čísla a . @ + - _), normalizované na malá písmena a chráněné case-insensitive unikátním DB indexem.
+
+Profil, nastavení motivu, audit i session záznamy jsou v DB. Cookie obsahuje jen session identifikátor a CSRF hodnotu; uložená data nejsou v localStorage/sessionStorage/IndexedDB. Odstranění cookies nebo nové zařízení pouze vyžadují přihlášení. Přístup k datům vždy vychází ze serverového účtu, ne z identifikátoru uloženého jen v prohlížeči.
+
 ## 4. Účtenky a vstupy
 
 Limit 10 MiB na obrázek se kontroluje na proxy i backendu; HTTP multipart request má malou dodatečnou režii (např. proxy limit 12 MiB, soubor stále 10 MiB). Požadavky i formuláře mají konečné velikosti. Kontrolovat skutečné dekódování Pillow, rozměry max. 24 MP, nepovolit dekompresní bomby, animace, poškozené obrázky a neočekávaný formát. MIME a přípona od klienta nestačí.
 
-Originál JPEG/PNG je soukromý, náhled se znovu zakóduje bez EXIF. Uživatel před sdílením ví, že originál může obsahovat metadata. Interní názvy jsou náhodné UUID; původní jméno slouží jen jako očištěný název stažení, nikdy jako cesta. Zabránit traversal a symlink úniku, omezit filesystem oprávnění. Originál podávat s ověřeným MIME, `Content-Disposition: attachment` a `X-Content-Type-Options: nosniff`; náhled lze zobrazit inline po autorizaci.
+Originál JPEG/PNG je soukromý, náhled se znovu zakóduje bez EXIF. Uživatel před sdílením ví, že originál může obsahovat metadata. Oba obsahy budou podle dodatku uživatele z fáze 1 uložené v PostgreSQL (implementace až ve fázi 3). Interním identifikátorem je UUID; původní jméno je očištěný název stažení a nikdy cesta. Originál podávat s ověřeným MIME, `Content-Disposition: attachment` a `X-Content-Type-Options: nosniff`; náhled lze zobrazit inline po autorizaci.
 
-Soubory nejsou veřejné přes `/media/`. nginx `internal` lokace přijímá pouze interní přesměrování po ověření backendem; přímý přístup vrací 404. Každé stažení znovu ověřuje session a právo k autu. Žádná veřejná podepsaná URL s dlouhou platností. Limitovat frekvenci uploadu a kapacitu svazku, hlídat volné místo a selhání disku.
+Přílohy nejsou veřejné přes `/media/`; nginx tyto cesty odmítá. Každé stažení binárního obsahu z DB znovu ověřuje session a právo k autu. Žádná veřejná podepsaná URL s dlouhou platností. Limitovat frekvenci uploadu, velikost DB a jejího svazku, hlídat volné místo a selhání disku. Binární obsah nikdy nevkládat do běžného seznamu/JSON statistik nebo auditu.
 
-Upload jde do privátního stagingu, po validaci vznikne originál/náhled a teprve pak DB vazba. Při DB rollbacku nový soubor uklidit; při výměně/DELETE odstranit starý až po commitu. Pravidelný idempotentní úklid po ochranné lhůtě řeší zbytky po pádu, nemaže soubory odkazované živou DB. OCR nemění originál a nespouští se v MVP.
+Upload se validuje v omezeném pracovním prostoru; případné dočasné soubory nejsou trvalým úložištěm. Výměna nebo DELETE přílohy proběhne atomicky nad binárními poli/metadaty v DB. Rollback zachová původní obsah. OCR nemění originál a nespouští se v MVP.
 
 Pro XLSX vynutit textový typ libovolného uživatelského textu, včetně řetězců po bílých znacích s prefixem `=`, `+`, `-`, `@`. Testovat načtením výsledného sešitu: žádná textová buňka nemá `data_type=f`. Nekonstruovat vzorce ani externí odkazy. Číselné buňky lze zapisovat jako čísla po kontrolovaném převodu pro XLSX, ale nikdy z nich zpětně odvozovat databázovou přesnost.
 
@@ -84,11 +90,11 @@ Navržené výchozí retence pro schválení před produkcí: provozní logy 30 
 
 ## 7. Zálohy a ověřená obnova – podmínka produkce
 
-Návrh pro malou instalaci: denní šifrovaná záloha mimo hostitele, 7 denních + 4 týdenní + 6 měsíčních bodů. Výchozí cíle RPO do 24 h a RTO do 4 h jsou plán, nikoli změřený výsledek. Klíč k obnově uchovat odděleně od serveru a zálohy. Záloha obsahuje `pg_dump` v custom formátu, soukromé originály/náhledy, kontrolní součty, verzi aplikace a migrací; tajnou konfiguraci uložit odděleně šifrovaně.
+Návrh pro malou instalaci: denní šifrovaná záloha mimo hostitele, 7 denních + 4 týdenní + 6 měsíčních bodů. Výchozí cíle RPO do 24 h a RTO do 4 h jsou plán, nikoli změřený výsledek. Klíč k obnově uchovat odděleně od serveru a zálohy. Záloha obsahuje `pg_dump` v custom formátu včetně binárních originálů/náhledů v DB, kontrolní součty, verzi aplikace a migrací; tajnou konfiguraci uložit odděleně šifrovaně. Binární účtenky zvětší dump a délku obnovy; cíle ověřit s realistickou velikostí databáze.
 
-Konzistence: po dobu pořízení DB dumpu a kopie souborů zablokovat všechny zápisy a úklid souborů (u malé instalace údržbové okno / zastavení webových writerů), zabránit zapisování management příkazy. Čtení může být dostupné podle zvoleného režimu. Prosté nezávislé kopírování živé DB a účtenek bez společného bodu nestačí. Nepovažovat kopii běžícího datového adresáře PostgreSQL za validní dump.
+Konzistence: `pg_dump` zachytí jednotný snapshot všech aplikačních řádků i binárních příloh; samostatné kopírování souborového úložiště se nepoužívá. Pro kontrolovaný cutover může být stále potřeba údržbové okno. Nepovažovat kopii běžícího datového adresáře PostgreSQL za validní dump. Zálohovat i přiřazené hash hodnoty příloh pro následnou kontrolu integrity.
 
-Obnovu provést do **nového izolovaného** projektu/svazků: stejná kompatibilní verze PostgreSQL, restore DB, obnova souborů a oprávnění, kontrolní součty, kontrola migrací, login testovacím účtem a ověření několika účtenek, součtů a oprávnění. Produkční volumes se při cvičení nepřipojují. Zapsat čas, výsledky a odchylku RPO/RTO; opakovat alespoň čtvrtletně a po zásadní změně schématu. Rollback image nesmí předpokládat zpětnou kompatibilitu migrace.
+Obnovu provést do **nového izolovaného** projektu/svazků: stejná kompatibilní verze PostgreSQL, restore celé DB včetně binárních příloh, kontrolní součty, kontrola migrací, login testovacím účtem a ověření několika účtenek, součtů a oprávnění. Produkční volumes se při cvičení nepřipojují. Zapsat čas, výsledky a odchylku RPO/RTO; opakovat alespoň čtvrtletně a po zásadní změně schématu. Rollback image nesmí předpokládat zpětnou kompatibilitu migrace.
 
 Bez výslovného schválení se nemažou DB ani volumes, nespouští `docker compose down -v`, nucené Git operace ani obnova přes existující produkční data. Nasazení, přepsání dat a úpravy produkční infrastruktury vyžadují vlastní autorizovanou etapu.
 

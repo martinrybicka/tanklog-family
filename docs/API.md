@@ -1,6 +1,6 @@
 # Plán API v1
 
-Návrh kontraktu, dosud neimplementováno. Základ `/api/v1/` pod stejným originem jako SPA. Všechny cesty níže mají koncové lomítko. Ve fázi 1 začne vznikat strojově ověřované OpenAPI a kontraktní testy; zde jde o podklad pro implementaci, nikoli úplné OpenAPI schéma.
+Kontrakt API v1. Ve fázi 1 jsou implementované sekce autentizace, profil, uživatelé, systém, audit a health; vozidla, tankování a statistiky jsou plán dalších fází. Základ `/api/v1/` pod stejným originem jako SPA. Všechny cesty níže mají koncové lomítko. Strojově generovaný aktuální kontrakt je [openapi.yaml](openapi.yaml), také dostupný přihlášenému ADMIN na `admin/schema/`. Limity ověření jsou v PHASE_1.md.
 
 ## 1. Společná pravidla
 
@@ -57,6 +57,8 @@ Prefix `admin/`, vždy systémový ADMIN s plnou session. Citlivé akce (reset, 
 | GET `admin/audit/` | Stránkovaný audit s filtry času/akce/objektu; bez zapisovacího endpointu |
 
 Vydání dočasného hesla vrátí pouze v dané odpovědi `{user_id, temporary_password, expires_at, must_change_password: true}` s no-store. Při ztrátě odpovědi se vydá nové heslo, původní nelze znovu přečíst. UI ho zobrazí jednorázově správci pro předání soukromým kanálem mimo aplikaci. Nemá vlastní tlačítko automatického odeslání e-mailu.
+
+Reset vlastního účtu tímto administračním endpointem vrátí 409 `self_reset_forbidden`; vlastní heslo se mění přes `auth/password/change/`. Předejde se odhlášení správce před bezpečným přečtením jednorázového hesla. Nové uživatelské jméno je ASCII a normalizované na malá písmena. Profil/motiv jsou uložené v DB a čtou se shodně po novém přihlášení i z jiného zařízení.
 
 ## 4. Vozidla a sdílení – fáze 2
 

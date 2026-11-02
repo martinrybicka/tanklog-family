@@ -1,0 +1,612 @@
+openapi: 3.0.3
+info:
+  title: TankLog API
+  version: 1.0.0
+  description: Fáze 1 – účty a autentizace
+paths:
+  /api/v1/admin/audit/:
+    get:
+      operationId: admin_audit_list
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+          maxLength: 60
+          minLength: 1
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: entity_id
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Audit'
+          description: ''
+  /api/v1/admin/system/:
+    get:
+      operationId: admin_system_retrieve
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/admin/users/:
+    get:
+      operationId: admin_users_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          maxLength: 200
+      - in: query
+        name: system_role
+        schema:
+          enum:
+          - ADMIN
+          - USER
+          type: string
+          minLength: 1
+        description: |-
+          * `ADMIN` - Administrátor
+          * `USER` - Uživatel
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: ''
+    post:
+      operationId: admin_users_create
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreate'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/admin/users/{user_id}/:
+    get:
+      operationId: admin_users_retrieve
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: admin_users_partial_update
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminUpdate'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/admin/users/{user_id}/activate/:
+    post:
+      operationId: admin_users_activate_create
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reauthenticate'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/admin/users/{user_id}/deactivate/:
+    post:
+      operationId: admin_users_deactivate_create
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reauthenticate'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/admin/users/{user_id}/password-reset/:
+    post:
+      operationId: admin_users_password_reset_create
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reauthenticate'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/auth/csrf/:
+    get:
+      operationId: auth_csrf_retrieve
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/auth/login/:
+    post:
+      operationId: auth_login_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+  /api/v1/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/v1/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      tags:
+      - auth
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+  /api/v1/auth/password/change/:
+    post:
+      operationId: auth_password_change_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/profile/:
+    get:
+      operationId: profile_retrieve
+      tags:
+      - profile
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: profile_partial_update
+      tags:
+      - profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfile'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+components:
+  schemas:
+    AdminCreate:
+      type: object
+      properties:
+        current_password:
+          type: string
+          writeOnly: true
+          maxLength: 256
+        username:
+          type: string
+          pattern: ^[a-zA-Z0-9_.@+-]+$
+          maxLength: 150
+        display_name:
+          type: string
+          default: ''
+          maxLength: 150
+        email:
+          oneOf:
+          - type: string
+            format: email
+            default: ''
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        system_role:
+          allOf:
+          - $ref: '#/components/schemas/SystemRoleEnum'
+          default: USER
+      required:
+      - current_password
+      - username
+    Audit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        occurred_at:
+          type: string
+          format: date-time
+          readOnly: true
+        actor_name:
+          type: string
+        action:
+          type: string
+          maxLength: 60
+        entity_type:
+          type: string
+          maxLength: 40
+        entity_id:
+          type: string
+          format: uuid
+          nullable: true
+        request_id:
+          type: string
+          maxLength: 36
+        changes: {}
+      required:
+      - action
+      - id
+      - occurred_at
+    Login:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 256
+      required:
+      - password
+      - username
+    PasswordChange:
+      type: object
+      properties:
+        current_password:
+          type: string
+          writeOnly: true
+          maxLength: 256
+        new_password:
+          type: string
+          writeOnly: true
+          maxLength: 256
+      required:
+      - new_password
+    PatchedAdminUpdate:
+      type: object
+      properties:
+        display_name:
+          type: string
+          maxLength: 150
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        system_role:
+          $ref: '#/components/schemas/SystemRoleEnum'
+        current_password:
+          type: string
+          writeOnly: true
+          maxLength: 256
+    PatchedProfile:
+      type: object
+      properties:
+        display_name:
+          type: string
+          maxLength: 150
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+    Reauthenticate:
+      type: object
+      properties:
+        current_password:
+          type: string
+          writeOnly: true
+          maxLength: 256
+      required:
+      - current_password
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        must_change_password:
+          type: boolean
+        display_name:
+          type: string
+        system_role:
+          $ref: '#/components/schemas/SystemRoleEnum'
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+      required:
+      - id
+      - must_change_password
+      - username
+    SystemRoleEnum:
+      enum:
+      - ADMIN
+      - USER
+      type: string
+      description: |-
+        * `ADMIN` - Administrátor
+        * `USER` - Uživatel
+    ThemeEnum:
+      enum:
+      - SYSTEM
+      - LIGHT
+      - DARK
+      type: string
+      description: |-
+        * `SYSTEM` - Podle systému
+        * `LIGHT` - Světlý
+        * `DARK` - Tmavý
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        display_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: E-mailová adresa
+        system_role:
+          allOf:
+          - $ref: '#/components/schemas/SystemRoleEnum'
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Aktivní
+          description: Určuje, zda bude uživatel považován za aktivního. Použijte
+            tuto možnost místo odstranění účtů.
+        theme:
+          allOf:
+          - $ref: '#/components/schemas/ThemeEnum'
+          readOnly: true
+        must_change_password:
+          type: boolean
+          readOnly: true
+        version:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - display_name
+      - email
+      - id
+      - is_active
+      - must_change_password
+      - system_role
+      - theme
+      - updated_at
+      - username
+      - version
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

@@ -1,6 +1,6 @@
 # Architektonická rozhodnutí
 
-Datum návrhu: 2. 11. 2026. Stav všech položek: **navrženo, čeká na schválení fáze 0**. Rozhodnutí jsou konkrétní doporučení, ne tvrzení o implementaci. Změny zapisovat s datem a důvodem; nepřepisovat historii již schváleného rozhodnutí bez poznámky.
+Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Stav konkrétní implementace a ověření viz PHASE_1.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
 
 | ID | Rozhodnutí | Důvod / důsledek |
 | --- | --- | --- |
@@ -24,10 +24,16 @@ Datum návrhu: 2. 11. 2026. Stav všech položek: **navrženo, čeká na schvál
 | ADR-018 | Archivace aut a deaktivace účtů; bez trvalého mazání auta s historií | Zachování vztahů, auditu a podkladů statistik; mazání tankování je explicitní autorizovaná operace |
 | ADR-019 | Výpočet na požádání, zámek vozidla a optimistická revize | Konzistence při souběhu bez job fronty a invalidace uložených výsledků |
 | ADR-020 | Idempotentní vytvoření tankování přes klientské UUID | Mobilní retry po timeoutu nesmí vytvořit dvě tankování; není to offline synchronizace |
-| ADR-021 | Výchozí zálohy DB i účtenek ve společném konzistentním bodě | Obnova nesmí ztratit vazby na soubory; před produkcí zkušební restore |
+| ADR-021 | Záloha celé DB včetně účtenek ve společném konzistentním bodě | Aktualizováno podle ADR-023; před produkcí zkušební restore včetně integrity binárních dat |
 | ADR-022 | VIN/OCR pouze pozdější adaptéry na backendu | API klíč zůstane soukromý, import/OCR jen navrhuje údaje k potvrzení |
+| ADR-023 | Všechna trvalá aplikační data v PostgreSQL, přílohy jako bytea | Výslovný dodatek uživatele ve fázi 1; nahrazuje návrh privátního filesystemu. Profil a motiv jsou společné pro zařízení, cookie pouze identifikuje session. Účtenky se implementují až ve fázi 3, s limity a většími DB zálohami. |
+| ADR-024 | Neutrální modrá/šedá/bílá paleta v obou motivech | Výslovný vizuální pokyn uživatele během fáze 1, nahrazuje původní zelený akcent |
+| ADR-025 | PostgreSQL transakční advisory lock pro administrační změny | Krátký společný zámek brání souběžné deaktivaci posledních dvou ADMIN; uživatelské zápisy mají také row lock a ETag |
+| ADR-026 | Vlastní administrační reset odmítnout; změna vlastního hesla přes Nastavení | Správce nemůže přijít o session před zobrazením jednorázového hesla; reset jiných účtů odvolá jejich staré sessions |
+| ADR-027 | Před produkcí HSTS=0, cookies Secure a HTTPS redirect již zapnuté | HSTS vyžaduje ověřenou skutečnou doménu v etapě 7; check --deploy proto ve fázi 1 vrací zdokumentované security.W004, neskrýváme ho |
+| ADR-028 | Potvrzení hesla a jeho limity před transakcí doménového zápisu | Selhání nesmí rollbackem vymazat čítač neúspěšných pokusů. Po úspěchu se v transakci znovu ověří auth_epoch, role, verze a zámky; neobchází se aktuální oprávnění. |
 
-## Zásadní body k výslovnému schválení návrhu
+## Původní zásadní body fáze 0
 
 1. **Rozsah měření:** CZK/litry/km, jedna nádrž pro spotřebu, různá paliva v dashboardu odděleně; bez spotřeby CNG/EV a více nádrží v MVP (ADR-007, 015).
 2. **Práva:** vlastník nesdílí auto sám; CONTRIBUTOR upravuje vlastní tankování, ale nemaže je. Sdílení zpřístupní celou historii a přílohy (ADR-004–006).
@@ -35,4 +41,4 @@ Datum návrhu: 2. 11. 2026. Stav všech položek: **navrženo, čeká na schvál
 4. **Peníze a časové statistiky:** částka účtenky je rozhodující, cena je realizovaná; spotřeba patří ke koncovému dni a náklady / 100 km mají popsaný nákupní význam (ADR-007, 013–014).
 5. **Správa účtů a dat:** reset přes jednorázové heslo bez e-mailové služby; archivace místo trvalého mazání aut; originály účtenek zůstávají soukromé včetně metadat (ADR-016–018).
 
-Doporučení lze schválit společně nebo upravit podle ID. **Ani schválením této tabulky se automaticky nezahajuje fáze 1.** Přesná verze knihovny nebo rozteč komponenty nejsou samostatným schvalovacím bodem; řeší se při implementaci v rámci schválené architektury.
+Fáze 1 byla poté výslovně zahájena uživatelem. Další fáze se nezahajují automaticky; připomínky lze uvést podle ADR ID. Přesná verze knihovny nebo rozteč komponenty nejsou samostatným schvalovacím bodem; řeší se v rámci schváleného rozsahu.

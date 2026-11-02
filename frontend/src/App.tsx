@@ -1,0 +1,472 @@
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  ArrowRight,
+  CarFront,
+  ChevronRight,
+  CircleCheck,
+  Clock3,
+  Fuel,
+  Gauge,
+  LayoutDashboard,
+  LogOut,
+  Settings2,
+  ShieldCheck,
+  UsersRound,
+  ScrollText,
+  Server,
+  Plus,
+} from "lucide-react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import {
+  Link,
+  Navigate,
+  NavLink,
+  Outlet,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
+import { Button, ErrorMessage, Loading, Logo } from "./components/ui";
+import { api, errorText, refreshCsrf } from "./lib/api";
+import { useSession } from "./lib/auth";
+import type { Session } from "./lib/types";
+const Audit = lazy(() =>
+  import("./pages/AdminInfo").then((module) => ({ default: module.Audit })),
+);
+const System = lazy(() =>
+  import("./pages/AdminInfo").then((module) => ({ default: module.System })),
+);
+const Login = lazy(() =>
+  import("./pages/Login").then((module) => ({ default: module.Login })),
+);
+const ForcedPassword = lazy(() =>
+  import("./pages/Password").then((module) => ({
+    default: module.ForcedPassword,
+  })),
+);
+const Profile = lazy(() =>
+  import("./pages/Profile").then((module) => ({ default: module.Profile })),
+);
+const Users = lazy(() =>
+  import("./pages/Users").then((module) => ({ default: module.Users })),
+);
+
+function Theme({ value }: { value?: string }) {
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () =>
+      document.documentElement.classList.toggle(
+        "dark",
+        value === "DARK" || ((!value || value === "SYSTEM") && media.matches),
+      );
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, [value]);
+  return null;
+}
+
+function Protected() {
+  const session = useSession();
+  if (session.isPending) return <Loading />;
+  if (session.error)
+    return (
+      <main className="standalone">
+        <ErrorMessage>{errorText(session.error)}</ErrorMessage>
+        <Button onClick={() => session.refetch()}>Zkusit znovu</Button>
+      </main>
+    );
+  if (!session.data) return <Navigate to="/prihlaseni" replace />;
+  if (session.data.must_change_password)
+    return <Navigate to="/zmena-hesla" replace />;
+  return <Shell user={session.data} />;
+}
+
+function Shell({ user }: { user: Session }) {
+  const client = useQueryClient();
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const admin = user.system_role === "ADMIN";
+  return (
+    <div className="app-shell">
+      <Theme value={user.theme} />
+      <a href="#main-content" className="skip-link">
+        Přejít k obsahu
+      </a>
+      <aside className="sidebar">
+        <Link to="/" className="logo-link" aria-label="TankLog – přehled">
+          <Logo />
+        </Link>
+        <span className="nav-caption">VÁŠ DENÍK</span>
+        <nav aria-label="Hlavní navigace">
+          <NavLink end to="/">
+            <LayoutDashboard size={20} />
+            Přehled
+          </NavLink>
+          <span className="nav-disabled" title="Vozidla přidáme ve fázi 2.">
+            <CarFront size={20} />
+            Moje auta<span className="soon">Brzy</span>
+          </span>
+          <span className="nav-disabled" title="Tankování přidáme ve fázi 3.">
+            <Fuel size={20} />
+            Tankování<span className="soon">Brzy</span>
+          </span>
+          <NavLink to="/nastaveni">
+            <Settings2 size={20} />
+            Nastavení
+          </NavLink>
+        </nav>
+        {admin && (
+          <>
+            <span className="nav-caption">SPRÁVA APLIKACE</span>
+            <nav aria-label="Administrace">
+              <NavLink to="/administrace/uzivatele">
+                <UsersRound size={20} />
+                Uživatelé
+              </NavLink>
+              <NavLink to="/administrace/audit">
+                <ScrollText size={20} />
+                Auditní historie
+              </NavLink>
+              <NavLink to="/administrace/system">
+                <Server size={20} />
+                Stav systému
+              </NavLink>
+            </nav>
+          </>
+        )}
+        <div className="sidebar-bottom">
+          <div className="private-note">
+            <ShieldCheck size={18} />
+            <div>
+              <strong>Soukromý prostor</strong>
+              <small>Data pod vaší kontrolou</small>
+            </div>
+          </div>
+          <div className="current-user">
+            <span className="avatar">
+              {(user.display_name || user.username).slice(0, 2).toUpperCase()}
+            </span>
+            <div>
+              <strong>{user.display_name || user.username}</strong>
+              <small>{admin ? "Administrátor" : "Uživatel"}</small>
+            </div>
+            <Button
+              variant="ghost"
+              aria-label="Odhlásit se"
+              onClick={async () => {
+                try {
+                  await api("auth/logout/", { method: "POST" });
+                  await refreshCsrf();
+                  client.clear();
+                  client.setQueryData(["session"], null);
+                  navigate("/prihlaseni", { replace: true });
+                } catch (e) {
+                  setError(errorText(e));
+                }
+              }}
+            >
+              <LogOut size={17} />
+            </Button>
+          </div>
+        </div>
+      </aside>
+      <div className="app-body">
+        <header className="topbar">
+          <div>
+            <span className="desktop-only">Váš automobilový deník</span>
+            <span className="mobile-only">
+              <Logo />
+            </span>
+          </div>
+          <div className="topbar-actions">
+            <span className="local-badge">
+              <span />
+              Lokální aplikace
+            </span>
+            <Button
+              disabled
+              title="Zadávání tankování bude dostupné ve fázi 3."
+            >
+              <Plus size={17} />
+              Zadat tankování
+            </Button>
+          </div>
+        </header>
+        <main id="main-content" className="main-content">
+          <ErrorMessage>{error}</ErrorMessage>
+          <Outlet />
+        </main>
+        <footer className="app-footer">
+          <span>
+            TankLog <span className="muted">/</span> Osobní automobilový deník
+          </span>
+          <span>Fáze 1 · Účty a zabezpečení</span>
+        </footer>
+      </div>
+      <nav className="mobile-nav" aria-label="Mobilní navigace">
+        <NavLink end to="/">
+          <LayoutDashboard size={19} />
+          Přehled
+        </NavLink>
+        <span aria-disabled="true">
+          <CarFront size={19} />
+          Auta · brzy
+        </span>
+        <span aria-disabled="true">
+          <Fuel size={19} />
+          Tankování · brzy
+        </span>
+        <NavLink to="/nastaveni">
+          <Settings2 size={19} />
+          Nastavení
+        </NavLink>
+        {admin && (
+          <NavLink to="/administrace/uzivatele">
+            <UsersRound size={19} />
+            Správa
+          </NavLink>
+        )}
+      </nav>
+      <div className="mobile-logout">
+        <Button
+          variant="ghost"
+          aria-label="Odhlásit se na mobilu"
+          onClick={async () => {
+            try {
+              await api("auth/logout/", { method: "POST" });
+              await refreshCsrf();
+              client.clear();
+              client.setQueryData(["session"], null);
+              navigate("/prihlaseni");
+            } catch (e) {
+              setError(errorText(e));
+            }
+          }}
+        >
+          <LogOut size={18} />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Overview() {
+  const { data: user } = useSession();
+  return (
+    <>
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">VÍTEJTE ZPÁTKY</span>
+          <h1>
+            Dobrý den{user?.display_name ? `, ${user.display_name}` : ""}.
+          </h1>
+          <p className="muted">Váš prostor pro každou další cestu.</p>
+        </div>
+        <span className="date-chip">
+          {new Date().toLocaleDateString("cs-CZ", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            timeZone: "Europe/Prague",
+          })}
+        </span>
+      </div>
+      <section className="welcome-card">
+        <div className="welcome-copy">
+          <span className="welcome-badge">
+            <CircleCheck size={15} /> ZÁKLAD APLIKACE JE PŘIPRAVEN
+          </span>
+          <h2>
+            Všechno začíná
+            <br />
+            dobrým přehledem.
+          </h2>
+          <p>
+            Váš účet a bezpečné přihlášení jsou připravené. Nyní si můžete
+            upravit profil a zabezpečení
+            {user?.system_role === "ADMIN"
+              ? " nebo pozvat další uživatele"
+              : ""}
+            .
+          </p>
+          <Link
+            className="button button-primary"
+            to={
+              user?.system_role === "ADMIN"
+                ? "/administrace/uzivatele"
+                : "/nastaveni"
+            }
+          >
+            {user?.system_role === "ADMIN"
+              ? "Spravovat uživatele"
+              : "Nastavit profil"}
+            <ArrowRight size={17} />
+          </Link>
+        </div>
+        <div className="welcome-art" aria-hidden="true">
+          <div className="art-ring art-ring-outer" />
+          <div className="art-ring art-ring-inner" />
+          <div className="art-car">
+            <CarFront size={92} strokeWidth={1.2} />
+          </div>
+          <div className="art-check">
+            <ShieldCheck size={28} />
+          </div>
+          <div className="art-fuel">
+            <Fuel size={24} />
+          </div>
+        </div>
+      </section>
+      <div className="section-title">
+        <h2>Váš TankLog, krok za krokem</h2>
+        <span className="muted">Aktuálně fáze 1</span>
+      </div>
+      <div className="stage-grid">
+        <article className="stage-card completed">
+          <span className="icon-tile">
+            <ShieldCheck size={24} />
+          </span>
+          <span className="stage-tag">DOSTUPNÉ NYNÍ</span>
+          <h3>Účet a zabezpečení</h3>
+          <p>Soukromé přihlášení, osobní profil a bezpečná správa přístupu.</p>
+          <Link to="/nastaveni">
+            Otevřít nastavení
+            <ChevronRight size={16} />
+          </Link>
+        </article>
+        <article className="stage-card">
+          <span className="icon-tile neutral">
+            <CarFront size={24} />
+          </span>
+          <span className="stage-tag muted">
+            <Clock3 size={12} /> FÁZE 2
+          </span>
+          <h3>Vaše vozidla</h3>
+          <p>Vlastní auta, technické údaje a sdílení s dalšími uživateli.</p>
+          <span className="coming-label">Připravujeme</span>
+        </article>
+        <article className="stage-card">
+          <span className="icon-tile neutral">
+            <Gauge size={24} />
+          </span>
+          <span className="stage-tag muted">
+            <Clock3 size={12} /> FÁZE 3–4
+          </span>
+          <h3>Tankování a přehledy</h3>
+          <p>Účtenky, výdaje a spotřeba vypočtená z vaší historie.</p>
+          <span className="coming-label">Připravujeme</span>
+        </article>
+      </div>
+      <div className="privacy-banner">
+        <ShieldCheck size={22} />
+        <div>
+          <strong>Vaše data, vaše pravidla.</strong>
+          <p>
+            TankLog běží na vlastním serveru. Nové uživatele vytváří správce a
+            veřejná registrace je vypnutá.
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function AdminOnly() {
+  const { data } = useSession();
+  return data?.system_role === "ADMIN" ? (
+    <>
+      <nav className="admin-mobile-tabs" aria-label="Administrace na mobilu">
+        <NavLink to="/administrace/uzivatele">Uživatelé</NavLink>
+        <NavLink to="/administrace/audit">Audit</NavLink>
+        <NavLink to="/administrace/system">Systém</NavLink>
+      </nav>
+      <Outlet />
+    </>
+  ) : (
+    <Navigate to="/" replace />
+  );
+}
+
+function LoginRoute() {
+  const session = useSession();
+  if (session.isPending) return <Loading />;
+  return session.data ? (
+    <Navigate
+      to={session.data.must_change_password ? "/zmena-hesla" : "/"}
+      replace
+    />
+  ) : (
+    <Login />
+  );
+}
+
+function PasswordRoute() {
+  const session = useSession();
+  if (session.isPending) return <Loading />;
+  if (!session.data) return <Navigate to="/prihlaseni" replace />;
+  return session.data.must_change_password ? (
+    <ForcedPassword />
+  ) : (
+    <Navigate to="/" replace />
+  );
+}
+
+function AuthEvents() {
+  const client = useQueryClient();
+  const navigate = useNavigate();
+  const session = useSession();
+  useEffect(() => {
+    if (session.data === null)
+      client.removeQueries({
+        predicate: (query) => query.queryKey[0] !== "session",
+      });
+  }, [session.data, client]);
+  useEffect(() => {
+    const expired = (event: Event) => {
+      if ((event as CustomEvent).detail === "password_change_required") {
+        void client.invalidateQueries({ queryKey: ["session"] });
+        navigate("/zmena-hesla", { replace: true });
+      } else {
+        client.clear();
+        client.setQueryData(["session"], null);
+        navigate("/prihlaseni", { replace: true });
+      }
+    };
+    window.addEventListener("tanklog:session", expired);
+    return () => window.removeEventListener("tanklog:session", expired);
+  }, [client, navigate]);
+  return null;
+}
+
+export function App() {
+  return (
+    <>
+      <AuthEvents />
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="/prihlaseni" element={<LoginRoute />} />
+          <Route path="/zmena-hesla" element={<PasswordRoute />} />
+          <Route element={<Protected />}>
+            <Route index element={<Overview />} />
+            <Route path="nastaveni" element={<Profile />} />
+            <Route element={<AdminOnly />}>
+              <Route path="administrace/uzivatele" element={<Users />} />
+              <Route path="administrace/audit" element={<Audit />} />
+              <Route path="administrace/system" element={<System />} />
+            </Route>
+            <Route
+              path="*"
+              element={
+                <section className="panel">
+                  <h1>Stránka nebyla nalezena</h1>
+                  <Link to="/">Zpět na přehled</Link>
+                </section>
+              }
+            />
+          </Route>
+        </Routes>
+      </Suspense>
+    </>
+  );
+}

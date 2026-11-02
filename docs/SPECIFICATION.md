@@ -1,10 +1,12 @@
 # Funkční specifikace
 
-Stav: návrh fáze 0 k 2. 11. 2026; funkce budou vznikat ve fázích 1–5. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
+Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 1. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
 
 ## 1. Cíl a hranice první verze
 
 TankLog umožní malé skupině uživatelů bezpečně spravovat auta, sdílet historii a evidovat nákupy paliva. Rozhraní je české, mobile-first, s podporou klávesnice, světlým i tmavým režimem a shodnými funkcemi na telefonu i desktopu.
+
+Dodatek uživatele během fáze 1: **všechna trvalá aplikační data jsou v PostgreSQL**, včetně profilu, uživatelského nastavení a budoucích binárních účtenek/náhledů. Smazání cookies pouze odhlásí účet; po přihlášení na libovolném zařízení jsou uložené údaje stejné. Klientská paměť je jen dočasná cache, ne zdroj pravdy; localStorage, sessionStorage ani IndexedDB neuchovávají osobní data nebo preference. Neukládaný rozepsaný formulář není uloženým záznamem. Konfigurace a tajné hodnoty infrastruktury zůstávají v prostředí. Vzhled používá neutrální modré/šedé odstíny a bílé plochy.
 
 První ucelené MVP vznikne dokončením fází 1–5. Obsahuje ruční zadání vozidel a tankování, soukromé obrázky účtenek, filtrování, XLSX, spotřebu, dashboard a administraci. VIN, OCR, servis, STK, pojištění, připomínky, import historie a offline zápisy patří do fáze 8. PWA základ ve fázi 5 znamená instalovatelné rozhraní; neznamená offline přístup k soukromým datům.
 
@@ -43,7 +45,7 @@ Varování před uložením: nesoulad paliva, rozdíl částky proti součinu, p
 
 Více záznamů stejného dne má uložené pořadí `day_sequence`. Nový se nabídne na konec; uživatel potvrdí nebo upraví jeho pozici. Autor může změnit datum vlastního záznamu, ale přeuspořádání celého dne je vyhrazeno OWNER/ADMIN. Podrobnosti souběhu a opakovaných mobilních požadavků jsou v [modelu](DATA_MODEL.md) a [API](API.md).
 
-JPEG/PNG maximálně 10 MiB a 24 megapixelů po dekódování. Odmítnout ostatní formáty včetně SVG, PDF, HEIC a animovaných obrázků. Zachovat původní přijatý obrázek soukromě; metadata včetně případné polohy jsou soukromou součástí originálu. Náhled bude bezpečně znovu zakódován bez EXIF. Nahrání neblokuje existenci tankování: po chybě přílohy nabídnout opakování bez vytvoření druhého tankování.
+JPEG/PNG maximálně 10 MiB a 24 megapixelů po dekódování. Odmítnout ostatní formáty včetně SVG, PDF, HEIC a animovaných obrázků. Zachovat původní přijatý obrázek soukromě jako binární obsah v DB; metadata včetně případné polohy jsou soukromou součástí originálu. Náhled bude bezpečně znovu zakódován bez EXIF a také uložen v DB. Nahrání neblokuje existenci tankování: po chybě přílohy nabídnout opakování bez vytvoření druhého tankování. Implementace příloh zůstává až ve fázi 3.
 
 ## 5. Historie a export
 

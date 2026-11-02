@@ -1,0 +1,32 @@
+[project]
+name = "tanklog-backend"
+version = "0.1.0"
+description = "Serverová část aplikace TankLog"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+  "Django==5.2.18",
+  "djangorestframework==3.18.3",
+  "django-axes==9.0.0",
+  "psycopg[binary]==3.3.6",
+  "gunicorn==26.2.0",
+  "drf-spectacular==0.30.0",
+]
+
+[dependency-groups]
+dev = ["pytest==9.2.0", "pytest-django==4.14.0", "ruff==0.17.3", "PyYAML==6.0.3"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "-ra --ds=config.settings.test"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

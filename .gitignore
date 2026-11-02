@@ -39,3 +39,5 @@ staticfiles/
 .DS_Store
 .idea/
 .vscode/
+.tools/
+.runtime/
