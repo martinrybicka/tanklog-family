@@ -65,3 +65,7 @@ def not_found(request, exception=None):
 
 def server_error(request):
     return JsonResponse(error_body("server_error", "Požadavek se nepodařilo dokončit.", request), status=500)
+
+
+def bad_request(request, exception=None):
+    return JsonResponse(error_body("bad_request", "Požadavek není platný.", request), status=400)

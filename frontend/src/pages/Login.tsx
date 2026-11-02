@@ -30,13 +30,13 @@ export function Login() {
         <Logo />
         <div>
           <span className="eyebrow">MÉNĚ STAROSTÍ. VÍCE PŘEHLEDU.</span>
-          <h1>
+          <h2>
             Vaše auta.
             <br />
             Vaše cesty.
             <br />
             <em>Na jednom místě.</em>
-          </h1>
+          </h2>
           <p>
             Soukromý prostor pro váš automobilový deník. Přehledně, jednoduše a
             pod vaší kontrolou.
@@ -56,7 +56,7 @@ export function Login() {
             <LockKeyhole size={24} />
           </span>
           <span className="eyebrow">VÍTEJTE V TANKLOGU</span>
-          <h2>Přihlásit se</h2>
+          <h1>Přihlásit se</h1>
           <p className="muted">Pokračujte do svého automobilového deníku.</p>
           <form
             onSubmit={handleSubmit(async (data) => {

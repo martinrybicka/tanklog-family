@@ -4,13 +4,13 @@
 
 ## Aktuální stav
 
-**Implementována fáze 4 – spotřeba, intervalové podklady a dashboard (2. 11. 2026).** Čistý Decimal výpočet plná–plná, vážené součty podle paliv, pokrytí a důvody vyřazení, porovnání normy, kalendářní období a grafy s tabulkovými podklady. Navazuje na účty, vozidla, sdílení, tankování, soukromé DB účtenky a XLSX z fází 1–3. Jeden origin a API pod `/api/v1/`.
+**Implementována fáze 5 – responzivita, UX, přístupnost, PWA základ a bezpečnost (2. 11. 2026).** Instalovatelný veřejný shell, obecná offline stránka bez soukromých dat, potvrzované aktualizace, motiv podle zařízení i DB profilu, focus a popisky formulářů, tablet/mobil a odhlášení více oken. Navazuje na účty, vozidla, sdílení, tankování, soukromé účtenky, XLSX a analytiku fází 1–4. Akceptační ověření má níže uvedená omezení; nejde o schválení produkčního provozu.
 
 Podle doplňujícího požadavku jsou **všechna uložená aplikační data v PostgreSQL**. Cookie pouze identifikuje přihlášení; smazání cookies vás odhlásí, ale po přihlášení zůstane profil i nastavení stejné na všech zařízeních. Osobní data ani motiv nejsou v localStorage/IndexedDB. Originály i očištěné náhledy účtenek jsou v DB jako binární obsah. Citlivá konfigurace je v proměnných prostředí. Vzhled je neutrální modrý/šedý/bílý.
 
-OCR se zatím neimplementuje. VIN lze zadat ručně; automatické dohledání a požadované ilustrační fotografie modelu patří do fáze 8 podle [návrhu integrací](docs/INTEGRATIONS.md). Fáze 5 ani další nezačínají bez samostatného pokynu.
+OCR se zatím neimplementuje. VIN lze zadat ručně; automatické dohledání a požadované ilustrační fotografie modelu patří do fáze 8 podle [návrhu integrací](docs/INTEGRATIONS.md). Fáze 6 ani další nezačínají bez samostatného pokynu.
 
-**Ověření:** backend a prohlížečové testy běží nativně proti skutečnému PostgreSQL. Dev/prod Compose konfigurace prošly strojovou kontrolou. Docker daemon zde chybí; skutečný kontejnerový start, restart/persistence a produkční Docker build nelze ověřit. Přesné výsledky testů, limity a příkazy uvádí [předání fáze 4](docs/PHASE_4.md); historické výsledky zůstávají v předáních fází 1–3.
+**Ověření:** 192 backendových, 28 frontendových testů a 22 regresních E2E prošlo; dalších 6 E2E ověřilo skutečný lokální produkční build přes HTTPS nginx/Gunicorn (cookies, fallback, chyby, PWA, výpadek a retry). Prošly lint/typecheck/build, OpenAPI a konfigurace Compose. **Docker start/build/restart zůstává neověřený**, daemon chybí. Automatická přístupnost a ruční klávesnice prošly; skutečný zoom 200 %, poslech VoiceOver a reprezentativní měření člověkem nejsou ověřené. Přesné výsledky, příkazy a limity jsou v [předání fáze 5](docs/PHASE_5.md).
 
 ## Lokální spuštění přes Docker
 
@@ -49,6 +49,7 @@ docker compose -f compose.yaml -f compose.dev.yaml exec backend pytest
 docker compose -f compose.yaml -f compose.dev.yaml exec backend python manage.py check
 docker compose -f compose.yaml -f compose.dev.yaml exec backend python manage.py makemigrations --check --dry-run
 docker compose -f compose.yaml -f compose.dev.yaml exec frontend npm run test
+docker compose -f compose.yaml -f compose.dev.yaml exec frontend npm run lint
 docker compose -f compose.yaml -f compose.dev.yaml exec frontend npm run build
 python3 infra/verify_compose.py
 ```
@@ -100,9 +101,19 @@ Pytest explicitně používá testovací settings a vlastní databázi `test_tan
 7. Vyzkoušejte sdílený VIEWER, archivaci a odebrání grantu: archivace zachová statistiky, odebrání přístupu po novém načtení vrátí 404. Různá paliva mají samostatné výsledky. Po smazání cookies nebo na druhém zařízení se čtou stejné podklady z DB.
 8. Po instalaci Dockeru proveďte start/migrace a restart bez mazání volumes; ověřte zachování stejných statistik a příloh. Tento kontejnerový krok zde zůstává neověřený.
 
+## Ruční ověření UX a PWA (fáze 5)
+
+1. Vyzkoušejte šířky 360/390/768/1024/1440 px a zvětšení 200 %. Navigace, formuláře a poslední akce nesmějí být zakryté; tabulky mají vlastní posuv.
+2. Použijte jen Tab/Shift+Tab/Enter/Escape: chybné přihlášení přesune focus na pole, dialog drží focus a vrátí jej. Zkontrolujte i čtečkou názvy polí, chyby a tabulky grafů. Automatický axe ani dílčí AX kontrola nenahrazují úplný test čtečky.
+3. V Nastavení uložte motiv Podle zařízení, měňte světlý/tmavý systém. Poté zkuste pevný motiv, odhlášení a jiné zařízení. Preference zůstává v DB; veřejný login respektuje zařízení.
+4. Pro PWA použijte lokální **produkční build** podle PHASE_5.md, nikoli vývojový Vite. Instalaci vyzkoušejte přes nabídku prohlížeče nebo dostupné tlačítko v Nastavení. Poté vypněte síť a obnovte stránku: zobrazí se pouze obecné Chybí připojení, žádná osobní data.
+5. V rozepsaném formuláři vypněte síť a zkuste uložit. Údaje zůstanou v současném okně, po připojení lze zkusit stejný nákup znovu bez duplicity. Offline zápisy se neukládají.
+6. Otevřete dvě okna, v jednom se odhlaste. Druhé se také vrátí na login. Po odebrání grantu nové načtení nesmí zobrazit původní kartu, historii ani obrázek.
+7. Při nové verzi se nabízí načtení s upozorněním na neuložené údaje. Uložené údaje v DB se aktualizací neztrácejí. Skutečné uživatelské měření průchodu tankování 15–30 s zůstává k doplnění; asistované ověření bylo 7,298 s.
+
 ## Nativní náhled na tomto Macu
 
-Docker zde není dostupný, ale již připravený místní náhled běží na `http://127.0.0.1:8080` s oddělenou syntetickou databází `tanklog_e2e`. Není to produkční instalace. Přesné příkazy pro opakované spuštění tohoto existujícího prostředí, testy a ruční Docker akceptaci jsou v [PHASE_4.md](docs/PHASE_4.md). Testovací účet je definovaný pouze v chráněné E2E přípravě; do běžné DB se žádné výchozí heslo nezavádí.
+Docker zde není dostupný, ale již připravený místní náhled běží na `http://127.0.0.1:8080` s oddělenou syntetickou databází `tanklog_e2e`. Není to produkční instalace. Přesné příkazy pro opakované spuštění tohoto existujícího prostředí, testy a ruční Docker akceptaci jsou v [PHASE_5.md](docs/PHASE_5.md). Testovací účet je definovaný pouze v chráněné E2E přípravě; do běžné DB se žádné výchozí heslo nezavádí.
 
 ## Produkční varianta
 
@@ -112,6 +123,7 @@ Docker zde není dostupný, ale již připravený místní náhled běží na `h
 
 | Dokument | Obsah |
 | --- | --- |
+| [Předání fáze 5](docs/PHASE_5.md) | PWA/UX/přístupnost, lokální HTTPS ověření, přesné příkazy a zbývající limity |
 | [Předání fáze 4](docs/PHASE_4.md) | Spotřeba, intervaly, dashboard, ověření a přesné příkazy |
 | [Předání fáze 3](docs/PHASE_3.md) | Tankování/účtenky/XLSX, aktuální ověření a přesné příkazy |
 | [Předání fáze 2](docs/PHASE_2.md) | Vozidla, sdílení, aktuální testy a omezení |
@@ -119,7 +131,7 @@ Docker zde není dostupný, ale již připravený místní náhled běží na `h
 | [Specifikace](docs/SPECIFICATION.md) | Pravidla a hranice MVP |
 | [Architektura](docs/ARCHITECTURE.md) | Moduly, Docker, síť a proměnné |
 | [Datový model](docs/DATA_MODEL.md) | Implementované účty i návrh dalších entit |
-| [API](docs/API.md), [OpenAPI](docs/openapi.yaml) | Kontrakt endpointů; OpenAPI generuje aktuální implementace fází 1–4 |
+| [API](docs/API.md), [OpenAPI](docs/openapi.yaml) | Kontrakt endpointů; OpenAPI generuje aktuální implementace fází 1–5 |
 | [UI a UX](docs/UI_UX.md) | Navigace a neutrální designový systém |
 | [Výpočty](docs/CONSUMPTION.md) | Implementovaný algoritmus a 34 skutečně testovaných scénářů |
 | [Bezpečnost](docs/SECURITY.md) | Práva, ochrany a budoucí obnova |

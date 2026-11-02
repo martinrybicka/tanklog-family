@@ -1,5 +1,5 @@
 // Komponenty vycházejí z přístupu shadcn/ui (MIT); dialog používá Radix pro správu focusu.
-import { useRef } from "react";
+import { Children, cloneElement, isValidElement, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
@@ -52,13 +52,34 @@ export function Field({
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
-      {children}
+      {Children.map(children, (child) => {
+        if (
+          !isValidElement<{
+            id?: string;
+            "aria-describedby"?: string;
+            "aria-invalid"?: boolean;
+          }>(child) ||
+          child.props.id !== id
+        )
+          return child;
+        const described = [hint ? `${id}-hint` : "", error ? `${id}-error` : ""]
+          .filter(Boolean)
+          .join(" ");
+        return cloneElement(child, {
+          "aria-describedby": described || undefined,
+          "aria-invalid": error ? true : child.props["aria-invalid"],
+        });
+      })}
       {error && (
         <p id={`${id}-error`} className="field-error">
           {error}
         </p>
       )}
-      {hint && <p className="field-hint">{hint}</p>}
+      {hint && (
+        <p id={`${id}-hint`} className="field-hint">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }

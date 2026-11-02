@@ -1,6 +1,6 @@
 # Funkční specifikace
 
-Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 4. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 a další jsou stále plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
+Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 5. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 doplňuje responzivitu, přístupnost, PWA shell a bezpečnostní ověření; fáze 6 a další zůstávají plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
 
 ## 1. Cíl a hranice první verze
 
@@ -98,3 +98,11 @@ Dashboard na `/` a statistiky konkrétního auta zahrnují i archivovaná přís
 Spotřeba a nákupní Kč/100 km jsou vážené z platných intervalů a oddělené podle paliva; při více palivech je společná hodnota null. Nákupní součty zahrnují všechny nákupy skutečně v období, i neúplné. Pokrytí ukazuje platné/vyřazené intervaly, km, hranice, konkrétní důvody a odkazy na opravu. Plná nádrž bez km není hranice, ale její litry zůstávají v širším intervalu. Pokles km zablokuje dotčenou část historie až do opravy včetně již uzavřeného kandidáta podle C30. Norma se porovnává jen pro explicitně vybrané auto, kladnou normu a platné měření odpovídajícího paliva; vždy s metodikou a zdrojem.
 
 Detail intervalu obsahuje všechny záznamy od kotvy po koncovou plnou, i kotvu před filtrem. Výslovně odlišuje nákup kotvy (nezapočtený) od nákupů v `(A, B]`. Po změně hranic původní dvojice ID vrátí 404. Vše se přepočítává nad aktuální DB historií s konzistentním snapshotem, bez uložených duplicit výsledků. Fáze 5/PWA ani VIN/OCR se tím nezahajují.
+
+## 11. Upřesnění implementace fáze 5
+
+PWA znamená instalovatelný veřejný shell a obecnou offline stránku, nikoli dostupnost osobních údajů bez serveru. V produkčním buildu jsou manifest, vlastní ikony 192/512/maskable/apple-touch a worker s pevnou veřejnou cache. Soukromé API ani dokumenty/účtenky se neukládají. Rozepsaný formulář při chybě spojení zůstane jen v paměti současného okna; reload ho zruší. Retry drží původní idempotency klíč. Novou verzi lze načíst s výslovným upozorněním na neuložené údaje.
+
+Rozhraní reaguje na 360/390/768/1024/1440 px; tablet do 1023 px využívá spodní navigaci. Dotykové akce mají nejméně 44 px, odhlášení už není plovoucí překryv nad obsahem. Navigace přesouvá focus na hlavní obsah, dokument dostává název obrazovky. Field propojuje chyby i nápovědy s inputem/selectem/textarea. Veřejný login respektuje systémový motiv; uložená preference přihlášeného účtu se stále čte z DB. Přístupnost se automaticky kontroluje ve světlém i tmavém režimu, včetně dialogu a chyb.
+
+Ověřené výsledky a neověřené části akceptace jsou v PHASE_5.md. Asistované mobilní měření 7,298 s není uživatelským testem člověka pro cíl 15–30 s. Skutečný nativní zoom 200 % a poslech VoiceOver zůstávají neověřené; automatický reflow a ruční klávesnice/AX byly ověřené. Běh Dockeru zůstává neověřený kvůli chybějícímu daemonu. Nasazení ani GitHub se tím neschvalují.

@@ -20,10 +20,14 @@ import {
   Route,
   Routes,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import { Button, ErrorMessage, Loading, Logo } from "./components/ui";
-import { api, errorText, refreshCsrf } from "./lib/api";
+import { api, errorText, forgetCsrf } from "./lib/api";
+import { announceLogout } from "./lib/sessionEvents";
 import { useSession } from "./lib/auth";
+import { PwaNotice } from "./components/Pwa";
+import { RouteFocus } from "./components/RouteFocus";
 import type { Session } from "./lib/types";
 const Audit = lazy(() =>
   import("./pages/AdminInfo").then((module) => ({ default: module.Audit })),
@@ -112,15 +116,19 @@ function Shell({ user }: { user: Session }) {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const admin = user.system_role === "ADMIN";
+  const location = useLocation();
+  const vehicleId =
+    /^\/auta\/([0-9a-f-]{36})(?:\/|$)/.exec(location.pathname)?.[1] ||
+    new URLSearchParams(location.search).get("vehicle_id");
   return (
     <div className="app-shell">
-      <Theme value={user.theme} />
       <a href="#main-content" className="skip-link">
         Přejít k obsahu
       </a>
       <aside className="sidebar">
-        <Link to="/" className="logo-link" aria-label="TankLog – přehled">
+        <Link to="/" className="logo-link">
           <Logo />
+          <span className="sr-only"> – přehled</span>
         </Link>
         <span className="nav-caption">VÁŠ DENÍK</span>
         <nav aria-label="Hlavní navigace">
@@ -186,8 +194,9 @@ function Shell({ user }: { user: Session }) {
               onClick={async () => {
                 try {
                   await api("auth/logout/", { method: "POST" });
-                  await refreshCsrf();
+                  announceLogout();
                   client.clear();
+                  forgetCsrf();
                   client.setQueryData(["session"], null);
                   navigate("/prihlaseni", { replace: true });
                 } catch (e) {
@@ -213,7 +222,10 @@ function Shell({ user }: { user: Session }) {
               <span />
               Lokální aplikace
             </span>
-            <Link className="button button-primary" to="/tankovani/nove">
+            <Link
+              className="button button-primary"
+              to={`/tankovani/nove${vehicleId ? `?vehicle_id=${vehicleId}` : ""}`}
+            >
               <Plus size={17} />
               Zadat tankování
             </Link>
@@ -227,7 +239,7 @@ function Shell({ user }: { user: Session }) {
           <span>
             TankLog <span className="muted">/</span> Osobní automobilový deník
           </span>
-          <span>Fáze 4 · Spotřeba a přehledy</span>
+          <span>Fáze 5 · Lokální MVP</span>
         </footer>
       </div>
       <nav className="mobile-nav" aria-label="Mobilní navigace">
@@ -261,8 +273,9 @@ function Shell({ user }: { user: Session }) {
           onClick={async () => {
             try {
               await api("auth/logout/", { method: "POST" });
-              await refreshCsrf();
+              announceLogout();
               client.clear();
+              forgetCsrf();
               client.setQueryData(["session"], null);
               navigate("/prihlaseni");
             } catch (e) {
@@ -329,6 +342,29 @@ function AuthEvents() {
       });
   }, [session.data, client]);
   useEffect(() => {
+    if (!("BroadcastChannel" in window)) return;
+    const channel = new BroadcastChannel("tanklog-session");
+    channel.onmessage = (event) => {
+      if (event.data === "logout") {
+        client.clear();
+        client.setQueryData(["session"], null);
+        forgetCsrf();
+        navigate("/prihlaseni", { replace: true });
+      }
+    };
+    return () => channel.close();
+  }, [client, navigate]);
+  useEffect(() => {
+    const restored = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        client.clear();
+        window.location.reload();
+      }
+    };
+    window.addEventListener("pageshow", restored);
+    return () => window.removeEventListener("pageshow", restored);
+  }, [client]);
+  useEffect(() => {
     const expired = (event: Event) => {
       if ((event as CustomEvent).detail === "password_change_required") {
         void client.invalidateQueries({ queryKey: ["session"] });
@@ -346,9 +382,17 @@ function AuthEvents() {
 }
 
 export function App() {
+  const session = useSession();
   return (
     <>
+      <Theme
+        value={
+          session.data?.must_change_password ? undefined : session.data?.theme
+        }
+      />
       <AuthEvents />
+      <PwaNotice />
+      <RouteFocus />
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/prihlaseni" element={<LoginRoute />} />

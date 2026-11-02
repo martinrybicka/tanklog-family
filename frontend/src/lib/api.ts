@@ -1,4 +1,7 @@
 let csrfToken: string | null = null;
+export function forgetCsrf() {
+  csrfToken = null;
+}
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -12,10 +15,19 @@ export class ApiError extends Error {
 }
 
 export async function refreshCsrf() {
-  const response = await fetch("/api/v1/auth/csrf/", {
-    credentials: "same-origin",
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch("/api/v1/auth/csrf/", {
+      credentials: "same-origin",
+      cache: "no-store",
+    });
+  } catch {
+    throw new ApiError(
+      0,
+      "network_error",
+      "Spojení se serverem se nezdařilo. Rozepsané údaje zůstávají v tomto okně.",
+    );
+  }
   if (!response.ok)
     throw new ApiError(
       response.status,

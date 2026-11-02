@@ -95,7 +95,7 @@ REST_FRAMEWORK = {
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "TankLog API",
-    "DESCRIPTION": "Fáze 3 – účty, vozidla, tankování a účtenky",
+    "DESCRIPTION": "Fáze 5 – účty, vozidla, tankování, účtenky a analytika",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "ENUM_NAME_OVERRIDES": {"VehicleAccessRoleEnum": [("VIEWER", "Čtenář"), ("CONTRIBUTOR", "Přispěvatel")]},

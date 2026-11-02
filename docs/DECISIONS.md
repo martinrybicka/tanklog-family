@@ -1,6 +1,6 @@
 # Architektonická rozhodnutí
 
-Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Uživatel následně samostatně potvrdil fáze 2, 3 a 4. Stav konkrétní implementace a ověření viz PHASE_1.md, PHASE_2.md, PHASE_3.md a PHASE_4.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
+Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci fáze 1 podle tohoto návrhu; zbývající etapy nadále vyžadují vlastní pokyn. Uživatel následně samostatně potvrdil fáze 2, 3, 4 a 5. Stav konkrétní implementace a ověření viz PHASE_1.md, PHASE_2.md, PHASE_3.md a PHASE_4.md. Dodatkem během fáze 1 uživatel výslovně změnil ukládání všech trvalých dat na DB a paletu na modrou/šedou/bílou; tyto změny jsou zachyceny níže.
 
 | ID | Rozhodnutí | Důvod / důsledek |
 | --- | --- | --- |
@@ -46,6 +46,11 @@ Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci f
 | ADR-037 | Intervaly se odvozují na požádání z celé DB historie | Žádná tabulka nebo přetrvávající klientská kopie výsledků; zpětné změny se projeví novým výpočtem. Dvojice ID je aktuální kandidát, po změně hranic může být 404. |
 | ADR-038 | Recharts 3.10.1, oddělené řady auto/palivo a tabulkové alternativy | Grafické souřadnice mohou použít Number, účetnictví zůstává Decimal na serveru a přesný řetězec v UI. Null přeruší čáru, nepředstírá nulu. |
 | ADR-039 | Nejvýše 5 000 nákupních skupin; norma pouze pro odpovídající palivo jednoho vybraného auta | Extrémní rozsah má zvolit hrubší seskupení. Různá paliva ani chybějící/nulovou normu nelze smysluplně spojit; porovnání se zdrojem a metodikou. |
+
+| ADR-040 | PWA worker generovaný z pevného allowlistu veřejného buildu | Bez runtime cachování API/navigací, bez offline zápisů a cookies v precache; při výpadku jen obecná offline stránka. Verzi tvoří soubory i šablona workeru. |
+| ADR-041 | Paměťové query bez retence a logout signál mezi okny | gcTime=0, odstranění starých dat při 403/404, BroadcastChannel pouze s textem logout, BFCache reload; žádné osobní údaje v trvalém klientském úložišti. |
+| ADR-042 | Nativní lokální HTTPS test produkčního buildu jako doplněk Dockeru | Nginx/Gunicorn jen na loopbacku a syntetické E2E DB, skutečné šablony a Secure cookies. Není to ověření pinned Docker images nebo vzdálené NPM sítě. |
+| ADR-043 | Oxlint a axe-core jako reprodukovatelné kontroly přístupnosti | Přesně zamčené dev závislosti, kontroly TypeScript/React a výsledného DOM v obou motivech; ruční zoom/čtečka zůstávají odděleně vykázané. |
 
 ## Původní zásadní body fáze 0
 

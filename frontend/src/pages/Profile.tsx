@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Button, ErrorMessage, Field, Input, Loading } from "../components/ui";
 import { api, errorText } from "../lib/api";
 import type { User } from "../lib/types";
+import { PwaSettings } from "../components/Pwa";
 import { PasswordForm } from "./Password";
 
 const schema = z.object({
@@ -144,6 +145,7 @@ export function Profile() {
           <PasswordForm />
         </section>
       </div>
+      <PwaSettings />
     </>
   );
 }

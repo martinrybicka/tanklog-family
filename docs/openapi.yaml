@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: TankLog API
   version: 1.0.0
-  description: Fáze 3 – účty, vozidla, tankování a účtenky
+  description: Fáze 5 – účty, vozidla, tankování, účtenky a analytika
 paths:
   /api/v1/admin/audit/:
     get:

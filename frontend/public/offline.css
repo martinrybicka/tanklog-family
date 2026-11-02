@@ -1,0 +1,49 @@
+:root {
+  font:
+    16px/1.6 system-ui,
+    sans-serif;
+  color: #243249;
+  background: #f4f6f9;
+  color-scheme: light dark;
+}
+body {
+  margin: 0;
+  padding: 24px;
+}
+main {
+  max-width: 480px;
+  margin: 12vh auto;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 16px;
+}
+h1 {
+  font-size: 28px;
+}
+a {
+  display: inline-block;
+  padding: 12px 18px;
+  background: #315fa3;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+}
+a:focus-visible {
+  outline: 3px solid #315fa3;
+  outline-offset: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #edf1f7;
+    background: #101722;
+  }
+  main {
+    background: #192333;
+    border-color: #35445b;
+  }
+  a {
+    background: #96b7ed;
+    color: #18263a;
+  }
+}

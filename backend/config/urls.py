@@ -5,6 +5,7 @@ from rest_framework.renderers import JSONRenderer
 from apps.accounts import views
 from apps.accounts.permissions import Administrator
 
+handler400 = "apps.core.errors.bad_request"
 handler404 = "apps.core.errors.not_found"
 handler500 = "apps.core.errors.server_error"
 

@@ -150,3 +150,7 @@ Day_sequence má DEFERRABLE DEFERRED UNIQUE. Vložení/úprava/mazání udržuje
 ## 11. Odvozené podklady fáze 4
 
 Analytika nezavádí nové trvalé entity ani migraci. PostgreSQL zůstává jediným zdrojem historie, profilů a metadat. `Context`, `Record`, `Interval`, `BuildResult`, `Totals`, `Purchases`, `FuelGroup` a `Comparison` jsou pouze immutable paměťové DTO výpočetní vrstvy. Kandidát je určen aktuální dvojicí start_id/end_id, nikoli samostatně uloženým historickým výsledkem; po změně hranic může zaniknout. Revize historie v odpovědi pochází ze stejného snapshotu jako intervaly. Autorizační EXISTS a deduplikace podle vozidla v čisté agregaci brání násobení při sdílení. Prohlížeč neukládá statistiky trvale.
+
+## 12. Veřejná cache fáze 5
+
+Žádný nový datový model ani migrace. V PostgreSQL nadále zůstávají veškeré uložené aplikační údaje a preference. PWA CacheStorage je pouze pro veřejné buildové soubory a obecnou offline stránku bez uživatelského obsahu. Prohlížeč neukládá historii, profily, motiv ani obrázky/JSON offline. BroadcastChannel obsahuje jen dočasný signál logout, bez identity účtu. Rozepsaný formulář není uložený záznam a zůstává pouze v paměti aktuální stránky.

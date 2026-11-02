@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "jsx-a11y"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/aria-props": "error",
+    "jsx-a11y/aria-proptypes": "error",
+    "jsx-a11y/aria-unsupported-elements": "error",
+    "jsx-a11y/click-events-have-key-events": "error",
+    "jsx-a11y/no-autofocus": "error",
+    "react/incompatible-library": "off",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/control-has-associated-label": [
+      "error",
+      {
+        "ignoreElements": ["td", "input"]
+      }
+    ]
+  },
+  "globals": {
+    "self": "readonly",
+    "caches": "readonly",
+    "__PUBLIC_FILES__": "readonly"
+  }
+}
