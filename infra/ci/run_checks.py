@@ -40,6 +40,7 @@ def backend():
         "--config",
         "infra/ruff.toml",
         "infra/ci",
+        "infra/ops",
         "infra/local_production_preview.py",
         "frontend/scripts/generate-icons.py",
     )
@@ -50,10 +51,12 @@ def backend():
         "--config",
         "infra/ruff.toml",
         "infra/ci",
+        "infra/ops",
         "infra/local_production_preview.py",
         "frontend/scripts/generate-icons.py",
     )
     run(PYTHON, "-m", "unittest", "discover", "-s", "infra/ci/tests", "-v")
+    run(PYTHON, "-m", "unittest", "discover", "-s", "infra/ops/tests", "-v")
     helper = [sys.executable, "infra/backend_command.py", PYTHON]
     run(*helper, "-m", "pytest", "-q")
     run(*helper, "manage.py", "migrate", "--noinput")

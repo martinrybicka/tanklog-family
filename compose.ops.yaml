@@ -1,0 +1,34 @@
+# Pouze explicitní jednorázová úloha; nenahrazuje prod override.
+services:
+  operations:
+    profiles: [operations]
+    build:
+      context: .
+      dockerfile: infra/operations.Dockerfile
+    environment:
+      TANKLOG_MAX_RESTORE_BYTES: ${BACKUP_MAX_RESTORE_BYTES:-536870912}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-tanklog}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:?Samostatny spravce pro zalohu}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Heslo spravce pro zalohu}
+      TANKLOG_REVISION: ${TANKLOG_REVISION:?Uvedte uplny commit nasazene aplikace}
+    networks: [database]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,mode=1777,size=${BACKUP_TMPFS_SIZE:-1073741824}
+    volumes:
+      - type: bind
+        source: ${BACKUP_DIRECTORY:?Uvedte existujici pripojene off-host uloziste}
+        target: /backups
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${BACKUP_RECIPIENT_FILE:?Uvedte verejny age klic}
+        target: /recipient.txt
+        read_only: true
+        bind:
+          create_host_path: false
+    command: [backup, --directory, /backups, --recipient-file, /recipient.txt]

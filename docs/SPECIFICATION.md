@@ -1,6 +1,6 @@
 # Funkční specifikace
 
-Stav: aplikační specifikace fází 1–5 a provozní doplněk fáze 6, aktualizováno 3. 11. 2026. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 doplňuje responzivitu, přístupnost, PWA shell a bezpečnostní ověření; fáze 6 má od 3. 11. 2026 připravenou lokální část CI podle [CI.md](CI.md). GitHub/push/skutečný CI běh jsou podle zákazu uživatele neprovedené, fáze 7 a další zůstávají plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
+Stav: aplikační specifikace fází 1–5 a provozní doplňky fází 6–7, aktualizováno 3. 11. 2026. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 doplňuje responzivitu, přístupnost, PWA shell a bezpečnostní ověření; fáze 6 má od 3. 11. 2026 připravenou lokální část CI podle [CI.md](CI.md). GitHub/push/skutečný CI běh jsou podle zákazu uživatele neprovedené, fáze 7 má připravenou pouze lokální provozní část podle OPERATIONS.md; skutečné nasazení je zakázané a fáze 8 zůstává plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
 
 ## 1. Cíl a hranice první verze
 
@@ -110,3 +110,7 @@ Ověřené výsledky a neověřené části akceptace jsou v PHASE_5.md. Asistov
 ## Provozní doplněk fáze 6 (3. 11. 2026)
 
 Příprava CI nemění aplikační funkce, API, datový model ani migrace. Verze aplikačního kontraktu zůstává v0.5.0. Workflow pouze kontroluje stávající lock soubory, testy, schema a build. Testovací prostředí používají vlastní syntetické databáze; žádná osobní data ani výsledky E2E se nenahrávají. GitHub private viditelnost a úspěšný běh na čistém Linux runneru zůstávají podmínkou plného dokončení fáze 6. Místní macOS ověření je nenahrazuje.
+
+## Provozní doplněk fáze 7
+
+API, datový model a verze kontraktu v0.5.0 se nemění. Záloha musí zahrnout celou transakčně konzistentní DB včetně originálů/náhledů účtenek a práv. Implementované nástroje šifrují custom dump s manifestem, ověřují kontrolní součty a odmítají obnovu přes existující DB. Nová produkční inicializace odděluje bootstrap a aplikační DB roli. Příprava scheduleru není spuštěná automatická off-host záloha; nativní obnova není Docker/provozní akceptace. Aktuální výsledky jsou v PHASE_7.md, vzdálené kroky jsou podmíněné konkrétním budoucím povolením.

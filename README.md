@@ -4,6 +4,8 @@
 
 ## Aktuální stav
 
+**Připravena lokální část fáze 7 – produkční konfigurace, šifrované zálohy a izolovaná obnova (3. 11. 2026).** Záloha celé DB včetně účtenek do age, kontrolované nové cíle, oddělené DB role a šablona automatizace. Skutečné nativní cvičení ověřilo obnovu všech 19 tabulek do nového fyzického clusteru, přihlášení, přístupy a součty. Docker runtime, veřejný certifikát/NPM a automatická off-host záloha nejsou ověřené. Nic nebylo odesláno na server/GitHub a celá produkční akceptace fáze 7 není splněná. [Výsledky a příkazy](docs/PHASE_7.md), [provozní postup](docs/OPERATIONS.md).
+
 **Připravena lokální část fáze 6 – CI a audit repozitáře (3. 11. 2026).** Čtyři kontrolní úlohy pro historii/bezpečnost, backend s PostgreSQL, frontend a izolovaný Docker/E2E. Instalace z locků a testy byly ověřené v čistém exportu na tomto Macu. GitHub repozitář, push ani skutečný CI běh nebyly podle výslovného zákazu provedené. Celá fáze 6 proto ještě nesplňuje vzdálená akceptační kritéria. Přesné výsledky: [PHASE_6.md](docs/PHASE_6.md), opakování kontrol: [CI.md](docs/CI.md).
 
 **Implementována fáze 5 – responzivita, UX, přístupnost, PWA základ a bezpečnost (2. 11. 2026).** Instalovatelný veřejný shell, obecná offline stránka bez soukromých dat, potvrzované aktualizace, motiv podle zařízení i DB profilu, focus a popisky formulářů, tablet/mobil a odhlášení více oken. Navazuje na účty, vozidla, sdílení, tankování, soukromé účtenky, XLSX a analytiku fází 1–4. Akceptační ověření má níže uvedená omezení; nejde o schválení produkčního provozu.
@@ -119,12 +121,14 @@ Docker zde není dostupný, ale již připravený místní náhled běží na `h
 
 ## Produkční varianta
 
-`compose.prod.yaml` používá sestavený frontend, nginx a Gunicorn bez veřejných host portů; web se později připojí k existující síti NPM. Vyžaduje skutečnou HTTPS doménu, přesné hosty/originy a `NPM_TRUSTED_CIDR`. Image jsou připnuté na tag i digest; dependencies jsou zamknuté. Produkční HSTS zůstává do ověření HTTPS domény na 0 (zdokumentované varování `security.W004`). Produkční start ani vzdálené nasazení zatím nejsou povoleny.
+`compose.prod.yaml` používá sestavený frontend, nginx a Gunicorn bez veřejných host portů; web se později připojí k existující síti NPM. Vyžaduje skutečnou HTTPS doménu, přesné hosty/originy a `NPM_TRUSTED_CIDR`. Image jsou připnuté na tag i digest; dependencies jsou zamknuté. Produkční HSTS zůstává do ověření HTTPS domény na 0 (zdokumentované varování `security.W004`). Produkční varianta nyní vyžaduje také samostatné POSTGRES_ADMIN_USER/POSTGRES_ADMIN_PASSWORD pro bootstrap nových volumes; backend používá omezenou aplikační roli. Použijte .env.production.example a OPERATIONS.md. Produkční start ani vzdálené nasazení zatím nejsou povoleny.
 
 ## Dokumentace
 
 | Dokument | Obsah |
 | --- | --- |
+| [Předání lokální části fáze 7](docs/PHASE_7.md) | Produkční příprava, měření obnovy a neověřený vzdálený provoz |
+| [Provoz, zálohy a obnova](docs/OPERATIONS.md) | Inventář, šifrování, scheduler, izolovaná obnova, migrace a rollback |
 | [Předání lokální části fáze 6](docs/PHASE_6.md) | CI, audit historie, čistá instalace a neprovedená vzdálená akceptace |
 | [CI](docs/CI.md) | Workflow, připnuté nástroje a bezpečné lokální ověření |
 | [Předání fáze 5](docs/PHASE_5.md) | PWA/UX/přístupnost, lokální HTTPS ověření, přesné příkazy a zbývající limity |

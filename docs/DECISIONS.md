@@ -56,6 +56,12 @@ Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci f
 | ADR-045 | Čtyři CI úlohy s read-only tokenem, úplnými SHA a izolovanou DB | Stejné locky a runtime verze jako Docker, kontrola historie před dalšími úlohami, žádná produkční credentials/deploy ani upload testovacích artefaktů. |
 | ADR-046 | Syntetický Compose projekt bez externí NPM sítě a mazání volumes | Produkční build targety s testovacími HTTP settings, read-only fixtures; náhodný název a vlastní secrets chrání existující lokální data. Žádný vzdálený Docker endpoint. |
 
+| ADR-047 | Fáze 7 nyní pouze místně, bez produkčního zásahu | Pozdější pokyn povolil přípravu, ale výslovně zakazuje odesílání na server/GitHub. Skutečné HTTPS/NPM/off-host a provozní RPO/RTO zůstávají neověřené; fáze 8 nezačíná. |
+| ADR-048 | Exportovaný snapshot pro dump i manifest, šifrování age | Kontrola řádků i bytea musí odpovídat stejnému okamžiku jako custom pg_dump. Klíč je oddělený, manifest uvnitř archivu; žádná další trvalá aplikační storage. |
+| ADR-049 | Obnova jen do nového izolovaného cíle a porovnání celé DB | Náhodný restore projekt/volume, nový tanklog_restore_* název a role, bez NPM/portů, nikdy --clean nebo down -v. Nativní druhý cluster je doložený doplněk, nikoli náhrada Docker akceptace. |
+| ADR-050 | Samostatný bootstrap a omezená aplikační role nových produkčních DB | Aplikace nepotřebuje superuser/CREATEDB/CREATEROLE; inicializace nesmí opravovat starou instalaci smazáním svazku. |
+| ADR-051 | Scheduler a retence připravené, provozní aktivace samostatně | Šablona 2× denně, ověření mountu, retence 7/4/6 jako plán bez mazání; konkrétní off-host cíl, dohled, vlastník a RPO/RTO se musí ověřit až na autorizovaném serveru. |
+
 ## Původní zásadní body fáze 0
 
 1. **Rozsah měření:** CZK/litry/km, jedna nádrž pro spotřebu, různá paliva v dashboardu odděleně; bez spotřeby CNG/EV a více nádrží v MVP (ADR-007, 015).

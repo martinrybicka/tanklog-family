@@ -75,3 +75,7 @@ Ověřeno 3. 11. 2026 proti oficiálním tagům/commitům a release metadatům. 
 - [checkout v7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1), [setup-node v7.1.0](https://github.com/actions/setup-node/releases/tag/v7.1.0), [setup-uv v10.3.3](https://github.com/astral-sh/setup-uv/releases/tag/v10.3.3)
 - [Gitleaks v8.30.1](https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1), [actionlint v1.7.12](https://github.com/rhysd/actionlint/releases/tag/v1.7.12)
 - [Playwright – odpovídající prohlížeče](https://playwright.dev/docs/browsers)
+
+## Doplnění lokální části fáze 7
+
+Backend kontrola nyní zahrnuje infra/ops a 10 provozních regresí. Kontejnerová úloha připravuje také build operations image; statická kontrola pokrývá dev/prod/CI/operations/restore Compose. Nové produkční bootstrap proměnné pro config kontrolu jsou výhradně syntetické a nevypisují se. Reálný Linux image, Docker restore a GitHub běh se zatím neprovedly. Nativní měření a provozní předpoklady viz PHASE_7.md a OPERATIONS.md.

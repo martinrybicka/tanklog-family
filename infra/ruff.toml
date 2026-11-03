@@ -4,3 +4,8 @@ line-length = 88
 [lint]
 select = ["E", "F", "I"]
 ignore = ["E501"]
+
+# Předběžnou kontrolu spouští také systémový Python na Ubuntu 24.04.
+[per-file-target-version]
+"**/preflight.py" = "py312"
+"**/restore_compose.py" = "py312"

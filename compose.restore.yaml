@@ -1,0 +1,83 @@
+# Samostatný izolovaný projekt; nikdy neslučovat s compose.prod.yaml.
+# Při každém cvičení nastavit nové RESTORE_PROJECT a RESTORE_DATABASE.
+name: ${RESTORE_PROJECT:?Vyberte nove jmeno tanklog-restore-*}
+services:
+  db:
+    image: postgres:18.6-bookworm@sha256:5c4783a8cc3f0074912164f94dfa1be4e043438f0f707cf968d7af9a0d31a2c8
+    environment:
+      POSTGRES_USER: tanklog_bootstrap
+      POSTGRES_DB: postgres
+      TANKLOG_APP_DB_USER: tanklog
+      TANKLOG_APP_DB_PASSWORD: ${RESTORE_APP_PASSWORD:?Nove heslo aplikacni role}
+      POSTGRES_PASSWORD: ${RESTORE_PASSWORD:?Nove nahodne heslo cvicne DB}
+    configs:
+      - source: database_init_role
+        target: /docker-entrypoint-initdb.d/10-tanklog-role.sh
+    volumes: [restore_data:/var/lib/postgresql]
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U tanklog_bootstrap -d postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  operations:
+    profiles: [operations]
+    build:
+      context: .
+      dockerfile: infra/operations.Dockerfile
+    environment:
+      TANKLOG_MAX_RESTORE_BYTES: ${BACKUP_MAX_RESTORE_BYTES:-536870912}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: postgres
+      RESTORE_OWNER: tanklog
+      POSTGRES_USER: tanklog_bootstrap
+      POSTGRES_PASSWORD: ${RESTORE_PASSWORD:?Nove nahodne heslo cvicne DB}
+    networks: [database]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,mode=1777,size=${BACKUP_TMPFS_SIZE:-1073741824}
+    volumes:
+      - type: bind
+        source: ${BACKUP_DIRECTORY:?Adresar s duveryhodnou sifrovanou zalohou}
+        target: /backups
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${RESTORE_IDENTITY_FILE:?Soukromy age klic jen pro obnovu}
+        target: /identity.key
+        read_only: true
+        bind:
+          create_host_path: false
+  backend:
+    profiles: [verify]
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+      target: production
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DJANGO_SECRET_KEY: ${RESTORE_SECRET_KEY:?Nove nahodne tajemstvi cviceni}
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DJANGO_CSRF_TRUSTED_ORIGINS: https://localhost
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${RESTORE_DATABASE:?Nove jmeno tanklog_restore_*}
+      POSTGRES_USER: tanklog
+      POSTGRES_PASSWORD: ${RESTORE_APP_PASSWORD:?Nove heslo aplikacni role}
+    networks: [database]
+    volumes:
+      - ./infra/ops:/ops:ro
+    command: [python, manage.py, check]
+networks:
+  database:
+    internal: true
+volumes:
+  restore_data:
+
+configs:
+  database_init_role:
+    file: ./infra/postgres/init-role.sh

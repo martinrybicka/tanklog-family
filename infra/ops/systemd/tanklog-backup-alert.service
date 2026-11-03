@@ -1,0 +1,7 @@
+# Provozovatel musí doplnit vlastní hlídání journalu/alerting; nic nikam neposílá.
+[Unit]
+Description=Záznam selhání zálohy TankLog
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logger -p daemon.err TankLog: šifrovaná záloha selhala, nutný zásah provozovatele

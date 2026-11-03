@@ -41,3 +41,6 @@ staticfiles/
 .vscode/
 .tools/
 .runtime/
+
+# Šifrované provozní zálohy a identity také nikdy neverzovat
+*.age

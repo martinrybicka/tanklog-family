@@ -1,7 +1,25 @@
 name: tanklog-prod
 
+x-log-settings: &log-settings
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
+  db:
+    logging: *log-settings
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:?Samostatny bootstrap spravce DB}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Samostatne heslo spravce DB}
+      TANKLOG_APP_DB_USER: ${POSTGRES_USER:-tanklog}
+      TANKLOG_APP_DB_PASSWORD: ${POSTGRES_PASSWORD:?Heslo aplikacni DB role}
+    configs:
+      - source: database_init_role
+        target: /docker-entrypoint-initdb.d/10-tanklog-role.sh
+
   backend:
+    logging: *log-settings
     environment:
       DJANGO_DEBUG: "false"
       DJANGO_SECURE_COOKIES: "true"
@@ -10,12 +28,25 @@ services:
     security_opt: [no-new-privileges:true]
 
   web:
+    logging: *log-settings
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:8080/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
     environment:
       NPM_TRUSTED_CIDR: ${NPM_TRUSTED_CIDR:?Nastavte skutecny CIDR duveryhodne site NPM}
-    networks: [application, proxy]
+    networks:
+      application: {}
+      proxy:
+        aliases: [tanklog-web]
     security_opt: [no-new-privileges:true]
 
 networks:
   proxy:
     external: true
     name: ${NPM_NETWORK_NAME:?Nastavte existujici sit NPM}
+
+configs:
+  database_init_role:
+    file: ./infra/postgres/init-role.sh

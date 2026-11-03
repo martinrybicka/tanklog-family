@@ -91,6 +91,20 @@ def main():
     try:
         run("config", "--quiet")
         run("build", "backend", "web")
+        subprocess.run(
+            [
+                "docker",
+                "build",
+                "--file",
+                "infra/operations.Dockerfile",
+                "--tag",
+                "tanklog-operations:ci",
+                ".",
+            ],
+            cwd=ROOT,
+            env=env,
+            check=True,
+        )
         run("up", "--detach", "--wait", "--wait-timeout", "120", "db")
         run(
             "run",

@@ -1,0 +1,18 @@
+# Šablona pro pozdější autorizované nasazení na Linux; zde nebyla instalována.
+[Unit]
+Description=Šifrovaná záloha TankLog
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+RequiresMountsFor=/mnt/tanklog-backups
+OnFailure=tanklog-backup-alert.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/tanklog
+UMask=0077
+ExecStartPre=/usr/bin/mountpoint --quiet /mnt/tanklog-backups
+ExecStartPre=/usr/bin/python3 infra/ops/preflight.py --env-file /etc/tanklog/production.env --require-backup-mount
+ExecStart=/usr/bin/docker compose --env-file /etc/tanklog/production.env -f compose.yaml -f compose.prod.yaml -f compose.ops.yaml run --rm --no-deps operations
+TimeoutStartSec=3h
+NoNewPrivileges=true

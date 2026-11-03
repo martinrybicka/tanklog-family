@@ -24,3 +24,5 @@
 **/*.log
 backend/tests
 .DS_Store
+
+**/*.age

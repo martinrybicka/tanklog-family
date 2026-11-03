@@ -1,7 +1,7 @@
 # Pravidla práce na TankLog
 
 - Komunikuj česky. Uživatelské texty, komentáře a projektovou dokumentaci piš česky; technické identifikátory mohou být anglicky.
-- Aktuálně je uživatelem povolena pouze lokální část fáze 6: příprava CI, kontroly historie a reprodukovatelnosti navazující na fáze 1–5. Uživatel současně výslovně zakázal cokoli odesílat na GitHub nebo produkční server; nezakládej remote/repozitář, nepushuj ani nespouštěj vzdálené workflow. Soukromý GitHub a skutečný CI běh zůstávají neprovedené. Fázi 7 ani další nezačínej bez samostatného pokynu.
+- Aktuálně je povolena pouze lokální část fáze 7: produkční konfigurace, šifrované zálohy a izolovaná obnova. Uživatel výslovně zakázal cokoli odesílat na GitHub nebo produkční server. Neprováděj vzdálené přístupy, push, nasazení, změny NPM/sítí ani instalaci časovače na server. Skutečná doména/certifikát, off-host úložiště a produkční RPO/RTO zůstávají neověřené. Fázi 8 ani další nezačínej bez samostatného pokynu. Nedokončená vzdálená akceptace fáze 6 se tím nemění.
 - Přečti README a relevantní dokumenty v `docs/`. Udržuj specifikaci, API, model a rozhodnutí ve shodě. Návrhy neoznačuj za hotové funkce.
 - Pracuj postupně podle `docs/ROADMAP.md`. Nepřepisuj funkční části bez potřeby. Preferuj jednoduchý modulární monolit.
 - Zachovej React/TypeScript/Vite a Django/DRF/PostgreSQL, jeden origin a `/api/`, serverové sessions a CSRF. Žádné JWT v localStorage, veřejná registrace ani veřejný port databáze.

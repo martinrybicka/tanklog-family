@@ -31,7 +31,9 @@ def private_path(path):
         return True
     if name.startswith(".env") and not name.endswith(".example"):
         return True
-    if name.endswith((".pem", ".key", ".dump", ".sqlite3", ".sql", ".log", ".xlsx")):
+    if name.endswith(
+        (".pem", ".key", ".dump", ".sqlite3", ".sql", ".log", ".xlsx", ".age")
+    ):
         return True
     return name.endswith((".png", ".jpg", ".jpeg", ".webp")) and not path.startswith(
         "frontend/public/icons/"

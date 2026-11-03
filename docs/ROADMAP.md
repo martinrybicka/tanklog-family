@@ -2,7 +2,7 @@
 
 Každá fáze má vlastní pokyn k zahájení. Lokální dokončení aplikace a testů předchází GitHubu; GitHub a produkce mají další výslovné schválení. Odhady termínů a kapacity nejsou součást zadání.
 
-Aktuálně uživatel povolil fázi 6, ale současně výslovně zakázal cokoli odesílat na GitHub nebo produkční server. Realizuje se proto pouze její lokální část: připravené CI, audit historie a ověření čisté instalace. Soukromý repozitář, push a skutečný CI běh nejsou provedené; bez nich není celá akceptace fáze 6 splněná. Výsledky a omezení jsou v [PHASE_6.md](PHASE_6.md), postup v [CI.md](CI.md). Fáze 7 ani další není povolena. Historická předání fází 1–5 zůstávají zachovaná včetně neověřeného Docker runtime a ručního přístupnostního ověření. Trvalá aplikační data zůstávají v DB a vzhled neutrální modrošedý/bílý.
+Aktuálně uživatel povolil fázi 7, ale současně výslovně zakázal cokoli odesílat na GitHub nebo produkční server. Realizuje se pouze lokální příprava produkce, šifrovaných záloh a izolované obnovy; výsledky viz [PHASE_7.md](PHASE_7.md) a postup [OPERATIONS.md](OPERATIONS.md). Skutečná doména/NPM/off-host úložiště a produkční RPO/RTO nejsou ověřené, celá akceptace fáze 7 není splněná. Zůstává také neprovedená vzdálená akceptace fáze 6. Fáze 8 ani další není povolena. Historická předání a jejich omezení zůstávají zachovaná. Trvalá aplikační data jsou v DB a vzhled neutrální modrošedý/bílý.
 
 ## Fáze 0 – návrh a dokumentace
 
@@ -63,7 +63,7 @@ Akceptace: repozitář je skutečně private, historie neobsahuje secrets/data/�
 
 ## Fáze 7 – produkční Docker, NPM, HTTPS a zálohy
 
-Zahájení jen po výslovném souhlasu s konkrétním nasazením. Nejprve zjistit skutečný server, architekturu, doménu, existující NPM síť a úložiště; nic nededukovat z lokální IP. Připravit konkrétní konfiguraci a ověřit ji před zásahem. Migrace/zálohy mají řízený postup.
+Pokyn z 3. 11. 2026 povoluje lokální přípravu fáze 7. Skutečné nasazení zůstává zakázané a vyžaduje výslovný souhlas s konkrétním zásahem. Nejprve zjistit skutečný server, architekturu, doménu, existující NPM síť a úložiště; nic nededukovat z lokální IP. Připravit konkrétní konfiguraci a ověřit ji před zásahem. Migrace/zálohy mají řízený postup.
 
 Akceptace: HTTPS a platný certifikát, sanitizace proxy hlaviček, přesné hosty/originy, secure cookies, DEBUG=False, DB neveřejná a persistence po restartu. Žádný přístup na privátní soubory bez session. Automatická šifrovaná záloha DB+účtenek mimo hostitele a úspěšná obnova do nových izolovaných volumes s kontrolními součty. Zapsané měřené RPO/RTO, retence, vlastník provozu a rollback postup. Bez zkušební obnovy fáze není dokončená.
 

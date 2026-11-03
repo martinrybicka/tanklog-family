@@ -55,6 +55,7 @@ app = (
     .read_text()
     .replace("${NPM_TRUSTED_CIDR}", "127.0.0.1/32")
     .replace("listen 8080;", "listen 127.0.0.1:8082;")
+    .replace("/var/log/nginx/access.log", str(runtime / "access.log"))
     .replace("/usr/share/nginx/html", str(root / "frontend/dist"))
     .replace("/etc/nginx/tanklog/security-headers.conf", str(headers))
     .replace("/etc/nginx/tanklog/proxy-api.conf", str(runtime / "proxy-api.conf"))
