@@ -10,6 +10,8 @@ import { Button, ErrorMessage, Loading, Modal } from "../components/ui";
 import { api, errorText } from "../lib/api";
 import type { Page, Refueling, Vehicle } from "../lib/types";
 import { fuels } from "../features/vehicles/VehicleForm";
+import { useSession } from "../lib/auth";
+import { queueFuel } from "../lib/outbox";
 import { RefuelingForm } from "../features/refuelings/RefuelingForm";
 import { numberText, saveBlob, stations } from "../features/refuelings/money";
 
@@ -130,11 +132,13 @@ export function Refuelings() {
             onChange={(e) => set("fuel_type", e.target.value)}
           >
             <option value="">Všechna paliva</option>
-            {Object.entries(fuels).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
+            {Object.entries(fuels)
+              .filter(([value]) => !["CNG", "ELECTRIC"].includes(value))
+              .map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
           </select>
         </label>
         <label>
@@ -345,6 +349,7 @@ export function Refuelings() {
   );
 }
 export function RefuelingEditor() {
+  const offlineSession = useSession();
   const { id } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -391,6 +396,14 @@ export function RefuelingEditor() {
             vehicles={available}
             initialVehicleId={params.get("vehicle_id") || undefined}
             onReload={() => query.refetch()}
+            onQueue={
+              !id
+                ? (body, key) => {
+                    queueFuel(offlineSession.data!.id, body, key);
+                    navigate("/offline");
+                  }
+                : undefined
+            }
             onSave={async (body, key) => {
               const response = await api<Refueling>(
                 id ? `refuelings/${id}/` : "refuelings/",

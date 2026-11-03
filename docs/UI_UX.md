@@ -151,3 +151,9 @@ Nastavení má informace o instalaci aplikace a případné podporované tlačí
 Ověřeno axe pro WCAG 2 A/AA a 2.1 A/AA na loginu, chybách, dashboardu, autech, formuláři auta, historii, tankování, nastavení, účtech a dialogu v obou motivech a desktop/mobil. Šířky 360/390/768/1024/1440 a reflow při 720 CSS px odpovídajících 1440/200 % prošly. Ručně přes klávesnici prošlo prázdné přihlášení s návratem focusu a AX zobrazením chyb. Skutečný zoom a poslech VoiceOver nebyly dokončené kvůli zablokování nativního browser ovládání; neoznačují se za ověřené.
 
 Mobilní asistovaný průchod: uložené auto a serverové datum, 42,350 l, 38,90 Kč/l, 10 000 km, částečná nádrž, uložit → detail 1 647,42 Kč; 7,298 s od prvního vstupu po zobrazení detailu. Nezahrnuje volbu auta, přihlášení ani účtenku. Je rychlejší díky asistovanému vyplňování; není to měření člověka pro cíl 15–30 s. Předvyplnění auta a odstranění překryvu jsou provedené UX opravy, reprezentativní uživatelský test zůstává otevřený. Celkové omezení akceptace je v PHASE_5.md.
+
+## Fáze 8 – nové obrazovky a potvrzení
+
+Neutrální modrá/šedá/bílá paleta a oba motivy zůstávají. Detail auta přidává ilustrační foto s textovou atribucí, odkazy na servis/energii a import. VIN/OCR návrhy mají checkbox pro každé pole a explicitní použití; ruční formulář zůstává dostupný. Údaje z nejistého zdroje se netváří jako jistota.
+
+Události mají jasný druh, datum/km, částku, případný další termín/předstih a uzavření; přehled připomínek vysvětluje známý odečet. Energie uvádí kg/kWh odděleně. CSV náhled zobrazuje každý řádek, chyby a potvrzovaná varování před zápisem, posuvnou tabulku lze ovládat klávesnicí. Offline obrazovka zřetelně říká „neuloženo“, upozorňuje na ztrátu při zavření/reloadu, nabízí opravu, zahození a ruční synchronizaci. Nové funkce jsou dostupné i v mobilní navigaci.

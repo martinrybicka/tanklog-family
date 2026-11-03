@@ -1,3 +1,4 @@
+import { Offline } from "./pages/Offline";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   CarFront,
@@ -24,6 +25,7 @@ import {
 } from "react-router-dom";
 import { Button, ErrorMessage, Loading, Logo } from "./components/ui";
 import { api, errorText, forgetCsrf } from "./lib/api";
+import { clearOutbox, pendingSnapshot } from "./lib/outbox";
 import { announceLogout } from "./lib/sessionEvents";
 import { useSession } from "./lib/auth";
 import { PwaNotice } from "./components/Pwa";
@@ -80,6 +82,16 @@ const IntervalDetails = lazy(() =>
   import("./pages/Dashboard").then((m) => ({ default: m.IntervalDetails })),
 );
 
+const Events = lazy(() =>
+  import("./pages/Extensions").then((m) => ({ default: m.Events })),
+);
+const Reminders = lazy(() =>
+  import("./pages/Extensions").then((m) => ({ default: m.Reminders })),
+);
+const ImportHistory = lazy(() =>
+  import("./pages/Extensions").then((m) => ({ default: m.ImportHistory })),
+);
+
 function Theme({ value }: { value?: string }) {
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -98,7 +110,7 @@ function Theme({ value }: { value?: string }) {
 function Protected() {
   const session = useSession();
   if (session.isPending) return <Loading />;
-  if (session.error)
+  if (session.error && !session.data)
     return (
       <main className="standalone">
         <ErrorMessage>{errorText(session.error)}</ErrorMessage>
@@ -112,6 +124,19 @@ function Protected() {
 }
 
 function Shell({ user }: { user: Session }) {
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => {
+      if (pendingSnapshot().length) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+      clearOutbox();
+    };
+  }, [user.id]);
   const client = useQueryClient();
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -143,6 +168,14 @@ function Shell({ user }: { user: Session }) {
           <NavLink to="/tankovani">
             <Fuel size={20} />
             Tankování
+          </NavLink>
+          <NavLink to="/pripominky">
+            <ScrollText size={20} />
+            Připomínky
+          </NavLink>
+          <NavLink to="/offline">
+            <Fuel size={20} />
+            Neuložené zápisy
           </NavLink>
           <NavLink to="/nastaveni">
             <Settings2 size={20} />
@@ -193,6 +226,7 @@ function Shell({ user }: { user: Session }) {
               aria-label="Odhlásit se"
               onClick={async () => {
                 try {
+                  clearOutbox();
                   await api("auth/logout/", { method: "POST" });
                   announceLogout();
                   client.clear();
@@ -232,6 +266,10 @@ function Shell({ user }: { user: Session }) {
           </div>
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
+          <nav className="vehicle-actions" aria-label="Nástroje evidence">
+            <Link to="/pripominky">Připomínky</Link>
+            <Link to="/offline">Neuložené zápisy</Link>
+          </nav>
           <ErrorMessage>{error}</ErrorMessage>
           <Outlet />
         </main>
@@ -239,7 +277,7 @@ function Shell({ user }: { user: Session }) {
           <span>
             TankLog <span className="muted">/</span> Osobní automobilový deník
           </span>
-          <span>Fáze 5 · Lokální MVP</span>
+          <span>Osobní automobilový deník</span>
         </footer>
       </div>
       <nav className="mobile-nav" aria-label="Mobilní navigace">
@@ -405,6 +443,10 @@ export function App() {
             <Route path="tankovani/:id" element={<RefuelingDetail />} />
             <Route path="tankovani/:id/upravit" element={<RefuelingEditor />} />
             <Route path="auta" element={<Vehicles />} />
+            <Route path="auta/:id/udalosti" element={<Events />} />
+            <Route path="auta/:id/import" element={<ImportHistory />} />
+            <Route path="pripominky" element={<Reminders />} />
+            <Route path="offline" element={<Offline />} />
             <Route path="auta/nove" element={<VehicleEditor />} />
             <Route path="auta/:id" element={<VehicleDetail />} />
             <Route path="auta/:id/statistiky" element={<Overview />} />

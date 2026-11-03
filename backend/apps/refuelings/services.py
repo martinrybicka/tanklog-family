@@ -36,7 +36,11 @@ def require_tag(request, expected):
 
 def authorize(user, vehicle, action, item=None):
     if not rights(user, vehicle, item)[action]:
-        raise Problem("permission_denied", "K této změně nemáte oprávnění nebo je vozidlo archivované.", 403)
+        raise Problem(
+            "permission_denied",
+            "K této změně nemáte oprávnění nebo je vozidlo archivované.",
+            403,
+        )
 
 
 def bump(vehicle):
@@ -59,13 +63,19 @@ def snapshot(item):
 def ensure_warnings(vehicle, values, confirmed, item=None):
     warnings = warnings_for(vehicle, values, item)
     if set(w["code"] for w in warnings) - set(confirmed):
-        error = Problem("confirmation_required", "Zkontrolujte a potvrďte upozornění před uložením.", 409)
+        error = Problem(
+            "confirmation_required",
+            "Zkontrolujte a potvrďte upozornění před uložením.",
+            409,
+        )
         error.extra = {"warnings": warnings}
         raise error
     return warnings
 
 
 def prepare(vehicle, data, item=None):
+    if item is None and vehicle.fuel_type in ["CNG", "ELECTRIC"]:
+        raise ValidationError({"fuel_type": "Pro kg/kWh použijte nákup energie v událostech vozidla."})
     fields = [
         "date",
         "liters",
@@ -176,7 +186,9 @@ def create(request, data):
     lock_users(request, target_id)
     payload_hash = hashlib.sha256(
         json.dumps(
-            {k: v for k, v in data.items() if k != "confirmed_warning_codes"}, sort_keys=True, default=str
+            {k: v for k, v in data.items() if k != "confirmed_warning_codes"},
+            sort_keys=True,
+            default=str,
         ).encode()
     ).hexdigest()
     previous = RequestDeduplication.objects.filter(user=request.user, key=key).first()
@@ -204,7 +216,10 @@ def create(request, data):
         request,
         "refueling.created",
         item,
-        {"values": snapshot(item), "confirmed_warning_codes": [w["code"] for w in warnings]},
+        {
+            "values": snapshot(item),
+            "confirmed_warning_codes": [w["code"] for w in warnings],
+        },
     )
     RequestDeduplication.objects.create(
         user=request.user,
@@ -237,6 +252,11 @@ def locked_item(request, item_id, data=None):
 def update(request, item_id, data):
     item, vehicle = locked_item(request, item_id, data)
     authorize(request.user, vehicle, "edit", item)
+    if data.get("extraction_id"):
+        from apps.extensions.ocr import extraction
+
+        if extraction(request, item_id, data["extraction_id"])["stale"]:
+            raise Problem("stale_extraction", "Účtenka se změnila. Spusťte OCR znovu.", 409)
     old = snapshot(item)
     old_date = item.date
     values = prepare(vehicle, data, item)
@@ -254,7 +274,11 @@ def update(request, item_id, data):
         request,
         "refueling.updated",
         item,
-        {"from": old, "to": snapshot(item), "confirmed_warning_codes": [w["code"] for w in warnings]},
+        {
+            "from": old,
+            "to": snapshot(item),
+            "confirmed_warning_codes": [w["code"] for w in warnings],
+        },
     )
     return refueling_for(request.user, item.pk)
 

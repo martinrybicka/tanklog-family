@@ -23,6 +23,8 @@ export const reasons: Record<string, string> = {
   BELOW_INITIAL_ODOMETER: "Odečet je nižší než počáteční tachometr vozidla.",
   HISTORY_GAP: "V intervalu je označená mezera v evidenci.",
   MIXED_FUEL: "V intervalu se mísí různá paliva.",
+  UNSUPPORTED_UNIT:
+    "Pro kg/kWh se litrová spotřeba nepočítá. Výdaje jsou v událostech vozidla.",
   UNSUPPORTED_MULTI_TANK:
     "Více nádrží nebo souběžná paliva: spotřebu nelze spolehlivě určit.",
   INVALID_ORDER: "Pořadí tankování není jednoznačné.",

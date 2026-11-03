@@ -160,3 +160,15 @@ Produkční konfigurace používá pro nový DB svazek samostatnou bootstrap rol
 Nový operations image kombinuje připnutý PostgreSQL 18.6, uv 0.13.6 (digest), Python 3.14.10 a age 1.3.2 s ověřenými SHA-256 obou Linux architektur. Aplikační Python lock zůstává společný. Compose ops služba běží jen explicitně, používá interní datovou síť a oddělený bootstrap přístup; root je read-only, scratch tmpfs a capabilities odebrané. Běžná záloha nemá privátní dešifrovací klíč. Citlivá provozní konfigurace zůstává v prostředí a není součástí aplikační DB ani Gitu.
 
 Pg_dump a otisky tabulek sdílejí jeden exportovaný read-only snapshot. Dump, metadata a kontrolní součty jsou uvnitř age archivu. Samostatný restore Compose má vlastní novou DB/volume, nové role/secrets, žádný web, veřejné porty či externí NPM síť. Pomocník generuje náhodný projekt a odmítá vzdálený Docker; databázový nástroj odmítá existující cíl. Po restore kontroluje shodu všech public tabulek včetně binárních příloh a migrací. Nativní drill používá skutečný druhý fyzický cluster a navíc ověřuje API login/práva/součty. Aplikační tabulky, API a výpočty se nemění. Podrobnosti a meze v OPERATIONS.md a PHASE_7.md; skutečný server a off-host úložiště nejsou ověřené.
+
+## Fáze 8 – modul extensions
+
+`apps/extensions` je součást stávajícího Django monolitu: modely, čisté Decimal/pravidlové funkce, služby pod zámkem uživatele/vozidla, provider adaptéry a session/CSRF API. Nevzniká další trvale běžící služba ani cloudová OCR fronta. Frontend zachovává React/TypeScript/Vite a relativní `/api/v1/`.
+
+RSV a Commons se volají synchronně mimo otevřenou zapisovací transakci; po návratu se znovu zamknou a autorizují účet/auto. DB koordinuje klouzavé minutové kvóty a dva souběžné OCR sloty. Potvrzení VIN zaznamená pouze vybraná, skutečně shodná pole. Fotografie je vázána na potvrzenou identitu modelu a její změna zneplatní zobrazení. Originál i náhled jsou bytea v DB; download zůstává autorizovaný.
+
+OCR používá izolovaný podproces Tesseract 5.5.4 s privátním dočasným obrázkem, ces/eng daty ověřenými SHA-256 a časovými/zdrojovými limity. Docker sestavuje engine ze zamčeného zdroje přes zmrazený Debian snapshot; `/tmp` backendu je dočasný tmpfs (výchozí 256 MiB). Nativně je engine skutečně ověřený, linuxové image/limity zatím nejsou běhově ověřené.
+
+Import ukládá soukromý raw/normalizovaný návrh a revizi auta/historie; potvrzení celé dávky je atomické a využívá původní služby tankování nebo událostí. UUID odvozená z dávky a indexu chrání retry. Události mají samostatný ETag/idempotenci; jejich energie se nikdy nepřimíchá do litrové analytiky.
+
+Offline fronta je modulová paměť aktuálního okna (20 nových tankování), načtená před odpojením. Výslovné zařazení/synchronizace, původní UUID, nové ověření účtu a serverová validace; logout/změna účtu/reload ji ruší. Soukromé záznamy se neukládají do SW, IndexedDB ani localStorage. Uložená data a nastavení nadále vždy patří PostgreSQL.

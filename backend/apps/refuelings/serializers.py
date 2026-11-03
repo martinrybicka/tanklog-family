@@ -15,7 +15,11 @@ class RefuelingInput(StrictSerializer):
     day_sequence = serializers.IntegerField(min_value=1, required=False)
     liters = serializers.DecimalField(max_digits=10, decimal_places=3, min_value=Decimal(".001"))
     unit_price_entered = serializers.DecimalField(
-        max_digits=10, decimal_places=4, min_value=Decimal("0"), allow_null=True, required=False
+        max_digits=10,
+        decimal_places=4,
+        min_value=Decimal("0"),
+        allow_null=True,
+        required=False,
     )
     total_amount = serializers.DecimalField(
         max_digits=14, decimal_places=2, min_value=Decimal("0"), required=False
@@ -23,7 +27,10 @@ class RefuelingInput(StrictSerializer):
     odometer_km = serializers.IntegerField(min_value=0, max_value=99999999, allow_null=True, required=False)
     is_full_tank = serializers.BooleanField(required=False)
     break_before = serializers.BooleanField(required=False)
-    fuel_type = serializers.ChoiceField(choices=Vehicle.Fuel.choices, required=False)
+    fuel_type = serializers.ChoiceField(
+        choices=[(value, label) for value, label in Vehicle.Fuel.choices if value not in ["CNG", "ELECTRIC"]],
+        required=False,
+    )
     station_code = serializers.ChoiceField(
         choices=Refueling.Station.choices, allow_blank=True, required=False
     )
@@ -42,6 +49,7 @@ class RefuelingInput(StrictSerializer):
 
 
 class RefuelingUpdate(RefuelingInput):
+    extraction_id = serializers.UUIDField(required=False)
     vehicle_id = None
 
 
@@ -49,7 +57,10 @@ class Filters(StrictSerializer):
     vehicle_id = serializers.UUIDField(required=False)
     date_from = serializers.DateField(required=False)
     date_to = serializers.DateField(required=False)
-    fuel_type = serializers.ChoiceField(choices=Vehicle.Fuel.choices, required=False)
+    fuel_type = serializers.ChoiceField(
+        choices=[(value, label) for value, label in Vehicle.Fuel.choices if value not in ["CNG", "ELECTRIC"]],
+        required=False,
+    )
     station_code = serializers.ChoiceField(
         choices=Refueling.Station.choices, allow_blank=True, required=False
     )

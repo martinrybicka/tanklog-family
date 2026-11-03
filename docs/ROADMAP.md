@@ -69,11 +69,11 @@ Akceptace: HTTPS a platný certifikát, sanitizace proxy hlaviček, přesné hos
 
 Testy: `check --deploy` nad skutečnou produkční konfigurací, smoke přes veřejný origin, CSRF a session přes NPM, podvržené hlavičky, síťové porty, autorizované účtenky, restart a restore. Produkční data ani existující volumes se v testu nemažou.
 
-## Fáze 8 – samostatně schvalovaná rozšíření
+## Fáze 8 – všechna výslovně schválená rozšíření
 
-VIN adaptér a ilustrační fotografie: po potvrzeném dohledání auta nabídnout fotografii modelu z ověřeného veřejného zdroje, s licencí/atribucí, potvrzením shody a uložením obrázku/náhledu i původu do PostgreSQL. Podrobnosti a omezení v INTEGRATIONS.md. Znovu ověřit oficiální API, limity a podmínky, pouze backendový klíč, preview/ruční potvrzení a raw provenance. OCR: lokální engine s limity, návrhy a jistotou, vždy potvrzení, zachovat originál. Viz [INTEGRATIONS.md](INTEGRATIONS.md).
+Dne 3. 11. 2026 uživatel výslovně schválil všechna rozšíření a pověřil návrhem chybějící specifikace. Závazný rozsah a akceptační matice jsou v [PHASE_8_SPECIFICATION.md](PHASE_8_SPECIFICATION.md): VIN/fotografie, lokální OCR, servis/STK/pojištění a interní připomínky, CNG/kg a elektřina/kWh, potvrzovaný CSV import a výslovná dočasná offline fronta.
 
-Servis/STK/pojištění/připomínky/import/offline a nová paliva/jednotky jsou další samostatné podetapy s vlastní specifikací, migracemi, právy a akceptací. Nezačínají automaticky dokončením nasazení. Integrace testovat proti kontrolovaným fixture odpovědím i skutečnému autorizovanému zdroji, jasně odlišit obě úrovně.
+Implementace a skutečné výsledky jsou v [PHASE_8.md](PHASE_8.md). Chybějící reálné RSV credentials, kontaktní Commons konfigurace a Docker daemon omezují integrační/provozní akceptaci. Fixture VIN/foto test není živým externím testem. Vzdálené akceptace fází 6/7 zůstávají otevřené; pokyn k fázi 8 nepovoluje GitHub ani produkční zásah. Žádná další etapa nezačíná automaticky.
 
 ## Společné podmínky předání každé implementační fáze
 

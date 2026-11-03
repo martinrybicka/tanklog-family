@@ -1,3 +1,7 @@
+import {
+  Illustration,
+  PhotoPicker,
+} from "../features/extensions/VehicleIntegrations";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CarFront, Plus, ArrowLeft } from "lucide-react";
 import { useState } from "react";
@@ -23,6 +27,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const { data: user } = useSession();
   return (
     <article className="panel vehicle-card">
+      {vehicle.photo && <Illustration photo={vehicle.photo} />}
       <div className="vehicle-card-top">
         <span className="icon-tile">
           <CarFront size={28} />
@@ -255,6 +260,17 @@ export function VehicleDetail() {
           )}
         </div>
       </div>
+      {vehicle.photo && <Illustration photo={vehicle.photo} />}
+      {vehicle.permissions.edit && (
+        <PhotoPicker
+          vehicleId={vehicle.id}
+          etag={query.data.etag!}
+          onChange={async () => {
+            await query.refetch();
+            await client.invalidateQueries({ queryKey: ["vehicles"] });
+          }}
+        />
+      )}
       <section className="panel">
         <h2>Údaje vozidla</h2>
         <dl className="vehicle-facts">
@@ -289,6 +305,12 @@ export function VehicleDetail() {
       </section>
       <section className="panel">
         <h2>Historie a spotřeba</h2>
+        <p>
+          <Link to={`/auta/${id}/udalosti`}>
+            Servis, STK, pojištění a energie
+          </Link>{" "}
+          · <Link to={`/auta/${id}/import`}>Importovat historii</Link>
+        </p>
         <div className="vehicle-actions">
           <Link
             className="button button-secondary"

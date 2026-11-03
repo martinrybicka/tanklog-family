@@ -37,7 +37,11 @@ def access_url(vehicle):
 
 def patch(client, url, data, tag=None):
     return client.patch(
-        url, data, format="json", HTTP_X_CSRFTOKEN=csrf(client), **({"HTTP_IF_MATCH": tag} if tag else {})
+        url,
+        data,
+        format="json",
+        HTTP_X_CSRFTOKEN=csrf(client),
+        **({"HTTP_IF_MATCH": tag} if tag else {}),
     )
 
 
@@ -108,7 +112,7 @@ def test_creation_ownership_normalization_and_storage(users, client):
         ("manufacture_year", 1885),
         ("manufacture_year", 9999),
         ("name", " "),
-        ("fuel_type", "ELECTRIC"),
+        ("fuel_type", "UNSUPPORTED_FUEL"),
         ("owner_id", "00000000-0000-0000-0000-000000000001"),
         ("status", "ARCHIVED"),
         ("version", 100),
@@ -151,26 +155,39 @@ def test_etags_archive_restore_and_no_delete(users, client, vehicle):
     assert Vehicle.objects.count() == 1
     assert client.delete(detail(vehicle), HTTP_X_CSRFTOKEN=csrf(client)).status_code == 405
     assert (
-        patch(client, detail(vehicle), {"owner_id": str(users["other"].pk)}, restored["ETag"]).status_code
+        patch(
+            client,
+            detail(vehicle),
+            {"owner_id": str(users["other"].pk)},
+            restored["ETag"],
+        ).status_code
         == 400
     )
     assert client.get("/api/v1/vehicles/?status=invalid").status_code == 400
 
 
 def test_sharing_and_revocation(admin_client, users, vehicle):
-    response = post(admin_client, access_url(vehicle), {"user_id": str(users["other"].pk), "role": "VIEWER"})
+    response = post(
+        admin_client,
+        access_url(vehicle),
+        {"user_id": str(users["other"].pk), "role": "VIEWER"},
+    )
     assert response.status_code == 201
     grant_id = response.json()["id"]
     url = f"/api/v1/admin/vehicle-access/{grant_id}/"
     assert (
         post(
-            admin_client, access_url(vehicle), {"user_id": str(users["other"].pk), "role": "CONTRIBUTOR"}
+            admin_client,
+            access_url(vehicle),
+            {"user_id": str(users["other"].pk), "role": "CONTRIBUTOR"},
         ).status_code
         == 409
     )
     assert (
         post(
-            admin_client, access_url(vehicle), {"user_id": str(users["user"].pk), "role": "VIEWER"}
+            admin_client,
+            access_url(vehicle),
+            {"user_id": str(users["user"].pk), "role": "VIEWER"},
         ).status_code
         == 409
     )
@@ -229,7 +246,9 @@ def test_inactive_targets_and_transfer_reauth(admin_client, users, vehicle):
     User.objects.filter(pk=users["other"].pk).update(is_active=False)
     assert (
         post(
-            admin_client, access_url(vehicle), {"user_id": str(users["other"].pk), "role": "VIEWER"}
+            admin_client,
+            access_url(vehicle),
+            {"user_id": str(users["other"].pk), "role": "VIEWER"},
         ).status_code
         == 400
     )
@@ -249,7 +268,11 @@ def test_private_admin_endpoints_and_csrf(users, client, vehicle):
     for url in [access_url(vehicle), "/api/v1/admin/vehicles/", "/api/v1/admin/users/"]:
         assert client.get(url).status_code == 403
     assert (
-        post(client, access_url(vehicle), {"user_id": str(users["other"].pk), "role": "VIEWER"}).status_code
+        post(
+            client,
+            access_url(vehicle),
+            {"user_id": str(users["other"].pk), "role": "VIEWER"},
+        ).status_code
         == 403
     )
     assert (
@@ -292,11 +315,16 @@ def test_transfer_and_sharing_serialize(users, vehicle):
                 return post(
                     client,
                     f"/api/v1/admin/vehicles/{vehicle.pk}/transfer-owner/",
-                    {"new_owner_id": str(users["other"].pk), "current_password": PASSWORD},
+                    {
+                        "new_owner_id": str(users["other"].pk),
+                        "current_password": PASSWORD,
+                    },
                     HTTP_IF_MATCH=tag,
                 ).status_code
             return post(
-                client, access_url(vehicle), {"user_id": str(users["other"].pk), "role": "VIEWER"}
+                client,
+                access_url(vehicle),
+                {"user_id": str(users["other"].pk), "role": "VIEWER"},
             ).status_code
         finally:
             connections.close_all()
@@ -354,7 +382,9 @@ def test_concurrent_duplicate_grants_create_one_row(users, vehicle, password_has
             login(client, username)
             barrier.wait(timeout=10)
             return post(
-                client, access_url(vehicle), {"user_id": str(users["other"].pk), "role": "VIEWER"}
+                client,
+                access_url(vehicle),
+                {"user_id": str(users["other"].pk), "role": "VIEWER"},
             ).status_code
         finally:
             connections.close_all()
@@ -380,7 +410,10 @@ def test_concurrent_owner_update_and_transfer_cannot_overwrite_new_ownership(use
                 return post(
                     client,
                     f"/api/v1/admin/vehicles/{vehicle.pk}/transfer-owner/",
-                    {"new_owner_id": str(users["other"].pk), "current_password": PASSWORD},
+                    {
+                        "new_owner_id": str(users["other"].pk),
+                        "current_password": PASSWORD,
+                    },
                     HTTP_IF_MATCH=tag,
                 ).status_code
             return patch(client, detail(vehicle), {"name": "Nové jméno"}, tag).status_code

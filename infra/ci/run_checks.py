@@ -41,6 +41,7 @@ def backend():
         "infra/ruff.toml",
         "infra/ci",
         "infra/ops",
+        "infra/ocr",
         "infra/local_production_preview.py",
         "frontend/scripts/generate-icons.py",
     )
@@ -52,6 +53,7 @@ def backend():
         "infra/ruff.toml",
         "infra/ci",
         "infra/ops",
+        "infra/ocr",
         "infra/local_production_preview.py",
         "frontend/scripts/generate-icons.py",
     )

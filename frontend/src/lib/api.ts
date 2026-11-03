@@ -8,7 +8,7 @@ export class ApiError extends Error {
     public code: string,
     message: string,
     public fields: Record<string, string[]> = {},
-    public warnings: { code: string; message: string }[] = [],
+    public warnings: { code: string; message: string; row?: number }[] = [],
   ) {
     super(message);
   }

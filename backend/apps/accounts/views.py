@@ -41,7 +41,11 @@ def user_response(user, status_code=200):
 
 def session_data(user):
     if user.must_change_password:
-        return {"id": str(user.pk), "username": user.username, "must_change_password": True}
+        return {
+            "id": str(user.pk),
+            "username": user.username,
+            "must_change_password": True,
+        }
     return {
         "id": str(user.pk),
         "username": user.username,
@@ -194,8 +198,8 @@ class SystemView(APIView):
         return Response(
             {
                 "application": "TankLog",
-                "version": "0.5.0",
-                "phase": 5,
+                "version": "0.8.0",
+                "phase": 8,
                 "django_version": django.get_version(),
                 "database": "ok",
             }

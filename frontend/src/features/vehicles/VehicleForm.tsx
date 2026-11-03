@@ -4,9 +4,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button, ErrorMessage, Field, Input } from "../../components/ui";
 import { errorText } from "../../lib/api";
+import { VinLookup } from "../extensions/VehicleIntegrations";
 import type { Vehicle } from "../../lib/types";
 
 export const fuels: Record<string, string> = {
+  CNG: "CNG (kg)",
+  ELECTRIC: "Elektřina (kWh)",
   PETROL: "Benzín",
   DIESEL: "Nafta",
   LPG: "LPG",
@@ -50,7 +53,15 @@ const schema = z.object({
   name: z.string().trim().min(1, "Vyplňte název auta.").max(100),
   make: z.string().trim().min(1, "Vyplňte značku.").max(100),
   model: z.string().trim().min(1, "Vyplňte model.").max(100),
-  fuel_type: z.enum(["PETROL", "DIESEL", "LPG", "ETHANOL", "OTHER_LIQUID"]),
+  fuel_type: z.enum([
+    "PETROL",
+    "DIESEL",
+    "LPG",
+    "ETHANOL",
+    "OTHER_LIQUID",
+    "CNG",
+    "ELECTRIC",
+  ]),
   initial_odometer_km: integer(0, 99999999),
   manufacture_year: integer(
     1886,
@@ -70,7 +81,11 @@ const schema = z.object({
       (value) => !value || /^[A-HJ-NPR-Z0-9]{17}$/i.test(value),
       "VIN musí mít 17 znaků bez písmen I, O a Q.",
     ),
-  consumption_mode: z.enum(["SINGLE_TANK", "UNSUPPORTED_MULTI_TANK"]),
+  consumption_mode: z.enum([
+    "SINGLE_TANK",
+    "UNSUPPORTED_MULTI_TANK",
+    "UNSUPPORTED_UNIT",
+  ]),
   engine_displacement_cc: integer(1, 2147483647, true),
   power_kw: decimal(2, 1000000),
   tank_capacity_l: decimal(3, 100000),
@@ -96,6 +111,11 @@ export function VehicleForm({
   onReload?: () => void;
 }) {
   const [error, setError] = useState("");
+  const [lookup, setLookup] = useState<{
+    id: string;
+    vin: string;
+    fields: string[];
+  } | null>(null);
   const defaults = {
     name: "",
     make: "",
@@ -121,6 +141,7 @@ export function VehicleForm({
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<Values>({
     resolver: zodResolver(schema),
@@ -170,6 +191,10 @@ export function VehicleForm({
         ] as const)
           data[key] = values[key] ? values[key].replace(",", ".") : null;
         try {
+          if (lookup && data.vin === lookup.vin) {
+            data.lookup_id = lookup.id;
+            data.lookup_fields = lookup.fields;
+          }
           await onSave(data);
         } catch (e) {
           setError(errorText(e));
@@ -213,7 +238,7 @@ export function VehicleForm({
             "vin",
             "VIN",
             false,
-            "Ruční vstup. Historický nestandardní identifikátor uveďte do poznámky ke zdroji.",
+            "VIN můžete zadat ručně nebo dohledat. Historický nestandardní identifikátor uveďte do poznámky ke zdroji.",
           )}
           {field("engine_displacement_cc", "Objem motoru (cm³)", true)}
           {field("power_kw", "Výkon (kW)", true)}
@@ -225,6 +250,7 @@ export function VehicleForm({
               {...register("consumption_mode")}
             >
               <option value="SINGLE_TANK">Jedna nádrž</option>
+              <option value="UNSUPPORTED_UNIT">Jiné jednotky (kg/kWh)</option>
               <option value="UNSUPPORTED_MULTI_TANK">
                 Více nádrží / souběžná paliva
               </option>
@@ -258,6 +284,25 @@ export function VehicleForm({
           {field("standard_source_note", "Poznámka ke zdroji")}
         </div>
       </details>
+      <VinLookup
+        vin={watch("vin")}
+        vehicleId={vehicle?.id}
+        onApply={(values, id, vin) => {
+          for (const [key, value] of Object.entries(values)) {
+            if (key in defaults)
+              setValue(key as keyof Values, String(value) as never, {
+                shouldValidate: true,
+              });
+          }
+          setLookup({ id, vin, fields: Object.keys(values) });
+        }}
+      />
+      {["CNG", "ELECTRIC"].includes(watch("fuel_type")) && (
+        <p className="alert">
+          Nákupy v kg/kWh zadávejte do událostí auta. Norma l/100 km a plná–plná
+          se pro tento pohon nepoužívají.
+        </p>
+      )}
       {watch("consumption_mode") === "UNSUPPORTED_MULTI_TANK" && (
         <p className="alert">
           U více nádrží bude možné evidovat výdaje; výpočet spotřeby nebude

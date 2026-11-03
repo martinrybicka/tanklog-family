@@ -117,8 +117,27 @@ def main():
             "--noinput",
         )
         run("run", "--rm", "--no-deps", "backend", "python", "tests/prepare_e2e.py")
+        fixture = subprocess.check_output(
+            [
+                *compose,
+                "run",
+                "--rm",
+                "--no-deps",
+                "backend",
+                "python",
+                "tests/prepare_extensions_e2e.py",
+            ],
+            cwd=ROOT,
+            env=env,
+            text=True,
+        )
+        json.loads(fixture)
+        fixture_file = runtime / "extensions.json"
+        fixture_file.write_text(fixture)
+        fixture_file.chmod(0o600)
         run("up", "--detach", "--wait", "--wait-timeout", "180")
         browser_env = env | {
+            "E2E_EXTENSIONS_FIXTURE": str(fixture_file),
             "E2E_BASE_URL": "http://127.0.0.1:18080",
             "E2E_BROWSER_CHANNEL": os.environ.get("E2E_BROWSER_CHANNEL", "chromium"),
         }

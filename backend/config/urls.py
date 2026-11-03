@@ -10,6 +10,7 @@ handler404 = "apps.core.errors.not_found"
 handler500 = "apps.core.errors.server_error"
 
 urlpatterns = [
+    path("api/v1/", include("apps.extensions.urls")),
     path("api/v1/", include("apps.analytics.urls")),
     path("api/v1/", include("apps.refuelings.urls")),
     path("api/v1/", include("apps.vehicles.urls")),
@@ -29,7 +30,9 @@ urlpatterns = [
         {"action": "deactivate"},
     ),
     path(
-        "api/v1/admin/users/<uuid:user_id>/activate/", views.UserActionView.as_view(), {"action": "activate"}
+        "api/v1/admin/users/<uuid:user_id>/activate/",
+        views.UserActionView.as_view(),
+        {"action": "activate"},
     ),
     path(
         "api/v1/admin/users/<uuid:user_id>/password-reset/",

@@ -12,6 +12,21 @@ from .selectors import effective_role, permissions
 
 
 class VehicleInput(StrictSerializer):
+    lookup_id = serializers.UUIDField(required=False, write_only=True)
+    lookup_fields = serializers.ListField(
+        child=serializers.ChoiceField(
+            choices=["make", "model", "fuel_type", "engine_displacement_cc", "power_kw"]
+        ),
+        max_length=5,
+        required=False,
+        write_only=True,
+    )
+
+    def validate(self, data):
+        if bool(data.get("lookup_id")) != bool(data.get("lookup_fields")):
+            raise serializers.ValidationError({"lookup_fields": "Návrh VIN vyžaduje výslovný výběr polí."})
+        return data
+
     name = serializers.CharField(max_length=100)
     make = serializers.CharField(max_length=100)
     model = serializers.CharField(max_length=100)
@@ -25,13 +40,25 @@ class VehicleInput(StrictSerializer):
         min_value=1, max_value=2147483647, allow_null=True, required=False
     )
     power_kw = serializers.DecimalField(
-        max_digits=8, decimal_places=2, min_value=Decimal("0.01"), allow_null=True, required=False
+        max_digits=8,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        allow_null=True,
+        required=False,
     )
     tank_capacity_l = serializers.DecimalField(
-        max_digits=8, decimal_places=3, min_value=Decimal("0.001"), allow_null=True, required=False
+        max_digits=8,
+        decimal_places=3,
+        min_value=Decimal("0.001"),
+        allow_null=True,
+        required=False,
     )
     standard_consumption_l_100km = serializers.DecimalField(
-        max_digits=7, decimal_places=3, min_value=Decimal("0.001"), allow_null=True, required=False
+        max_digits=7,
+        decimal_places=3,
+        min_value=Decimal("0.001"),
+        allow_null=True,
+        required=False,
     )
     standard_methodology = serializers.ChoiceField(choices=Vehicle.Methodology.choices, required=False)
     standard_source = serializers.CharField(max_length=500, allow_blank=True, required=False)
@@ -53,6 +80,17 @@ class VehicleInput(StrictSerializer):
 
 
 class VehicleSerializer(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField()
+
+    @extend_schema_field(serializers.DictField(allow_null=True))
+    def get_photo(self, obj):
+        from apps.extensions.integrations import photo_match
+        from apps.extensions.models import VehicleImage
+        from apps.extensions.views import image_output
+
+        item = VehicleImage.objects.filter(vehicle=obj, status="ACTIVE").defer("original", "preview").first()
+        return image_output(item) if item and item.match == photo_match(obj) else None
+
     effective_role = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
 
@@ -69,7 +107,8 @@ class VehicleSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "owner_id",
-            *VehicleInput().fields,
+            *[key for key in VehicleInput().fields if key not in ["lookup_id", "lookup_fields"]],
+            "photo",
             "status",
             "version",
             "history_revision",

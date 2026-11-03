@@ -23,7 +23,9 @@ def rights(user, vehicle, item=None):
     manage = role in ["ADMIN", "OWNER"]
     contribute = role == "CONTRIBUTOR" and vehicle.status == "ACTIVE"
     return {
-        "create": vehicle.status == "ACTIVE" and (manage or contribute),
+        "create": vehicle.status == "ACTIVE"
+        and vehicle.fuel_type not in ["CNG", "ELECTRIC"]
+        and (manage or contribute),
         "edit": manage or (contribute and item is not None and item.created_by_id == user.pk),
         "delete": manage,
         "reorder": manage,

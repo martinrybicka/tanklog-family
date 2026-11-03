@@ -113,7 +113,7 @@ Odstranění záznamu provádí OWNER/ADMIN s potvrzením, auditem a přepočtem
 | `original_filename` | očištěný název pro stažení, nezveřejňovat cestu klientského zařízení |
 | `uploaded_by_id`, `created_at`, `version` | původ a souběh |
 
-Příloha dědí čtecí práva výhradně z tankování a auta. Její změna vyžaduje právo upravit tankování, její smazání stejné právo (nejde o smazání celého tankování). Validovaný originál a náhled se mění atomicky v DB transakci spolu s metadaty/auditem; rollback zachová původní obsah. Velikosti validovat v aplikaci a při implementaci přidat DB kontroly octet_length. Neexistují trvalé souborové cesty ani storage key; ID přílohy slouží autorizovanému stažení z backendu. Budoucí OCR model bude samostatný a nebude do tohoto modelu předem přidávat neexistující job infrastrukturu.
+Příloha dědí čtecí práva výhradně z tankování a auta. Její změna vyžaduje právo upravit tankování, její smazání stejné právo (nejde o smazání celého tankování). Validovaný originál a náhled se mění atomicky v DB transakci spolu s metadaty/auditem; rollback zachová původní obsah. Velikosti validovat v aplikaci a při implementaci přidat DB kontroly octet_length. Neexistují trvalé souborové cesty ani storage key; ID přílohy slouží autorizovanému stažení z backendu. OCR od fáze 8 používá samostatný ReceiptExtraction, bez další job infrastruktury.
 
 ## 7. AuditEvent a RequestDeduplication
 
@@ -154,3 +154,20 @@ Analytika nezavádí nové trvalé entity ani migraci. PostgreSQL zůstává jed
 ## 12. Veřejná cache fáze 5
 
 Žádný nový datový model ani migrace. V PostgreSQL nadále zůstávají veškeré uložené aplikační údaje a preference. PWA CacheStorage je pouze pro veřejné buildové soubory a obecnou offline stránku bez uživatelského obsahu. Prohlížeč neukládá historii, profily, motiv ani obrázky/JSON offline. BroadcastChannel obsahuje jen dočasný signál logout, bez identity účtu. Rozepsaný formulář není uložený záznam a zůstává pouze v paměti aktuální stránky.
+
+## Fáze 8 – nové modely a migrace
+
+`vehicles/0002` rozšiřuje primární paliva o CNG/ELECTRIC a režim spotřeby o UNSUPPORTED_UNIT. `extensions/0001` zavádí níže uvedené tabulky; `0002` zpřesňuje DB constraint vyžadující nenulové množství ENERGY. Historická tankování se nepřevádějí a původní migrace se nemění.
+
+| Model | Ukládaná data / invariant |
+| --- | --- |
+| VehicleEvent | UUID, auto/autor, SERVICE/INSPECTION/INSURANCE/REMINDER/ENERGY, název/datum/poznámka, částka Decimal(14,2), km, další datum/km, předstihy, uzavření, verze. ENERGY má kladné Decimal(12,3) a jednotku kg/kWh; ostatní druhy bez množství. |
+| ExtensionRequest | Účet + unikátní UUID požadavku, auto, hash těla a výsledné UUID; tombstone brání obnovení smazaného záznamu při retry. |
+| ImportBatch | Autor/auto, FUEL/EVENT, raw CSV, řádky/chyby/varování/výsledky JSON, revize auta a historie, dokončení a čas. Soukromý návrh potvrditelný 24 h. |
+| VehicleDataSnapshot | Žadatel/volitelné auto, VIN, raw JSON, mapované návrhy, skutečně přijatá pole, verze mapování rsv-1, potvrzení/čas. |
+| VehicleImage | Auto/žadatel, CANDIDATE/ACTIVE, originál a náhled bytea, MIME, metadata licence/zdroje/hashů/atribuce a vazba na identitu modelu. Nejvýše jedna ACTIVE fotografie na auto. |
+| ReceiptExtraction | Tankování/žadatel, hash/verze původní účtenky, verze enginu, raw text, návrhy a jistoty, čas. Změna přílohy činí výsledek nepoužitelným. |
+| IntegrationGate | Unikátní klíč koordinace kvót a časově omezených OCR slotů pod DB zámkem. |
+| IntegrationAttempt | Účet/provider/čas pro klouzavé minutové limity. |
+
+Fáze 8 má celkem 27 obnovovaných aplikačních/systémových tabulek ve zkušební DB. Celé JSON i bytea jsou součástí stejné šifrované DB zálohy a kontrolních součtů; OCR pomocný soubor není trvalým datovým úložištěm. Samotná klientská offline fronta nemá DB tabulku, protože ještě není uloženým záznamem.

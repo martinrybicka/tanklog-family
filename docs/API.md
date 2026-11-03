@@ -1,6 +1,6 @@
 # Plán API v1
 
-Kontrakt API v1. Implementované jsou autentizace, profil, uživatelé, systém, audit, health, vozidla/sdílení a od fáze 3 tankování/účtenky/XLSX; od fáze 4 také statistiky/dashboard a intervalové podklady. Základ `/api/v1/` pod stejným originem jako SPA. Všechny cesty níže mají koncové lomítko. Strojově generovaný aktuální kontrakt je [openapi.yaml](openapi.yaml), také dostupný přihlášenému ADMIN na `admin/schema/`. Aktuální výsledky a limity ověření jsou v PHASE_4.md.
+Kontrakt API v1. Implementované jsou autentizace, profil, uživatelé, systém, audit, health, vozidla/sdílení a od fáze 3 tankování/účtenky/XLSX; od fáze 4 také statistiky/dashboard a intervalové podklady. Základ `/api/v1/` pod stejným originem jako SPA. Všechny cesty níže mají koncové lomítko. Strojově generovaný aktuální kontrakt je [openapi.yaml](openapi.yaml), také dostupný přihlášenému ADMIN na `admin/schema/`. Aktuální výsledky a limity ověření jsou v PHASE_8.md.
 
 ## 1. Společná pravidla
 
@@ -182,3 +182,28 @@ Interval obsahuje vehicle_id, start_id/end_id, start_date/end_date, start_odomet
 Doménové endpointy se nemění. Django handler 400 vrací JSON bad_request, například při chybném Host. Nginx vrací JSON request_too_large 413 pro obecný limit 1 MiB, file_too_large 413 pro receipt request přes 12 MiB, login_locked/upload_limited 429 s Retry-After a service_unavailable 503 při nedostupném backendu. Proxy chyby mají private,no-store, nosniff, frame/CSP hlavičky a request_id. Readiness není veřejný, vrací JSON not_found 404. Frontendový HTML fallback se nepoužije pro /api/.
 
 Veřejné `/manifest.webmanifest`, `/sw.js`, `/offline.html`, `/offline.css`, `/icons/*` a hashované `/assets/*` nejsou doménové API a neobsahují údaje účtu. Worker z nich ukládá jen buildový allowlist bez cookies; nedotýká se soukromého API. Výsledné HTML je no-store, worker no-cache/no-store, manifest no-cache, hashované assets immutable. Aktualizace schema popisu uvádí fázi 5, systémové API vrací verzi 0.5.0/fázi 5. Žádné nové veřejné účetní nebo upload endpointy nevznikají.
+
+## Fáze 8 – aktuální endpointy
+
+Vše pod `/api/v1/`, aktivní plná session a CSRF pro každou mutaci. Nepřístupné objekty 404, akční práva 403, neaktuální ETag 412, chybějící 428. Decimal se posílá jako řetězec. Úplné vstupy a schéma jsou v aktualizovaném [openapi.yaml](openapi.yaml); obecné JSON výstupy některých příkazů jsou níže popsány slovně.
+
+| Cesta | Metody / kontrakt |
+| --- | --- |
+| `vehicles/{id}/events/` | GET stránkované události; POST EventInput + `Idempotency-Key` UUID. |
+| `vehicles/{id}/events/{event}/` | GET; PUT úplný EventInput nebo DELETE s `If-Match` události. Výstup obsahuje `etag`, oprávnění vycházejí z role a autora. |
+| `reminders/` | GET stránkované otevřené termíny přístupných aktivních aut, stav OVERDUE/SOON/LATER/UNKNOWN a podklad km. |
+| `vehicles/{id}/energy-totals/` | GET oddělené množství/částky pro kg a kWh; bez převodu na litry. |
+| `vehicles/{id}/imports/` | GET vlastní uložené dávky; POST `{kind: "FUEL" nebo "EVENT", csv_text: "..."}` vrací uložený návrh s řádky/chybami/varováními, nic nepřidá do historie. |
+| `imports/{batch}/` | GET vlastní raw/návrh/výsledky; POST `{confirmed: true, confirmed_warning_codes: []}` atomicky potvrzuje, kontroluje 24 h/revize/práva. Opakování dokončené dávky vrací stejná výsledná ID. |
+| `vehicle-lookups/` | POST `{vin, vehicle_id?}` vrací ID/návrhy/nepřevoditelné poznámky/zdroj/čas; GET uložené vlastní návrhy bez auta nebo s filtrem `vehicle_id`. |
+| `vehicles/{id}/photo-search/` | POST `{}` po potvrzené značce/modelu z VIN vrací nejvýše 3 soukromé kandidáty s licencemi. |
+| `vehicles/{id}/photo/` | POST `{image_id, confirmed: true}` + ETag auta vybere kandidáta; DELETE + ETag odebere foto/návrhy. |
+| `vehicle-images/{image}/` | GET autorizovaný očištěný JPEG náhled, private/no-store. |
+| `refuelings/{id}/recognize/` | POST `{}` + ETag tankování spustí lokální OCR existující účtenky; GET nejnovější uložený výsledek. |
+| `refuelings/{id}/extractions/{extraction}/` | GET výsledek včetně příznaku `stale`, raw textu a `{value, confidence}` návrhů. |
+
+Při vytvoření/úpravě auta lze přidat `lookup_id` a `lookup_fields` (seznam vybraných názvů). Server nikdy sám nepřepíše formulář; provenance zaznamená jen vybraná pole, která v uloženém autě skutečně odpovídají návrhu. Fotografie vyžaduje výslovně přijaté make/model a stále shodný VIN/model. Při editaci tankování lze přidat `extraction_id`; starý hash/verze účtenky vrací konflikt místo použití návrhu.
+
+EventInput: povinné `kind`, `title`, `date`; volitelné `amount`, `odometer_km`, `due_date`, `due_odometer_km`, `notice_days` (30), `notice_km` (1000), `closed`, `note`, pro ENERGY také kladné `quantity` a `unit`. STK/pojištění vyžadují platnost, připomínka datum nebo km. CONTRIBUTOR vytváří/upravuje vlastní aktivní události; OWNER/ADMIN i archivované a mažou; VIEWER pouze čte.
+
+Externí chyby vracejí bezpečné 429/502/503/504 bez klíče či provider těla. Konfigurace serveru: `RSV_API_KEY`, `COMMONS_USER_AGENT` s kontaktem; OCR `OCR_BINARY`, `OCR_DATA`, `OCR_LOCK_FILE`. Klíče se nikdy neposílají frontendem. Offline klient používá běžný POST tankování a původní idempotency UUID, žádné alternativní API obcházející validaci.

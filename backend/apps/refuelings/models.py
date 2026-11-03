@@ -31,12 +31,17 @@ class Refueling(models.Model):
     odometer_km = models.BigIntegerField(null=True)
     is_full_tank = models.BooleanField(default=False)
     break_before = models.BooleanField(default=False)
-    fuel_type = models.CharField(max_length=20, choices=Vehicle.Fuel.choices)
+    fuel_type = models.CharField(
+        max_length=20,
+        choices=[(value, label) for value, label in Vehicle.Fuel.choices if value not in ["CNG", "ELECTRIC"]],
+    )
     station_code = models.CharField(max_length=10, choices=Station.choices, blank=True, default="")
     station_custom_name = models.CharField(max_length=120, blank=True, default="")
     note = models.CharField(max_length=2000, blank=True, default="")
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="authored_refuelings"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="authored_refuelings",
     )
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
     paid_by_user = models.ForeignKey(
@@ -67,10 +72,14 @@ class Refueling(models.Model):
             ),
             models.CheckConstraint(condition=Q(day_sequence__gt=0), name="refueling_positive_sequence"),
             models.CheckConstraint(
-                condition=Q(paid_by_user__isnull=True) | Q(paid_by_label=""), name="refueling_single_payer"
+                condition=Q(paid_by_user__isnull=True) | Q(paid_by_label=""),
+                name="refueling_single_payer",
             ),
         ]
-        indexes = [models.Index(fields=["vehicle", "date", "day_sequence"]), models.Index(fields=["date"])]
+        indexes = [
+            models.Index(fields=["vehicle", "date", "day_sequence"]),
+            models.Index(fields=["date"]),
+        ]
 
 
 class OctetLength(Length):
@@ -98,15 +107,26 @@ class ReceiptAttachment(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                condition=Q(original_bytes__length__lte=10 * 1024 * 1024, original_bytes__length__gt=0),
+                condition=Q(
+                    original_bytes__length__lte=10 * 1024 * 1024,
+                    original_bytes__length__gt=0,
+                ),
                 name="receipt_original_limit",
             ),
             models.CheckConstraint(
-                condition=Q(preview_bytes__length__lte=2 * 1024 * 1024, preview_bytes__length__gt=0),
+                condition=Q(
+                    preview_bytes__length__lte=2 * 1024 * 1024,
+                    preview_bytes__length__gt=0,
+                ),
                 name="receipt_preview_limit",
             ),
             models.CheckConstraint(
-                condition=Q(width__gt=0, height__gt=0, size_bytes__gt=0, size_bytes__lte=10 * 1024 * 1024),
+                condition=Q(
+                    width__gt=0,
+                    height__gt=0,
+                    size_bytes__gt=0,
+                    size_bytes__lte=10 * 1024 * 1024,
+                ),
                 name="receipt_dimensions_size",
             ),
         ]

@@ -7,6 +7,8 @@ from django.db.models import Q
 
 class Vehicle(models.Model):
     class Fuel(models.TextChoices):
+        CNG = "CNG", "CNG (kg)"
+        ELECTRIC = "ELECTRIC", "Elektřina (kWh)"
         PETROL = "PETROL", "Benzín"
         DIESEL = "DIESEL", "Nafta"
         LPG = "LPG", "LPG"
@@ -18,6 +20,7 @@ class Vehicle(models.Model):
         ARCHIVED = "ARCHIVED", "Archivované"
 
     class ConsumptionMode(models.TextChoices):
+        UNSUPPORTED_UNIT = "UNSUPPORTED_UNIT", "Jiné jednotky (kg/kWh)"
         SINGLE_TANK = "SINGLE_TANK", "Jedna nádrž"
         UNSUPPORTED_MULTI_TANK = "UNSUPPORTED_MULTI_TANK", "Více nádrží"
 
@@ -38,7 +41,9 @@ class Vehicle(models.Model):
     vin = models.CharField(max_length=17, null=True, blank=True, unique=True)
     fuel_type = models.CharField(max_length=20, choices=Fuel.choices)
     consumption_mode = models.CharField(
-        max_length=30, choices=ConsumptionMode.choices, default=ConsumptionMode.SINGLE_TANK
+        max_length=30,
+        choices=ConsumptionMode.choices,
+        default=ConsumptionMode.SINGLE_TANK,
     )
     engine_displacement_cc = models.PositiveIntegerField(null=True, blank=True)
     power_kw = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
@@ -97,7 +102,9 @@ class VehicleAccess(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="access_grants")
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="vehicle_grants"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="vehicle_grants",
     )
     role = models.CharField(max_length=15, choices=Role.choices)
     granted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
@@ -110,7 +117,8 @@ class VehicleAccess(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["vehicle", "user"], name="unique_vehicle_user_grant"),
             models.CheckConstraint(
-                condition=Q(role__in=["VIEWER", "CONTRIBUTOR"]), name="valid_vehicle_grant_role"
+                condition=Q(role__in=["VIEWER", "CONTRIBUTOR"]),
+                name="valid_vehicle_grant_role",
             ),
         ]
         indexes = [models.Index(fields=["user", "vehicle"])]

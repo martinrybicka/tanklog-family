@@ -1,42 +1,25 @@
-# Budoucí VIN a OCR integrace
+# Integrace implementované ve fázi 8
 
-Pouze návrh a průzkum, stav 2. 11. 2026. Fáze 0 nezakládá API účet, nepožaduje klíč, nevolá registr pro skutečné vozidlo a neinstaluje OCR.
+Podrobný rozsah: [PHASE_8_SPECIFICATION.md](PHASE_8_SPECIFICATION.md), skutečné testy a otevřené body: [PHASE_8.md](PHASE_8.md). Adaptéry jsou pouze na backendu a data v PostgreSQL. Selhání zdroje zachovává ruční formuláře.
 
-## 1. Oficiální API Registru silničních vozidel
+## RSV – technické údaje podle VIN
 
-Oficiální portál [Data o vozidlech](https://dataovozidlech.cz/) zveřejňuje [dokumentaci Veřejná API Datové kostky RSV v1.0](https://dataovozidlech.cz/data/RSV_Verejna_API_DK_v1_0.pdf), datovanou 21. 1. 2025. Při průzkumu byla dostupná; nebyla ověřena funkčnost autentizovaného požadavku ani přislíbena aktuálnost provozních podmínek.
+Oficiální [dokumentace RSV v1.0](https://dataovozidlech.cz/data/RSV_Verejna_API_DK_v1_0.pdf) ověřena 3. 11. 2026: `GET https://api.dataovozidlech.cz/vehicletechnicaldata/v2?vin=...`, hlavička `API_KEY`, dokumentovaný limit 27/min. Naše sdílená klouzavá kvóta je konzervativně 20/min a 5/účet/min, bez retry. `RSV_API_KEY` je pouze v prostředí backendu. Vyhledávání podle TP/ORV není implementované.
 
-Dokumentovaný endpoint je `GET https://api.dataovozidlech.cz/api/vehicletechnicaldata/v2`. Používá parametry `vin`, `tp`, `orv`; kombinace se vyhodnocují současně. RZ/SPZ není mezi zdokumentovanými vyhledávacími parametry. Klíč se získává [registrací API](https://dataovozidlech.cz/registraceapi) a předává v HTTP hlavičce `API_KEY`. Dokument uvádí limit 27 požadavků za minutu na klíč. [Zdroj: oficiální API dokumentace, str. 4–5](https://dataovozidlech.cz/data/RSV_Verejna_API_DK_v1_0.pdf).
+Kontroluje se Status a shodný VIN, normalizuje se značka/model/objem a pouze jednoznačný číselný výkon a známé palivo. Více hodnot, nejednoznačná spotřeba a první registrace se nepovažují za výrobní rok/normu. Raw snapshot v DB, mapovací verze rsv-1, čas a skutečně přijatá pole uchovávají původ. Uživatel vybírá jednotlivá pole, následně uloží auto obvyklým formulářem. Návrh platí 24 h; změněná práva/identita potvrzení zablokují. Chybějící klíč vrací 503 a ruční fallback. Živý autorizovaný RSV test zde nebyl možný, klíč chybí; testy používají syntetické odpovědi včetně chyb a limitu vráceného s HTTP 200.
 
-Příklad odpovědi obsahuje značku, typ/obchodní označení, palivo, objem motoru, výkon a registrační datumy. U spotřeby uvádí `SpotrebaMetodika` a `SpotrebaNa100Km`, včetně více hodnot v jednom řetězci; neprokazuje jejich univerzální význam nebo dostupnost přesné kombinované spotřeby. Datum první registrace nelze automaticky považovat za rok výroby. [Zdroj: oficiální API dokumentace, str. 6](https://dataovozidlech.cz/data/RSV_Verejna_API_DK_v1_0.pdf).
+## Wikimedia Commons – ilustrační fotografie
 
-## 2. Návrh adaptéru pro fázi 8
+Používá se oficiální [MediaWiki imageinfo](https://www.mediawiki.org/wiki/API:Imageinfo) a [pravidla User-Agent](https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy). Nastavte `COMMONS_USER_AGENT` na identifikaci vlastní instalace s reálným kontaktem. Nepoužívejte cizí nebo smyšlený e-mail. Provozovatel musí respektovat [podmínky opětovného užití](https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia).
 
-Následující body jsou vlastní návrh TankLog, nikoli další zjištěné vlastnosti RSV:
+Jen potvrzená značka/model z VIN, nejvýše 3 kandidáti, žádný VIN/RZ/uživatelská data. Hosty commons.wikimedia.org a upload.wikimedia.org jsou pevné; HTTPS bez redirectů, jen veřejné DNS, JPEG/PNG 5 MiB/12 MP. Metadata se čistí na text. Whitelist licence: CC0, CC BY 4.0, CC BY-SA 4.0; bez licence/zdroje/autora se návrh nepoužije. Uloží se autor, licence a odkaz, zdrojová stránka, credit/attribution, zdrojový čas/SHA1 a SHA256 staženého obsahu, údaje o úpravě náhledu. Originál a náhled jsou soukromé DB bytea. Karta/detail mají označení ilustrační fotografie, autora, licenční a zdrojový odkaz a atribuci, odkazy podtržené pro přístupnost.
 
-- Backendový adaptér `VehicleDataProvider` oddělí HTTP klienta a mapování do návrhu údajů vozidla. Povolený cílový host je pevný; uživatel nemůže zadat libovolnou URL. API klíč je výhradně v backend env `RSV_API_KEY`.
-- Lookup provádí pouze uživatel, který smí vytvářet/upravovat cílové auto; limit na účet i společný klíč. Konzervativní lokální rozpočet pod publikovaným limitem, timeout, omezené retry s backoff a zpracování limitu/chyby i v těle odpovědi. Nestavět úspěch pouze na HTTP 200.
-- Návrh zobrazí porovnání starých a nových hodnot a uživatel výslovně vybere změny. Ruční údaje se automaticky nepřepíšou. Selhání registru nesmí zablokovat ruční formulář.
-- Uchovat neveřejný původní payload, datum získání, zdroj, verzi mapování a vybraná potvrzená pole. Přidat samostatný model `VehicleDataSnapshot` až při realizaci; v MVP se taková data nevyrábějí.
-- Nejasnou spotřebu uložit jako raw hodnotu a metodiku; bez ručního potvrzení nenastavovat normu. Výkon s otáčkami nebo několik hodnot oddělených lomítky nelze slepě převést na jedno číslo.
-- VIN/raw odpovědi nepatří do veřejného logu. Cache a retenci určit až podle podmínek zdroje; nesdílet neveřejná data mezi účty bez autorizace.
+Uživatel výslovně potvrdí model/generaci/karoserii; automatická přesnost není garantovaná. Změna identity auta zneplatní foto a staré potvrzení. Bez použitelných návrhů zůstává ikona. Veřejný metadata endpoint byl skutečně sondován; celý autorizovaný aplikační průchod kvůli chybějícímu RSV klíči a kontaktní konfiguraci ověřený není. E2E fotografie jsou vlastní syntetické obrázky, nikoli důkaz živého vyhledání.
 
-Před realizací znovu ověřit poslední oficiální dokument, registraci, oprávnění použití a uchování dat, dostupné identifikátory, provozní limit a chybové stavy. S vlastním autorizovaným klíčem ověřit odpověď nalezeno/nenalezeno, chybějící pole, nejasné spotřeby, timeout a překročení limitu. Konkrétní SLA a dostupnost vyhledání podle SPZ v průzkumu prokázány nebyly.
+## Lokální OCR
 
-## 3. Lokální OCR účtenek
+[Tesseract 5.5.4](https://github.com/tesseract-ocr/tesseract/releases/tag/5.5.4), [ces/eng tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast), PSM 6 a OEM 1. `infra/ocr/dependencies.lock.json` zamyká tarball a modely SHA-256, modelový commit i Debian snapshot 20261103T000000Z. Docker sestavuje engine v odděleném stage, runtime dostává jen potřebné knihovny/modely. Přesná verze a modelové hashe se kontrolují před spuštěním. Nativně lze použít Tesseract 5.5.4 a `python3 infra/ocr/install_models.py`; binární cestu případně nastavte `OCR_BINARY`.
 
-Preferovaný směr je lokální engine za rozhraním `ReceiptRecognizer`; konkrétní engine a jeho verzi vybrat až po porovnání přesnosti na syntetických nebo uživatelem výslovně poskytnutých českých účtenkách. Nezavádět předem cloudové odesílání ani další trvale běžící službu.
+Jen již uložená autorizovaná JPEG/PNG účtenka; bez cloudu. Rozpoznání vrací raw text a návrhy data/litrů/ceny/částky/km/stanice s jistotou enginu, nikoli zárukou správnosti. Nejednoznačné hodnoty se vynechají; záměna l/I/1 má sníženou jistotu. Výsledek obsahuje hash/verzi původní přílohy. Výběr jednotlivých polí a následné standardní uložení vynucují Decimal, varování a ETag; starý výsledek se odmítne.
 
-Tok: autorizovaná existující příloha → validace a bezpečný pracovní náhled → izolované OCR s časovým/paměťovým limitem → návrhy polí a jejich jistota → kontrola uživatelem → běžná validovaná změna tankování. Originál zůstane zachován. OCR nesmí obcházet práva, Decimal validaci, povinné údaje ani CSRF.
-
-Budoucí `ReceiptExtraction`: vazba na konkrétní verzi/hash přílohy, engine/verze, stav, raw text, strukturované návrhy, jistoty a čas. Po výměně účtenky starý návrh označit jako neaktuální. Uživatel vybírá jednotlivé návrhy, nejisté hodnoty jsou zřetelně označené. Rozpoznané datum mimo povolený rozsah, chybný součet nebo palivo vyvolá stejná pravidla jako ruční zadání.
-
-UI v MVP zachová samostatnou oblast účtenky a editovatelná pole, ale nebude zobrazovat nefunkční tlačítko „Rozpoznat“. Pokud se později prokáže potřeba delšího zpracování, zavést samostatnou komponentu/frontu s konkrétním zdůvodněním. Offline rozpracované tankování a synchronizace jsou nezávislé rozšíření, nikoli automatický důsledek OCR nebo PWA.
-
-## 4. Ilustrační fotografie po VIN – požadavek uživatele během fáze 2
-
-Po úspěšném dohledání VIN ve fázi 8 navrhnout fotografii podle potvrzené značky, modelu, generace/roku a případně karoserie. Jde o **ilustrační fotografii modelu**, nikoli snímek konkrétního auta nebo záruku shody výbavy/barvy. Uživatel náhled potvrdí; bez spolehlivé shody nebo dostupného oprávnění zůstane obecná ikona. Selhání zdroje neblokuje uložení vozidla.
-
-Kandidátem je Wikimedia Commons; jednotlivé soubory mají vlastní licenci a podmínky uvedení autora. Veřejná dostupnost obrázku sama nestačí. Ověření zdroje: [Wikimedia – opětovné použití obsahu](https://www.mediawiki.org/wiki/Wikimedia_APIs/Content_reuse), [Commons – podmínky použití](https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia), [API metadata autora/licence](https://commons.wikimedia.org/wiki/Commons:Credit_line/en). Konkrétní zdroj a aktuální API/podmínky znovu ověřit při implementaci.
-
-Vybraný validovaný obrázek i náhled uložit binárně do PostgreSQL spolu se zdrojovou stránkou, autorem, licencí/URL, požadovanou atribucí, datem získání a kritérii shody. Karta i detail zobrazí označení „Ilustrační fotografie“, atribuci a odkaz na zdroj/licenci. Obrázek nesmí záviset na cookies ani hotlinku. Externí požadavek používá pouze potvrzená obecná metadata modelu; VIN ani soukromé údaje se fotografickému zdroji neposílají. Backend používá pevně povolené zdroje, limity velikosti/rozměrů, validaci skutečného obrázku a ochranu před SSRF/redirecty. Fotografie vozidla dědí jeho přístupová práva. Ověřit správnou/nejasnou shodu, chybu/limit API, licenci bez dostatečných metadat, odebrání přístupu a trvalost po novém přihlášení. Fáze 2 tuto integraci ani stahování obrázků neprovádí.
+15 s wall time, CPU 10 s, na macOS RSS dohled 512 MiB na macOS, Linux AS 1 GiB, výstup max. 2 MiB a nejvýše dva souběžné sloty; žádné automatické retry. Soukromý pomocný PNG se uklidí. Linux resource limity/image čekají na běhové ověření, macOS engine byl skutečně spuštěn. Srovnání PSM 6/11 na vlastní syntetické české účtence rozpoznalo u obou 6/6 očekávaných polí; není to měření přesnosti na reálných účtenkách. Při selhání zůstává ruční editace/originál.

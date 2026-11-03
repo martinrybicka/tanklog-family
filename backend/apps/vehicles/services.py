@@ -47,7 +47,11 @@ def lock_vehicle(request, vehicle_id, manage=True):
     get_object_or_404(Vehicle.objects.select_for_update(), pk=vehicle_id)
     vehicle = vehicle_for(request.user, vehicle_id)
     if manage and request.user.system_role != "ADMIN" and vehicle.owner_id != request.user.pk:
-        raise Problem("permission_denied", "Údaje vozidla mění pouze vlastník nebo administrátor.", 403)
+        raise Problem(
+            "permission_denied",
+            "Údaje vozidla mění pouze vlastník nebo administrátor.",
+            403,
+        )
     return vehicle
 
 
@@ -68,7 +72,13 @@ def save_vehicle(vehicle):
 
 
 def audit(request, action, obj, changes=None):
-    record(request, action, obj, changes, vehicle_id=obj.pk if isinstance(obj, Vehicle) else obj.vehicle_id)
+    record(
+        request,
+        action,
+        obj,
+        changes,
+        vehicle_id=obj.pk if isinstance(obj, Vehicle) else obj.vehicle_id,
+    )
 
 
 def bump(vehicle):
@@ -79,8 +89,16 @@ def bump(vehicle):
 @transaction.atomic
 def create_vehicle(request, data):
     lock_users(request)
+    data = dict(data)
+    lookup_id = data.pop("lookup_id", None)
+    lookup_fields = data.pop("lookup_fields", [])
+    normalize_energy(data)
     vehicle = Vehicle(owner=request.user, **data)
     save_vehicle(vehicle)
+    if lookup_id:
+        from apps.extensions.integrations import confirm_lookup
+
+        confirm_lookup(request, vehicle, lookup_id, lookup_fields)
     audit(request, "vehicle.created", vehicle)
     return vehicle_for(request.user, vehicle.pk)
 
@@ -90,6 +108,10 @@ def update_vehicle(request, vehicle_id, data):
     lock_users(request)
     vehicle = lock_vehicle(request, vehicle_id)
     require_version(request, vehicle)
+    data = dict(data)
+    lookup_id = data.pop("lookup_id", None)
+    lookup_fields = data.pop("lookup_fields", [])
+    normalize_energy(data, vehicle)
     changes = {}
     for key, value in data.items():
         old = getattr(vehicle, key)
@@ -101,11 +123,38 @@ def update_vehicle(request, vehicle_id, data):
             setattr(vehicle, key, value)
     if changes:
         vehicle.version += 1
-        if set(changes) & {"initial_odometer_km", "fuel_type", "tank_capacity_l", "consumption_mode"}:
+        if set(changes) & {
+            "initial_odometer_km",
+            "fuel_type",
+            "tank_capacity_l",
+            "consumption_mode",
+        }:
             vehicle.history_revision += 1
         save_vehicle(vehicle)
         audit(request, "vehicle.updated", vehicle, changes)
+    if lookup_id:
+        from apps.extensions.integrations import confirm_lookup
+
+        confirm_lookup(request, vehicle, lookup_id, lookup_fields)
     return vehicle_for(request.user, vehicle.pk)
+
+
+def normalize_energy(data, vehicle=None):
+    fuel = data.get("fuel_type", vehicle.fuel_type if vehicle else "PETROL")
+    if fuel in ["CNG", "ELECTRIC"]:
+        data.update(
+            consumption_mode="UNSUPPORTED_UNIT",
+            standard_consumption_l_100km=None,
+            standard_methodology="UNKNOWN",
+            standard_source="",
+            standard_source_note="",
+        )
+    elif (
+        vehicle
+        and vehicle.consumption_mode == "UNSUPPORTED_UNIT"
+        and data.get("consumption_mode", "UNSUPPORTED_UNIT") == "UNSUPPORTED_UNIT"
+    ):
+        data["consumption_mode"] = "SINGLE_TANK"
 
 
 @transaction.atomic
@@ -128,12 +177,21 @@ def create_access(request, vehicle_id, data):
     actor, user = lock_users(request, data["user_id"], admin=True)
     vehicle = lock_vehicle(request, vehicle_id)
     if vehicle.owner_id == user.pk:
-        raise Problem("owner_grant", "Vlastník má přístup automaticky; grant mu nelze přidělit.", 409)
+        raise Problem(
+            "owner_grant",
+            "Vlastník má přístup automaticky; grant mu nelze přidělit.",
+            409,
+        )
     if VehicleAccess.objects.filter(vehicle=vehicle, user=user).exists():
         raise Problem("duplicate_access", "Tento účet již má k vozidlu přístup.", 409)
     grant = VehicleAccess.objects.create(vehicle=vehicle, user=user, role=data["role"], granted_by=actor)
     bump(vehicle)
-    audit(request, "vehicle.access_created", grant, {"user_id": str(user.pk), "role": grant.role})
+    audit(
+        request,
+        "vehicle.access_created",
+        grant,
+        {"user_id": str(user.pk), "role": grant.role},
+    )
     return grant
 
 
@@ -146,14 +204,24 @@ def change_access(request, access_id, data=None):
     grant = get_object_or_404(VehicleAccess.objects.select_related("user"), pk=access_id)
     require_version(request, grant)
     if data is None:
-        audit(request, "vehicle.access_removed", grant, {"user_id": str(grant.user_id), "role": grant.role})
+        audit(
+            request,
+            "vehicle.access_removed",
+            grant,
+            {"user_id": str(grant.user_id), "role": grant.role},
+        )
         grant.delete()
     elif grant.role != data["role"]:
         previous = grant.role
         grant.role = data["role"]
         grant.version += 1
         grant.save()
-        audit(request, "vehicle.access_updated", grant, {"role": {"from": previous, "to": grant.role}})
+        audit(
+            request,
+            "vehicle.access_updated",
+            grant,
+            {"role": {"from": previous, "to": grant.role}},
+        )
     bump(vehicle)
     return grant
 
@@ -183,6 +251,10 @@ def _transfer_locked(request, vehicle_id, data):
         request,
         "vehicle.owner_transferred",
         vehicle,
-        {"from_owner_id": str(previous_id), "to_owner_id": str(new_owner.pk), "previous_owner_role": role},
+        {
+            "from_owner_id": str(previous_id),
+            "to_owner_id": str(new_owner.pk),
+            "previous_owner_role": role,
+        },
     )
     return vehicle_for(actor, vehicle.pk)

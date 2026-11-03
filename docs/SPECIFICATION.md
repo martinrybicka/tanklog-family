@@ -1,6 +1,6 @@
 # Funkční specifikace
 
-Stav: aplikační specifikace fází 1–5 a provozní doplňky fází 6–7, aktualizováno 3. 11. 2026. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 doplňuje responzivitu, přístupnost, PWA shell a bezpečnostní ověření; fáze 6 má od 3. 11. 2026 připravenou lokální část CI podle [CI.md](CI.md). GitHub/push/skutečný CI běh jsou podle zákazu uživatele neprovedené, fáze 7 má připravenou pouze lokální provozní část podle OPERATIONS.md; skutečné nasazení je zakázané a fáze 8 zůstává plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
+Stav: aplikační specifikace fází 1–5 a provozní doplňky fází 6–7, aktualizováno 3. 11. 2026. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 doplňuje responzivitu, přístupnost, PWA shell a bezpečnostní ověření; fáze 6 má od 3. 11. 2026 připravenou lokální část CI podle [CI.md](CI.md). GitHub/push/skutečný CI běh jsou podle zákazu uživatele neprovedené, fáze 7 má připravenou pouze lokální provozní část podle OPERATIONS.md; skutečné nasazení je zakázané. Fáze 8 je následně výslovně schválená a implementovaná podle PHASE_8_SPECIFICATION.md, s výsledky a omezeními v PHASE_8.md. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
 
 ## 1. Cíl a hranice první verze
 
@@ -31,7 +31,7 @@ Normovaná spotřeba může chybět; nula ji nenahrazuje. Metodika: WLTP, NEDC, 
 
 Uživatel spravuje vlastní auta. Archivace zachová historii a čtení; zablokuje nové tankování, ale OWNER/ADMIN mohou opravovat historické záznamy. CONTRIBUTOR nemůže archivovaná data měnit. Obnovení auta provádí OWNER/ADMIN. Trvalé mazání auta s historií nebude v MVP veřejnou funkcí.
 
-VIN se při vyplnění normalizuje na velká písmena; běžný formát 17 znaků bez I/O/Q. Historická nestandardní identifikace se zaznamená do poznámky, ne falešným VIN. Jedinečnost vyplněného VIN brání duplicitě stejného auta; případný konflikt vrátí obecné upozornění bez prozrazení jiného vlastníka. RZ není globálně jedinečná, může se měnit. Loga jen s doloženým oprávněním, výchozí zobrazení používá Lucide ikonu a typografii. Dodatek uživatele během fáze 2: při budoucím dohledání VIN (fáze 8) nabídnout ilustrační fotografii modelu z veřejného zdroje s ověřenou licencí, atribucí a označením ilustračního charakteru; obrázek, náhled i původ uložit do PostgreSQL. Přesný návrh je v INTEGRATIONS.md; ve fázi 2 zůstává ruční VIN bez integrace.
+VIN se při vyplnění normalizuje na velká písmena; běžný formát 17 znaků bez I/O/Q. Historická nestandardní identifikace se zaznamená do poznámky, ne falešným VIN. Jedinečnost vyplněného VIN brání duplicitě stejného auta; případný konflikt vrátí obecné upozornění bez prozrazení jiného vlastníka. RZ není globálně jedinečná, může se měnit. Loga jen s doloženým oprávněním, výchozí zobrazení používá Lucide ikonu a typografii. Dodatek uživatele během fáze 2, implementovaný ve fázi 8: po potvrzeném dohledání VIN nabídnout ilustrační fotografii modelu z veřejného zdroje s ověřenou licencí, atribucí a označením ilustračního charakteru; obrázek, náhled i původ uložit do PostgreSQL. Aktuální implementace a omezení jsou v INTEGRATIONS.md; historická fáze 2 obsahovala pouze ruční VIN.
 
 ## 4. Tankování a validace
 
@@ -114,3 +114,9 @@ Příprava CI nemění aplikační funkce, API, datový model ani migrace. Verze
 ## Provozní doplněk fáze 7
 
 API, datový model a verze kontraktu v0.5.0 se nemění. Záloha musí zahrnout celou transakčně konzistentní DB včetně originálů/náhledů účtenek a práv. Implementované nástroje šifrují custom dump s manifestem, ověřují kontrolní součty a odmítají obnovu přes existující DB. Nová produkční inicializace odděluje bootstrap a aplikační DB roli. Příprava scheduleru není spuštěná automatická off-host záloha; nativní obnova není Docker/provozní akceptace. Aktuální výsledky jsou v PHASE_7.md, vzdálené kroky jsou podmíněné konkrétním budoucím povolením.
+
+## Rozšíření implementovaná ve fázi 8
+
+Pozdější výslovný pokyn uživatele povolil všechna rozšíření a návrh jejich detailů. [PHASE_8_SPECIFICATION.md](PHASE_8_SPECIFICATION.md) zpřesňuje původní budoucí návrhy tohoto dokumentu; výsledky ověření jsou v [PHASE_8.md](PHASE_8.md). Primární CNG/ELECTRIC jsou nyní povolené, ale nemají litrovou normu ani plná–plná. Nákupy energie se evidují samostatnými událostmi v kg/kWh; existující kapalná historie se nepřepisuje. Servis, STK, pojištění a připomínky sdílejí historii auta a práva, nejsou nákupy paliva.
+
+VIN/OCR/import nikdy tiše nepřepíší evidenci: návrh, konkrétní výběr/potvrzení a standardní serverové uložení jsou oddělené kroky. Uložené návrhy a přílohy jsou v PostgreSQL. Offline zápis je výslovně neuložená práce v paměti aktuálního okna, nikoli garantované uchování na zařízení. Připomínky jsou pouze uvnitř aplikace; žádné e-maily/push/SMS. CSV má publikovanou pevnou šablonu, nevzniká obecný XLSX/PDF import. Servisní PDF a offline přílohy nejsou v tomto rozsahu.

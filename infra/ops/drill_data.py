@@ -83,6 +83,75 @@ def seed():
             original_filename="synteticka.png",
             uploaded_by=owner,
         )
+    from apps.extensions.integrations import photo_match
+    from apps.extensions.models import (
+        ImportBatch,
+        ReceiptExtraction,
+        VehicleDataSnapshot,
+        VehicleEvent,
+        VehicleImage,
+    )
+
+    VehicleEvent.objects.create(
+        vehicle=car,
+        author=owner,
+        kind="SERVICE",
+        title="Obnova servisu",
+        date=date(2026, 2, 1),
+        amount="1234.56",
+        due_date=date(2027, 2, 1),
+    )
+    VehicleEvent.objects.create(
+        vehicle=car,
+        author=owner,
+        kind="ENERGY",
+        title="Doplňkové nabíjení",
+        date=date(2026, 2, 1),
+        amount="100.10",
+        quantity="12.345",
+        unit="kWh",
+    )
+    receipt = ReceiptAttachment.objects.first()
+    VehicleImage.objects.create(
+        vehicle=car,
+        applicant=owner,
+        status="ACTIVE",
+        original=bytes(receipt.original_bytes),
+        preview=bytes(receipt.preview_bytes),
+        content_type=receipt.content_type,
+        metadata={
+            "author": "Syntetický test",
+            "license": "CC0 1.0",
+            "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "source": "https://commons.wikimedia.org/wiki/File:Synthetic.jpg",
+            "modified": "Test obnovy",
+        },
+        match=photo_match(car),
+    )
+    ReceiptExtraction.objects.create(
+        refueling=receipt.refueling,
+        applicant=owner,
+        receipt_hash=receipt.sha256,
+        receipt_version=receipt.version,
+        engine="syntetický test obnovy",
+        raw_text="Syntetický text",
+        suggestions={},
+    )
+    VehicleDataSnapshot.objects.create(
+        applicant=owner,
+        vin="TST12345678901234",
+        raw={"Status": 1, "Data": {"VIN": "TST12345678901234"}},
+        suggestions={},
+    )
+    ImportBatch.objects.create(
+        user=owner,
+        vehicle=car,
+        kind="EVENT",
+        raw="kind;title;date\nSERVICE;Test;2026-01-01",
+        rows=[],
+        vehicle_version=car.version,
+        history_revision=car.history_revision,
+    )
     print("Syntetická data: 3 účty, sdílení, 3 tankování a 3 účtenky s náhledy.")
 
 
@@ -137,6 +206,23 @@ def verify():
     assert data["consumption_l_100km"] == "7.500000"
     assert data["purchases"]["amount"] == "1800.00"
     assert data["purchases"]["liters"] == "45.000"
+    energy = owner.get(f"/api/v1/vehicles/{car}/energy-totals/", secure=True).json()
+    assert energy == {"kWh": {"quantity": "12.345", "amount": "100.10"}}
+    assert (
+        owner.get(f"/api/v1/vehicles/{car}/events/", secure=True).json()["count"] == 2
+    )
+    assert (
+        owner.get(f"/api/v1/vehicles/{car}/imports/", secure=True).json()["count"] == 1
+    )
+    assert owner.get("/api/v1/vehicle-lookups/", secure=True).json()["count"] == 1
+    assert (
+        owner.get(
+            f"/api/v1/refuelings/{receipt.refueling_id}/recognize/", secure=True
+        ).json()["raw_text"]
+        == "Syntetický text"
+    )
+    photo = owner.get(f"/api/v1/vehicles/{car}/", secure=True).json()["photo"]
+    assert photo and owner.get(photo["url"], secure=True).status_code == 200
     print(
         "Obnovené API: skutečný login/CSRF/Secure session, originál+náhled, VIEWER a odmítnutí cizího účtu; 45 l / 1800 Kč / 7,50 l/100 km."
     )

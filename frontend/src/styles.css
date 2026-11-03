@@ -1994,3 +1994,56 @@ summary {
     display: block;
   }
 }
+
+.extension-block {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.extension-suggestions {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+.extension-suggestions label {
+  display: block;
+}
+.extension-suggestions small,
+.vehicle-photo small {
+  display: block;
+}
+.vehicle-photo {
+  margin: 1rem 0;
+  max-width: 100%;
+}
+.vehicle-photo img {
+  display: block;
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+.vehicle-photo figcaption {
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.ocr-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  max-height: 28rem;
+  overflow: auto;
+}
+
+.vehicle-photo figcaption a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.main-content p a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}

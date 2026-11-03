@@ -24,6 +24,8 @@ services:
       dockerfile: infra/backend.Dockerfile
       target: production
     environment:
+      RSV_API_KEY: ${RSV_API_KEY:-}
+      COMMONS_USER_AGENT: ${COMMONS_USER_AGENT:-}
       DJANGO_SETTINGS_MODULE: config.settings.production
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Vygenerujte .env pomoci python3 infra/setup_env.py}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
@@ -33,6 +35,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Vyplnte POSTGRES_PASSWORD}
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,mode=1777,size=${BACKEND_TMPFS_SIZE:-268435456}
     networks: [application, database]
     depends_on:
       db:

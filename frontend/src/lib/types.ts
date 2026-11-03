@@ -39,6 +39,7 @@ export interface AuditEvent {
 }
 
 export interface Vehicle {
+  photo?: import("../features/extensions/VehicleIntegrations").Photo | null;
   id: string;
   owner_id: string;
   name: string;

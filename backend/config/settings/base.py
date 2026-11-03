@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "apps.audit",
     "apps.vehicles",
     "apps.refuelings",
+    "apps.extensions",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -58,7 +59,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 12}},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 12},
+    },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -95,10 +99,36 @@ REST_FRAMEWORK = {
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "TankLog API",
-    "DESCRIPTION": "Fáze 5 – účty, vozidla, tankování, účtenky a analytika",
+    "DESCRIPTION": "Fáze 8 – účty, vozidla, tankování, analytika, servis a integrace",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "ENUM_NAME_OVERRIDES": {"VehicleAccessRoleEnum": [("VIEWER", "Čtenář"), ("CONTRIBUTOR", "Přispěvatel")]},
+    "ENUM_NAME_OVERRIDES": {
+        "VehicleAccessRoleEnum": [("VIEWER", "Čtenář"), ("CONTRIBUTOR", "Přispěvatel")],
+        "VehicleFuelTypeEnum": [
+            ("CNG", "CNG (kg)"),
+            ("ELECTRIC", "Elektřina (kWh)"),
+            ("PETROL", "Benzín"),
+            ("DIESEL", "Nafta"),
+            ("LPG", "LPG"),
+            ("ETHANOL", "Ethanol"),
+            ("OTHER_LIQUID", "Jiné kapalné palivo"),
+        ],
+        "LiquidFuelTypeEnum": [
+            ("PETROL", "Benzín"),
+            ("DIESEL", "Nafta"),
+            ("LPG", "LPG"),
+            ("ETHANOL", "Ethanol"),
+            ("OTHER_LIQUID", "Jiné kapalné palivo"),
+        ],
+        "VehicleEventKindEnum": [
+            "SERVICE",
+            "INSPECTION",
+            "INSURANCE",
+            "REMINDER",
+            "ENERGY",
+        ],
+        "ImportKindEnum": ["FUEL", "EVENT"],
+    },
 }
 AXES_HANDLER = "axes.handlers.database.AxesDatabaseHandler"
 AXES_FAILURE_LIMIT = 5
@@ -117,3 +147,9 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "WARNING"},
     "loggers": {"axes": {"handlers": ["console"], "level": "ERROR", "propagate": False}},
 }
+
+RSV_API_KEY = os.environ.get("RSV_API_KEY", "")
+COMMONS_USER_AGENT = os.environ.get("COMMONS_USER_AGENT", "")
+OCR_BINARY = os.environ.get("OCR_BINARY", "tesseract")
+OCR_DATA = os.environ.get("OCR_DATA", str(BASE_DIR.parent / ".tools/ocr/tessdata"))
+OCR_LOCK_FILE = os.environ.get("OCR_LOCK_FILE", str(BASE_DIR.parent / "infra/ocr/dependencies.lock.json"))

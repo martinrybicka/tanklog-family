@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Button, ErrorMessage, Field, Input, Modal } from "../../components/ui";
 import { api, ApiError, errorText } from "../../lib/api";
 import type { Refueling, Vehicle } from "../../lib/types";
+import { OcrPanel } from "../extensions/OcrPanel";
 import { fuels } from "../vehicles/VehicleForm";
 import { stations, suggestedTotal } from "./money";
 
@@ -61,14 +62,17 @@ export function RefuelingForm({
   initialVehicleId,
   onSave,
   onReload,
+  onQueue,
 }: {
   item?: Refueling;
   vehicles: Vehicle[];
   initialVehicleId?: string;
   onSave: (body: Record<string, unknown>, key: string) => Promise<void>;
   onReload?: () => void;
+  onQueue?: (body: Record<string, unknown>, key: string) => void;
 }) {
   const key = useRef(crypto.randomUUID());
+  const [extractionId, setExtractionId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [warnings, setWarnings] = useState<{ code: string; message: string }[]>(
     [],
@@ -136,7 +140,10 @@ export function RefuelingForm({
     setError("");
     setBusy(true);
     try {
-      await onSave(body, key.current);
+      await onSave(
+        { ...body, ...(extractionId ? { extraction_id: extractionId } : {}) },
+        key.current,
+      );
       setWarnings([]);
     } catch (e) {
       if (e instanceof ApiError && e.code === "confirmation_required") {
@@ -172,33 +179,50 @@ export function RefuelingForm({
       />
     </Field>
   );
+  const asBody = (values: Values): Record<string, unknown> => {
+    const body: Record<string, unknown> = {
+      ...values,
+      liters: values.liters.replace(",", "."),
+      unit_price_entered: values.unit_price_entered
+        ? values.unit_price_entered.replace(",", ".")
+        : null,
+      odometer_km:
+        values.odometer_km !== "" ? Number(values.odometer_km) : null,
+      paid_by_user_id: values.paid_by_user_id || null,
+    };
+    if (item) delete body.vehicle_id;
+    if (values.total_amount !== "")
+      body.total_amount = values.total_amount.replace(",", ".");
+    else delete body.total_amount;
+    if (values.day_sequence) body.day_sequence = Number(values.day_sequence);
+    else delete body.day_sequence;
+
+    return body;
+  };
   return (
     <form
       noValidate
       onSubmit={handleSubmit(
         async (values) => {
-          const body: Record<string, unknown> = {
-            ...values,
-            liters: values.liters.replace(",", "."),
-            unit_price_entered: values.unit_price_entered
-              ? values.unit_price_entered.replace(",", ".")
-              : null,
-            odometer_km:
-              values.odometer_km !== "" ? Number(values.odometer_km) : null,
-            paid_by_user_id: values.paid_by_user_id || null,
-          };
-          if (item) delete body.vehicle_id;
-          if (values.total_amount !== "")
-            body.total_amount = values.total_amount.replace(",", ".");
-          else delete body.total_amount;
-          if (values.day_sequence)
-            body.day_sequence = Number(values.day_sequence);
-          else delete body.day_sequence;
-          await send(body);
+          await send(asBody(values));
         },
         () => setExtraOpen(true),
       )}
     >
+      {item?.receipt && (
+        <OcrPanel
+          itemId={item.id}
+          onApply={(values, id) => {
+            for (const [name, value] of Object.entries(values)) {
+              if (name in defaults)
+                setValue(name as keyof Values, String(value) as never, {
+                  shouldValidate: true,
+                });
+            }
+            setExtractionId(id);
+          }}
+        />
+      )}
       <div className="vehicle-form-grid">
         <Field
           id="vehicle_id"
@@ -283,11 +307,13 @@ export function RefuelingForm({
         <div className="vehicle-form-grid">
           <Field id="fuel_type" label="Skutečné palivo">
             <select id="fuel_type" className="input" {...register("fuel_type")}>
-              {Object.entries(fuels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
+              {Object.entries(fuels)
+                .filter(([value]) => !["CNG", "ELECTRIC"].includes(value))
+                .map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
             </select>
           </Field>
           <Field id="station_code" label="Čerpací stanice">
@@ -348,6 +374,26 @@ export function RefuelingForm({
       <ErrorMessage>{error}</ErrorMessage>
       <ErrorMessage>{payer.error && errorText(payer.error)}</ErrorMessage>
       <div className="vehicle-actions">
+        {!item && onQueue && (
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={busy}
+            onClick={handleSubmit(
+              (values) => {
+                try {
+                  onQueue(asBody(values), key.current);
+                } catch (error) {
+                  setError(errorText(error));
+                }
+              },
+              () => setExtraOpen(true),
+            )}
+          >
+            Zařadit do dočasné offline fronty
+          </Button>
+        )}
+
         <Button type="submit" disabled={busy || isSubmitting}>
           {busy ? "Ukládání…" : item ? "Uložit změny" : "Uložit tankování"}
         </Button>

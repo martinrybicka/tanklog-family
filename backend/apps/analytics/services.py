@@ -185,7 +185,11 @@ def dashboard(request, params, vehicle_id=None):
             if not selected and value.status == "INVALID_DATA":
                 causes.update(value.reasons)
             if state == "UNSUPPORTED":
-                causes.add("UNSUPPORTED_MULTI_TANK")
+                causes.add(
+                    "UNSUPPORTED_UNIT"
+                    if value.context.fuel_type in ["CNG", "ELECTRIC"]
+                    else "UNSUPPORTED_MULTI_TANK"
+                )
             if not selected:
                 causes.add("NO_CLOSED_INTERVAL" if value.intervals else "MISSING_ANCHOR")
             if value.open_records and value.open_records[-1].date <= period.end:
@@ -277,7 +281,11 @@ def dashboard(request, params, vehicle_id=None):
                 "consumption": [interval_data(i, period) for i in candidates],
             },
             "recent_refuelings": [
-                {"vehicle_id": vid, "vehicle_name": vehicles[vid].name, **record_data(row)}
+                {
+                    "vehicle_id": vid,
+                    "vehicle_name": vehicles[vid].name,
+                    **record_data(row),
+                }
                 for vid, row in recent
             ],
         }
@@ -300,7 +308,9 @@ def intervals(request, params, vehicle_id, detail=False):
             )
             if match is None:
                 raise Problem(
-                    "not_found", "Tento interval není v aktuální historii nebo období dostupný.", 404
+                    "not_found",
+                    "Tento interval není v aktuální historii nebo období dostupný.",
+                    404,
                 )
             return {
                 **interval_data(match, period),

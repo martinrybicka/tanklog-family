@@ -71,3 +71,17 @@ Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci f
 5. **Správa účtů a dat:** reset přes jednorázové heslo bez e-mailové služby; archivace místo trvalého mazání aut; originály účtenek zůstávají soukromé včetně metadat (ADR-016–018).
 
 Fáze 1 byla poté výslovně zahájena uživatelem. Další fáze se nezahajují automaticky; připomínky lze uvést podle ADR ID. Přesná verze knihovny nebo rozteč komponenty nejsou samostatným schvalovacím bodem; řeší se v rámci schváleného rozsahu.
+
+## Rozhodnutí fáze 8 (3. 11. 2026)
+
+| ID | Rozhodnutí | Důsledek |
+| --- | --- | --- |
+| ADR-052 | Pozdější výslovný pokyn povoluje všechna rozšíření a návrh specifikace | PHASE_8_SPECIFICATION je konkrétní rozsah; stále žádný GitHub/produkce ani další etapa. Nahrazuje dřívější omezení zahájení fáze 8. |
+| ADR-053 | Nová evidence zůstává v modulárním monolitu a PostgreSQL | Společná práva/backup, žádná druhá kopie sdíleného auta ani nová cloudová služba. |
+| ADR-054 | VIN/foto mají explicitní potvrzení identity a přijatých polí | Raw/provenance v DB, žádné tiché přepsání. Fotografie s licencí a atribucí je ilustrační, změna modelu ji zneplatní. |
+| ADR-055 | OCR lokální, pevně zamčený engine/modely a omezený podproces | Žádný cloud ani nové Python/npm závislosti; původní účtenka nezměněná, stale hash/verze zablokuje použití. |
+| ADR-056 | Servis/STK/pojištění jako události a připomínky pouze v aplikaci | Bez SMTP/push/scheduleru a právního výkladu platnosti. CONTRIBUTOR vlastní zápisy, mazání OWNER/ADMIN. |
+| ADR-057 | kg/kWh samostatně od litrů a spotřeby | Decimal množství/náklady, bez neověřených převodů a bez změny metodiky kapalných paliv. |
+| ADR-058 | CSV náhled v DB a atomické potvrzení přes existující služby | Pevné šablony, revize historie, 24 h, idempotentní dávka a žádný částečný import. |
+| ADR-059 | Offline pouze výslovná neuložená fronta v paměti okna | Respektuje zákaz persistentních dat v prohlížeči; reload ji zruší, UI varuje. Účet/práva/varování se znovu ověří při ruční synchronizaci. |
+| ADR-060 | OCR build používá zamčené hashe a zmrazený Debian snapshot | Nové runtime knihovny jsou reprodukovatelné; skutečný Linux build nelze prohlásit za ověřený bez Docker daemonu. |

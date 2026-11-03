@@ -4,6 +4,8 @@
 
 ## Aktuální stav
 
+**Fáze 8 – implementována všechna uživatelem schválená rozšíření (3. 11. 2026).** VIN návrhy s potvrzením polí, soukromé ilustrační fotografie s licencí, lokální OCR, servis/STK/pojištění, připomínky v aplikaci, energie kg/kWh, potvrzovaný CSV import a dočasná offline fronta. [Specifikace](docs/PHASE_8_SPECIFICATION.md), [předání, testy a ruční ověření](docs/PHASE_8.md). Živé VIN vyžaduje vlastní klíč RSV; hledání fotografií kontaktní User-Agent. Docker runtime a úplný živý VIN/foto průchod zde nejsou ověřené.
+
 **Připravena lokální část fáze 7 – produkční konfigurace, šifrované zálohy a izolovaná obnova (3. 11. 2026).** Záloha celé DB včetně účtenek do age, kontrolované nové cíle, oddělené DB role a šablona automatizace. Skutečné nativní cvičení ověřilo obnovu všech 19 tabulek do nového fyzického clusteru, přihlášení, přístupy a součty. Docker runtime, veřejný certifikát/NPM a automatická off-host záloha nejsou ověřené. Nic nebylo odesláno na server/GitHub a celá produkční akceptace fáze 7 není splněná. [Výsledky a příkazy](docs/PHASE_7.md), [provozní postup](docs/OPERATIONS.md).
 
 **Připravena lokální část fáze 6 – CI a audit repozitáře (3. 11. 2026).** Čtyři kontrolní úlohy pro historii/bezpečnost, backend s PostgreSQL, frontend a izolovaný Docker/E2E. Instalace z locků a testy byly ověřené v čistém exportu na tomto Macu. GitHub repozitář, push ani skutečný CI běh nebyly podle výslovného zákazu provedené. Celá fáze 6 proto ještě nesplňuje vzdálená akceptační kritéria. Přesné výsledky: [PHASE_6.md](docs/PHASE_6.md), opakování kontrol: [CI.md](docs/CI.md).
@@ -12,7 +14,7 @@
 
 Podle doplňujícího požadavku jsou **všechna uložená aplikační data v PostgreSQL**. Cookie pouze identifikuje přihlášení; smazání cookies vás odhlásí, ale po přihlášení zůstane profil i nastavení stejné na všech zařízeních. Osobní data ani motiv nejsou v localStorage/IndexedDB. Originály i očištěné náhledy účtenek jsou v DB jako binární obsah. Citlivá konfigurace je v proměnných prostředí. Vzhled je neutrální modrý/šedý/bílý.
 
-OCR se zatím neimplementuje. VIN lze zadat ručně; automatické dohledání a požadované ilustrační fotografie modelu patří do fáze 8 podle [návrhu integrací](docs/INTEGRATIONS.md). Fáze 6 ani další nezačínají bez samostatného pokynu.
+Ve fázi 8 přibyly potvrzované [integrace VIN/foto a lokální OCR](docs/INTEGRATIONS.md). Ruční vyplnění funguje i bez nich. Offline fronta je výslovně neuložená práce pouze v paměti okna; reload ji zruší. Všechny potvrzené záznamy, návrhy integrací/importu a binární přílohy jsou v PostgreSQL. Další vývoj vyžaduje samostatný pokyn.
 
 **Ověření fáze 5:** 192 backendových, 28 frontendových testů a 22 regresních E2E prošlo; dalších 6 E2E ověřilo skutečný lokální produkční build přes HTTPS nginx/Gunicorn (cookies, fallback, chyby, PWA, výpadek a retry). Prošly lint/typecheck/build, OpenAPI a konfigurace Compose. **Docker start/build/restart zůstává neověřený**, daemon chybí. Automatická přístupnost a ruční klávesnice prošly; skutečný zoom 200 %, poslech VoiceOver a reprezentativní měření člověkem nejsou ověřené. Přesné výsledky, příkazy a limity jsou v [předání fáze 5](docs/PHASE_5.md).
 

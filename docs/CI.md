@@ -9,7 +9,7 @@ Stav 3. 11. 2026: workflow je připravený a lokálně kontrolovaný. Nic nebylo
 | repository | Celá historie, zakázané datové cesty/ignore, Gitleaks, actionlint, politika oprávnění a její regrese |
 | backend | PostgreSQL 18.6, frozen uv lock, Ruff, pytest, migrace, Django check, shoda OpenAPI, check --deploy |
 | frontend | npm ci, Oxlint, Vitest, TypeScript/Vite/PWA build, Prettier |
-| containers | Dev/prod/CI Compose config, produkční Docker build, migrace a 22 HTTP E2E scénářů ve vlastním projektu |
+| containers | Dev/prod/CI Compose config, produkční Docker build, migrace a 24 HTTP E2E scénářů ve vlastním projektu |
 
 Backend/frontend následují po auditu, kontejnery až po obou. Workflow reaguje na PR, push do main a ruční spuštění; má contents:read a neponechává checkout credentials. Akce jsou uzamčené úplnými SHA. Nenahrává ani chybové trace/screenshoty, nemá secrets kontext, deploy nebo produkční prostředí. Případná chyba proto vyžaduje opakování lokálně. Zrušený runner uvolní GitHub; lokální kontejnerový pomocník uklízí pouze vlastní kontejnery/sítě, svazek zachová. Není to nástroj pro produkční provoz.
 
@@ -79,3 +79,7 @@ Ověřeno 3. 11. 2026 proti oficiálním tagům/commitům a release metadatům. 
 ## Doplnění lokální části fáze 7
 
 Backend kontrola nyní zahrnuje infra/ops a 10 provozních regresí. Kontejnerová úloha připravuje také build operations image; statická kontrola pokrývá dev/prod/CI/operations/restore Compose. Nové produkční bootstrap proměnné pro config kontrolu jsou výhradně syntetické a nevypisují se. Reálný Linux image, Docker restore a GitHub běh se zatím neprovedly. Nativní měření a provozní předpoklady viz PHASE_7.md a OPERATIONS.md.
+
+## Doplnění fáze 8
+
+Kontejnerový pomocník před E2E vytvoří syntetické VIN/foto/OCR fixtures pouze v chráněné *_e2e DB a předá soukromý JSON přes E2E_EXTENSIONS_FIXTURE. Bez této proměnné se dva nové desktop/mobile testy výslovně přeskočí. OCR v nich používá skutečný lokální engine; RSV/foto jsou kontrolované fixtures. Backendové kontroly zahrnují infra/ocr a aktuální OpenAPI/migrace. Skutečný GitHub běh ani Docker build zde neproběhl, viz PHASE_8.md.

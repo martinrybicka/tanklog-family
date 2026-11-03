@@ -178,6 +178,7 @@ def build_intervals(context, ordered_records):
             break
         previous = i
     unsupported = context.consumption_mode != "SINGLE_TANK"
+    unsupported_reason = "UNSUPPORTED_UNIT" if context.fuel_type not in FUELS else "UNSUPPORTED_MULTI_TANK"
     intervals = []
     for start, end in zip(anchors, anchors[1:]):
         subset = records[start : end + 1]
@@ -194,7 +195,7 @@ def build_intervals(context, ordered_records):
         if len({row.fuel_type for row in subset}) > 1:
             reasons.append("MIXED_FUEL")
         if unsupported:
-            reasons.append("UNSUPPORTED_MULTI_TANK")
+            reasons.append(unsupported_reason)
         intervals.append(
             Interval(
                 context.vehicle_id,
@@ -212,7 +213,7 @@ def build_intervals(context, ordered_records):
     if blocked_from is not None:
         reasons.add("ODOMETER_DECREASE")
     if unsupported:
-        reasons.add("UNSUPPORTED_MULTI_TANK")
+        reasons.add(unsupported_reason)
     if not anchors or anchors[0] > 0:
         reasons.add("MISSING_ANCHOR")
     open_records = records[anchors[-1] :] if anchors and anchors[-1] < len(records) - 1 else ()
@@ -227,7 +228,13 @@ def build_intervals(context, ordered_records):
     else:
         status = "INSUFFICIENT_DATA"
     return BuildResult(
-        context, records, tuple(intervals), status, tuple(sorted(reasons)), warnings, open_records
+        context,
+        records,
+        tuple(intervals),
+        status,
+        tuple(sorted(reasons)),
+        warnings,
+        open_records,
     )
 
 
@@ -246,7 +253,9 @@ def aggregate_intervals(intervals, start, end):
 def aggregate_purchases(records, start, end):
     selected = [r for r in records if start <= r.date <= end]
     return Purchases(
-        sum((r.liters for r in selected), ZERO), sum((r.total_amount for r in selected), ZERO), len(selected)
+        sum((r.liters for r in selected), ZERO),
+        sum((r.total_amount for r in selected), ZERO),
+        len(selected),
     )
 
 
@@ -258,7 +267,9 @@ def aggregate_groups(results, start, end):
         FuelGroup(
             fuel,
             aggregate_intervals(
-                [i for value in unique.values() for i in value.intervals if i.fuel_type == fuel], start, end
+                [i for value in unique.values() for i in value.intervals if i.fuel_type == fuel],
+                start,
+                end,
             ),
         )
         for fuel in sorted(fuels)

@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: TankLog API
   version: 1.0.0
-  description: Fáze 5 – účty, vozidla, tankování, účtenky a analytika
+  description: Fáze 8 – účty, vozidla, tankování, analytika, servis a integrace
 paths:
   /api/v1/admin/audit/:
     get:
@@ -582,6 +582,55 @@ paths:
               schema:
                 $ref: '#/components/schemas/DashboardOutput'
           description: ''
+  /api/v1/imports/{batch_id}/:
+    get:
+      operationId: imports_retrieve
+      parameters:
+      - in: path
+        name: batch_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: imports_create
+      parameters:
+      - in: path
+        name: batch_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/profile/:
     get:
       operationId: profile_retrieve
@@ -806,6 +855,34 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/refuelings/{item_id}/extractions/{extraction_id}/:
+    get:
+      operationId: refuelings_extractions_retrieve
+      parameters:
+      - in: path
+        name: extraction_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/refuelings/{item_id}/receipt/:
     get:
       operationId: refuelings_receipt_retrieve
@@ -908,6 +985,49 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/refuelings/{item_id}/recognize/:
+    get:
+      operationId: refuelings_recognize_retrieve
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: refuelings_recognize_create
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - refuelings
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/refuelings/export/:
     get:
       operationId: refuelings_export_retrieve
@@ -1015,6 +1135,78 @@ paths:
               schema:
                 type: string
                 format: binary
+          description: ''
+  /api/v1/reminders/:
+    get:
+      operationId: reminders_retrieve
+      tags:
+      - reminders
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/vehicle-images/{image_id}/:
+    get:
+      operationId: vehicle_images_retrieve
+      parameters:
+      - in: path
+        name: image_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicle-images
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/vehicle-lookups/:
+    get:
+      operationId: vehicle_lookups_retrieve
+      tags:
+      - vehicle-lookups
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: vehicle_lookups_create
+      tags:
+      - vehicle-lookups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LookupInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
           description: ''
   /api/v1/vehicles/:
     get:
@@ -1302,9 +1494,271 @@ paths:
               schema:
                 $ref: '#/components/schemas/IntervalDetailOutput'
           description: ''
+  /api/v1/vehicles/{vehicle_id}/energy-totals/:
+    get:
+      operationId: vehicles_energy_totals_retrieve
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/events/:
+    get:
+      operationId: vehicles_events_list
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventOutput'
+          description: ''
+    post:
+      operationId: vehicles_events_create
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventOutput'
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/events/{event_id}/:
+    get:
+      operationId: vehicles_events_retrieve
+      parameters:
+      - in: path
+        name: event_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventOutput'
+          description: ''
+    put:
+      operationId: vehicles_events_update
+      parameters:
+      - in: path
+        name: event_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventOutput'
+          description: ''
+    delete:
+      operationId: vehicles_events_destroy
+      parameters:
+      - in: path
+        name: event_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/vehicles/{vehicle_id}/imports/:
+    get:
+      operationId: vehicles_imports_retrieve
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: vehicles_imports_create
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/vehicles/{vehicle_id}/payer-options/:
     get:
       operationId: vehicles_payer_options_retrieve
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/vehicles/{vehicle_id}/photo/:
+    post:
+      operationId: vehicles_photo_create
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhotoInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '204':
+          description: No response body
+    delete:
+      operationId: vehicles_photo_destroy
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      security:
+      - sessionAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/vehicles/{vehicle_id}/photo-search/:
+    post:
+      operationId: vehicles_photo_search_create
       parameters:
       - in: path
         name: vehicle_id
@@ -1657,12 +2111,27 @@ components:
       - source
       - source_note
       - standard
+    ConfirmInput:
+      type: object
+      properties:
+        confirmed:
+          type: boolean
+        confirmed_warning_codes:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 30
+      required:
+      - confirmed
     ConsumptionModeEnum:
       enum:
+      - UNSUPPORTED_UNIT
       - SINGLE_TANK
       - UNSUPPORTED_MULTI_TANK
       type: string
       description: |-
+        * `UNSUPPORTED_UNIT` - Jiné jednotky (kg/kWh)
         * `SINGLE_TANK` - Jedna nádrž
         * `UNSUPPORTED_MULTI_TANK` - Více nádrží
     CoverageOutput:
@@ -1748,6 +2217,157 @@ components:
       - purchase_cost_czk_100km
       - purchases
       - recent_refuelings
+    EventInput:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/VehicleEventKindEnum'
+        title:
+          type: string
+          maxLength: 150
+        date:
+          type: string
+          format: date
+        note:
+          type: string
+          maxLength: 2000
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        odometer_km:
+          type: integer
+          maximum: 99999999
+          minimum: 0
+          nullable: true
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        due_odometer_km:
+          type: integer
+          maximum: 99999999
+          minimum: 0
+          nullable: true
+        notice_days:
+          type: integer
+          maximum: 365
+          minimum: 0
+        notice_km:
+          type: integer
+          maximum: 100000
+          minimum: 0
+        closed:
+          type: boolean
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          nullable: true
+        unit:
+          oneOf:
+          - $ref: '#/components/schemas/UnitEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+      required:
+      - date
+      - kind
+      - title
+    EventOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        vehicle_id:
+          type: string
+          format: uuid
+          readOnly: true
+        author_id:
+          type: string
+          format: uuid
+          readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/VehicleEventKindEnum'
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        date:
+          type: string
+          format: date
+          readOnly: true
+        note:
+          type: string
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        odometer_km:
+          type: integer
+          readOnly: true
+          nullable: true
+        due_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        due_odometer_km:
+          type: integer
+          readOnly: true
+          nullable: true
+        notice_days:
+          type: integer
+          readOnly: true
+        notice_km:
+          type: integer
+          readOnly: true
+        closed:
+          type: boolean
+          readOnly: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          readOnly: true
+          nullable: true
+        unit:
+          allOf:
+          - $ref: '#/components/schemas/UnitEnum'
+          readOnly: true
+        version:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        etag:
+          type: string
+          readOnly: true
+      required:
+      - amount
+      - author_id
+      - closed
+      - created_at
+      - date
+      - due_date
+      - due_odometer_km
+      - etag
+      - id
+      - kind
+      - note
+      - notice_days
+      - notice_km
+      - odometer_km
+      - quantity
+      - title
+      - unit
+      - vehicle_id
+      - version
     EvidenceOutput:
       type: object
       properties:
@@ -1815,20 +2435,26 @@ components:
       - liters
       - purchase_cost_czk_100km
       - valid_intervals
-    FuelTypeEnum:
+    ImportInput:
+      type: object
+      properties:
+        csv_text:
+          type: string
+          maxLength: 131072
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/ImportKindEnum'
+          default: FUEL
+      required:
+      - csv_text
+    ImportKindEnum:
       enum:
-      - PETROL
-      - DIESEL
-      - LPG
-      - ETHANOL
-      - OTHER_LIQUID
+      - FUEL
+      - EVENT
       type: string
       description: |-
-        * `PETROL` - Benzín
-        * `DIESEL` - Nafta
-        * `LPG` - LPG
-        * `ETHANOL` - Ethanol
-        * `OTHER_LIQUID` - Jiné kapalné palivo
+        * `FUEL` - FUEL
+        * `EVENT` - EVENT
     IntervalDetailOutput:
       type: object
       properties:
@@ -2018,6 +2644,20 @@ components:
       - next
       - previous
       - results
+    LiquidFuelTypeEnum:
+      enum:
+      - PETROL
+      - DIESEL
+      - LPG
+      - ETHANOL
+      - OTHER_LIQUID
+      type: string
+      description: |-
+        * `PETROL` - Benzín
+        * `DIESEL` - Nafta
+        * `LPG` - LPG
+        * `ETHANOL` - Ethanol
+        * `OTHER_LIQUID` - Jiné kapalné palivo
     Login:
       type: object
       properties:
@@ -2031,6 +2671,31 @@ components:
       required:
       - password
       - username
+    LookupFieldsEnum:
+      enum:
+      - make
+      - model
+      - fuel_type
+      - engine_displacement_cc
+      - power_kw
+      type: string
+      description: |-
+        * `make` - make
+        * `model` - model
+        * `fuel_type` - fuel_type
+        * `engine_displacement_cc` - engine_displacement_cc
+        * `power_kw` - power_kw
+    LookupInput:
+      type: object
+      properties:
+        vin:
+          type: string
+          maxLength: 17
+        vehicle_id:
+          type: string
+          format: uuid
+      required:
+      - vin
     OrderInput:
       type: object
       properties:
@@ -2130,7 +2795,7 @@ components:
         break_before:
           type: boolean
         fuel_type:
-          $ref: '#/components/schemas/FuelTypeEnum'
+          $ref: '#/components/schemas/LiquidFuelTypeEnum'
         station_code:
           oneOf:
           - $ref: '#/components/schemas/StationCodeEnum'
@@ -2154,9 +2819,22 @@ components:
             type: string
             maxLength: 50
           maxItems: 20
+        extraction_id:
+          type: string
+          format: uuid
     PatchedVehicleInput:
       type: object
       properties:
+        lookup_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        lookup_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/LookupFieldsEnum'
+          writeOnly: true
+          maxItems: 5
         name:
           type: string
           maxLength: 100
@@ -2167,7 +2845,7 @@ components:
           type: string
           maxLength: 100
         fuel_type:
-          $ref: '#/components/schemas/FuelTypeEnum'
+          $ref: '#/components/schemas/VehicleFuelTypeEnum'
         initial_odometer_km:
           type: integer
           maximum: 99999999
@@ -2239,6 +2917,17 @@ components:
       - group_by
       - period
       - timezone
+    PhotoInput:
+      type: object
+      properties:
+        image_id:
+          type: string
+          format: uuid
+        confirmed:
+          type: boolean
+      required:
+      - confirmed
+      - image_id
     PurchaseOutput:
       type: object
       properties:
@@ -2372,7 +3061,7 @@ components:
         break_before:
           type: boolean
         fuel_type:
-          $ref: '#/components/schemas/FuelTypeEnum'
+          $ref: '#/components/schemas/LiquidFuelTypeEnum'
         station_code:
           oneOf:
           - $ref: '#/components/schemas/StationCodeEnum'
@@ -2492,6 +3181,12 @@ components:
       required:
       - current_password
       - new_owner_id
+    UnitEnum:
+      enum:
+      - kg
+      - kWh
+      type: string
+      description: "* `` - \n* `kg` - kg\n* `kWh` - kWh"
     User:
       type: object
       properties:
@@ -2572,7 +3267,7 @@ components:
           readOnly: true
         fuel_type:
           allOf:
-          - $ref: '#/components/schemas/FuelTypeEnum'
+          - $ref: '#/components/schemas/VehicleFuelTypeEnum'
           readOnly: true
         initial_odometer_km:
           type: integer
@@ -2624,6 +3319,11 @@ components:
         standard_source_note:
           type: string
           readOnly: true
+        photo:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
         status:
           allOf:
           - $ref: '#/components/schemas/StatusEnum'
@@ -2671,6 +3371,7 @@ components:
       - name
       - owner_id
       - permissions
+      - photo
       - power_kw
       - registration_plate
       - standard_consumption_l_100km
@@ -2747,9 +3448,51 @@ components:
       - status
       - valid_intervals
       - vehicle_id
+    VehicleEventKindEnum:
+      enum:
+      - SERVICE
+      - INSPECTION
+      - INSURANCE
+      - REMINDER
+      - ENERGY
+      type: string
+      description: |-
+        * `SERVICE` - SERVICE
+        * `INSPECTION` - INSPECTION
+        * `INSURANCE` - INSURANCE
+        * `REMINDER` - REMINDER
+        * `ENERGY` - ENERGY
+    VehicleFuelTypeEnum:
+      enum:
+      - CNG
+      - ELECTRIC
+      - PETROL
+      - DIESEL
+      - LPG
+      - ETHANOL
+      - OTHER_LIQUID
+      type: string
+      description: |-
+        * `CNG` - CNG (kg)
+        * `ELECTRIC` - Elektřina (kWh)
+        * `PETROL` - Benzín
+        * `DIESEL` - Nafta
+        * `LPG` - LPG
+        * `ETHANOL` - Ethanol
+        * `OTHER_LIQUID` - Jiné kapalné palivo
     VehicleInput:
       type: object
       properties:
+        lookup_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        lookup_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/LookupFieldsEnum'
+          writeOnly: true
+          maxItems: 5
         name:
           type: string
           maxLength: 100
@@ -2760,7 +3503,7 @@ components:
           type: string
           maxLength: 100
         fuel_type:
-          $ref: '#/components/schemas/FuelTypeEnum'
+          $ref: '#/components/schemas/VehicleFuelTypeEnum'
         initial_odometer_km:
           type: integer
           maximum: 99999999

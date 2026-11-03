@@ -1,0 +1,29 @@
+{
+  "engine": {
+    "version": "5.5.4",
+    "url": "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.5.4.tar.gz",
+    "sha256": "a8dbf8b8c8ee427ff6ad1d99116502feaf59440af1adb893caf60a6576826cf4"
+  },
+  "models": {
+    "ces": {
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/ces.traineddata",
+      "sha256": "934bcaf97ef3348413263331131c9fa7f55f30db333c711929c124fb635f7e1b"
+    },
+    "eng": {
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/eng.traineddata",
+      "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    }
+  },
+  "debian_snapshot": "20261103T000000Z",
+  "build_packages": [
+    "cmake",
+    "build-essential",
+    "pkg-config",
+    "libleptonica-dev"
+  ],
+  "runtime_packages": [
+    "liblept5",
+    "libstdc++6",
+    "fonts-dejavu-core"
+  ]
+}
