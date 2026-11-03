@@ -1,6 +1,6 @@
 # Technická architektura
 
-Architektura, aktualizace 2. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Ve fázi 2 vznikl modul vehicles s modely, selektory, servisní vrstvou, API a UI; ve fázi 3 vznikl refuelings (tankování, přílohy v DB, historie a XLSX). Fáze 4 přidává analytics, intervalové podklady a dashboard. Fáze 5 doplňuje UX, přístupnost a veřejný PWA shell. Aktuální ověření včetně místního HTTPS nginx/Gunicorn je v PHASE_5.md. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně originálů/náhledů účtenek patří do PostgreSQL.
+Architektura, aktualizace 3. 11. 2026. Ve fázi 1 vznikl základ frontend/backend/infra a Compose. Runtime Dockeru zůstává v tomto prostředí neověřený; aktuální výsledky jsou v PHASE_1.md. Ve fázi 2 vznikl modul vehicles s modely, selektory, servisní vrstvou, API a UI; ve fázi 3 vznikl refuelings (tankování, přílohy v DB, historie a XLSX). Fáze 4 přidává analytics, intervalové podklady a dashboard. Fáze 5 doplňuje UX, přístupnost a veřejný PWA shell. Aktuální ověření včetně místního HTTPS nginx/Gunicorn je v PHASE_5.md. Podle doplňujícího pokynu uživatele všechna trvalá aplikační data včetně originálů/náhledů účtenek patří do PostgreSQL.
 
 ## 1. Modulární monolit
 
@@ -144,3 +144,11 @@ TanStack Query nyní odstraňuje nepozorovaná query a mutation data ihned (gcTi
 Oxlint 1.90.0 doplňuje kontroly TypeScript/React a vybraná jsx-a11y pravidla bez změny TS 7.0.2. Axe-core Playwright 4.14.0 ověřuje výsledné DOM a kontrasty. React Compiler není zapnutý (incompatible-library se proto nevynucuje); role status/img pro živé zprávy a interaktivní grafické kontejnery jsou záměrné. Statické pravidlo popisků ignoruje input/td, jejich skutečné názvy a vazby ověřují axe a komponentové testy; nejde o vypnutí runtime kontrol.
 
 `infra/local_production_preview.py` umí sestavit izolovaný loopback nginx náhled z reálných produkčních šablon. TLS proxy 8443 sanitizuje forwarded hlavičky, vnitřní web je na 8082, Gunicorn na 8001, vše jen 127.0.0.1. Samopodepsaný testovací certifikát/klíč a logy jsou v ignorované .runtime, bez změn OS důvěry. Backend se spouští výslovně nad tanklog_e2e. Tento nativní test ověřuje chování buildu a šablon, nikoli Docker image nebo skutečnou produkční síť NPM.
+
+## Lokální příprava CI – fáze 6
+
+`.github/workflows/ci.yml` připravuje čtyři úlohy na ubuntu-24.04: audit celé Git historie a workflow, backend/PostgreSQL, frontend a kontejnery/E2E. `infra/ci/run_checks.py` sdílí příkazy s lokálním ověřením; kontroluje migrace a přesnou shodu generovaného OpenAPI bez přepsání dokumentace. Python 3.14.10, uv 0.13.6 a Node 26.13.0 odpovídají stávajícím Dockerfiles; aplikační závislosti se nemění. Akce mají úplný commit SHA; CLI verze a SHA-256 archivů obsahuje `infra/ci/tools.json`. Postup a zdroje verzí jsou v [CI.md](CI.md).
+
+`compose.ci.yaml` rozšiřuje base bez produkčního override. Sestavuje produkční image, avšak backend používá development settings s DEBUG=false pro izolovaný HTTP test. Testovací účet vyžaduje TANKLOG_E2E=1 a DB *_e2e. Testy se připojují read-only, nejsou součástí produkční image. Jediný host port je 127.0.0.1:18080; DB ani backend nejsou publikované, žádná externí NPM síť. `containers.py` povolí pouze místní unixový Docker socket, vytvoří náhodný projekt a vlastní prostředí s novými secrets. Zastavení odstraní pouze jeho kontejnery a sítě, nikdy volumes. Není to produkční HTTPS ověření.
+
+Dev nginx nově explicitně připojuje sdílený security-headers.conf read-only; předchozí mount chyběl, přestože jej error locations zahrnovaly. Syntaxe byla ověřena nativním nginx, skutečný běh Docker images zde kvůli chybějícímu daemonu není ověřený. API, session/CSRF, DB model a výpočty se nemění. Žádný remote nebyl vytvořen a žádný workflow nebyl vzdáleně spuštěn.

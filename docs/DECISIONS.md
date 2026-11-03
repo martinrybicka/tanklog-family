@@ -52,6 +52,10 @@ Datum návrhu: 2. 11. 2026. Uživatel následně výslovně zadal implementaci f
 | ADR-042 | Nativní lokální HTTPS test produkčního buildu jako doplněk Dockeru | Nginx/Gunicorn jen na loopbacku a syntetické E2E DB, skutečné šablony a Secure cookies. Není to ověření pinned Docker images nebo vzdálené NPM sítě. |
 | ADR-043 | Oxlint a axe-core jako reprodukovatelné kontroly přístupnosti | Přesně zamčené dev závislosti, kontroly TypeScript/React a výsledného DOM v obou motivech; ruční zoom/čtečka zůstávají odděleně vykázané. |
 
+| ADR-044 | Fáze 6 nyní pouze lokálně, zákaz GitHubu má přednost | Pokyn k fázi 6 současně zakazuje jakékoli odesílání. Připravíme a ověříme CI bez remote/pushe; private repozitář a skutečný běh zůstávají neprovedené, celá fáze není akceptovaná. |
+| ADR-045 | Čtyři CI úlohy s read-only tokenem, úplnými SHA a izolovanou DB | Stejné locky a runtime verze jako Docker, kontrola historie před dalšími úlohami, žádná produkční credentials/deploy ani upload testovacích artefaktů. |
+| ADR-046 | Syntetický Compose projekt bez externí NPM sítě a mazání volumes | Produkční build targety s testovacími HTTP settings, read-only fixtures; náhodný název a vlastní secrets chrání existující lokální data. Žádný vzdálený Docker endpoint. |
+
 ## Původní zásadní body fáze 0
 
 1. **Rozsah měření:** CZK/litry/km, jedna nádrž pro spotřebu, různá paliva v dashboardu odděleně; bez spotřeby CNG/EV a více nádrží v MVP (ADR-007, 015).

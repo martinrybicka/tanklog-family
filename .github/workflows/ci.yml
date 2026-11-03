@@ -1,0 +1,131 @@
+name: TankLog CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  repository:
+    name: Historie, tajné údaje a workflow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: 0.13.6
+          python-version: 3.14.10
+          enable-cache: false
+      - name: Připnuté kontrolní nástroje a Python závislosti
+        run: |
+          python3 infra/ci/install_tools.py
+          uv sync --frozen --project backend
+      - name: Kontrola repozitáře a celé historie
+        run: |
+          backend/.venv/bin/python infra/ci/verify_workflow.py
+          backend/.venv/bin/python infra/ci/check_repository.py
+          .tools/ci/actionlint
+          .tools/ci/gitleaks git --redact --no-banner .
+      - name: Bezpečnostní regrese CI pravidel
+        run: backend/.venv/bin/python -m unittest discover -s infra/ci/tests -v
+
+  backend:
+    name: Backend a PostgreSQL
+    needs: repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18.6-bookworm@sha256:5c4783a8cc3f0074912164f94dfa1be4e043438f0f707cf968d7af9a0d31a2c8
+        env:
+          POSTGRES_DB: tanklog_ci
+          POSTGRES_USER: tanklog
+          # Pouze jednorázová CI služba na loopbacku, nikdy produkční přístup.
+          POSTGRES_PASSWORD: ci-local-only
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tanklog -d tanklog_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      TANKLOG_CI: "1"
+      POSTGRES_DB: tanklog_ci
+      POSTGRES_USER: tanklog
+      POSTGRES_PASSWORD: ci-local-only
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: 0.13.6
+          python-version: 3.14.10
+          enable-cache: false
+      - name: Čistá instalace z locku a syntetické prostředí
+        run: |
+          uv sync --frozen --project backend
+          python3 infra/setup_env.py
+      - name: Testy, migrace, schema a produkční kontroly
+        run: python3 infra/ci/run_checks.py backend
+
+  frontend:
+    name: Frontend
+    needs: repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26.13.0
+          package-manager-cache: false
+      - name: Čistá instalace z locku
+        working-directory: frontend
+        run: npm ci
+      - name: Lint, testy, typy a produkční build s PWA
+        run: python3 infra/ci/run_checks.py frontend
+
+  containers:
+    name: Docker build a E2E
+    needs: [repository, backend, frontend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26.13.0
+          package-manager-cache: false
+      - name: Závislosti a prohlížeč příslušný Playwright locku
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Statická kontrola dev a prod Compose
+        run: |
+          python3 infra/setup_env.py
+          python3 infra/verify_compose.py
+      - name: Izolované kontejnery, migrace a E2E
+        run: python3 infra/ci/containers.py

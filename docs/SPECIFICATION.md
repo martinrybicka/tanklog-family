@@ -1,6 +1,6 @@
 # Funkční specifikace
 
-Stav: specifikace pro fáze 1–5, aktualizováno 2. 11. 2026 při implementaci fáze 5. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 doplňuje responzivitu, přístupnost, PWA shell a bezpečnostní ověření; fáze 6 a další zůstávají plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
+Stav: aplikační specifikace fází 1–5 a provozní doplněk fáze 6, aktualizováno 3. 11. 2026. Účty, vozidla, sdílení, tankování, účtenky, XLSX, spotřeba a analytický dashboard jsou implementované; fáze 5 doplňuje responzivitu, přístupnost, PWA shell a bezpečnostní ověření; fáze 6 má od 3. 11. 2026 připravenou lokální část CI podle [CI.md](CI.md). GitHub/push/skutečný CI běh jsou podle zákazu uživatele neprovedené, fáze 7 a další zůstávají plán. Zásadní doplnění zadání jsou označena v [rozhodnutích](DECISIONS.md). Změny rozsahu vyžadují aktualizaci dokumentace.
 
 ## 1. Cíl a hranice první verze
 
@@ -106,3 +106,7 @@ PWA znamená instalovatelný veřejný shell a obecnou offline stránku, nikoli 
 Rozhraní reaguje na 360/390/768/1024/1440 px; tablet do 1023 px využívá spodní navigaci. Dotykové akce mají nejméně 44 px, odhlášení už není plovoucí překryv nad obsahem. Navigace přesouvá focus na hlavní obsah, dokument dostává název obrazovky. Field propojuje chyby i nápovědy s inputem/selectem/textarea. Veřejný login respektuje systémový motiv; uložená preference přihlášeného účtu se stále čte z DB. Přístupnost se automaticky kontroluje ve světlém i tmavém režimu, včetně dialogu a chyb.
 
 Ověřené výsledky a neověřené části akceptace jsou v PHASE_5.md. Asistované mobilní měření 7,298 s není uživatelským testem člověka pro cíl 15–30 s. Skutečný nativní zoom 200 % a poslech VoiceOver zůstávají neověřené; automatický reflow a ruční klávesnice/AX byly ověřené. Běh Dockeru zůstává neověřený kvůli chybějícímu daemonu. Nasazení ani GitHub se tím neschvalují.
+
+## Provozní doplněk fáze 6 (3. 11. 2026)
+
+Příprava CI nemění aplikační funkce, API, datový model ani migrace. Verze aplikačního kontraktu zůstává v0.5.0. Workflow pouze kontroluje stávající lock soubory, testy, schema a build. Testovací prostředí používají vlastní syntetické databáze; žádná osobní data ani výsledky E2E se nenahrávají. GitHub private viditelnost a úspěšný běh na čistém Linux runneru zůstávají podmínkou plného dokončení fáze 6. Místní macOS ověření je nenahrazuje.

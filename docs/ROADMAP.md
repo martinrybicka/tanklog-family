@@ -2,7 +2,7 @@
 
 Každá fáze má vlastní pokyn k zahájení. Lokální dokončení aplikace a testů předchází GitHubu; GitHub a produkce mají další výslovné schválení. Odhady termínů a kapacity nejsou součást zadání.
 
-Aktuálně uživatel výslovně povolil fázi 5. Implementaci a skutečné výsledky ověření sleduje PHASE_5.md; historická předání fází 1–4 zůstávají zachovaná. Fáze 6 ani další se bez samostatného pokynu nezahajují. Běhová akceptace má stále výslovně uvedená omezení Dockeru a ručního přístupnostního ověření. Dodatek z fáze 1 ukládá všechna trvalá aplikační data do DB, vyžaduje zachování profilu a motivu po smazání cookies / na dalším zařízení a neutrální modrošedý/bílý vzhled. Funkce dalších etap se nepřidávají.
+Aktuálně uživatel povolil fázi 6, ale současně výslovně zakázal cokoli odesílat na GitHub nebo produkční server. Realizuje se proto pouze její lokální část: připravené CI, audit historie a ověření čisté instalace. Soukromý repozitář, push a skutečný CI běh nejsou provedené; bez nich není celá akceptace fáze 6 splněná. Výsledky a omezení jsou v [PHASE_6.md](PHASE_6.md), postup v [CI.md](CI.md). Fáze 7 ani další není povolena. Historická předání fází 1–5 zůstávají zachovaná včetně neověřeného Docker runtime a ručního přístupnostního ověření. Trvalá aplikační data zůstávají v DB a vzhled neutrální modrošedý/bílý.
 
 ## Fáze 0 – návrh a dokumentace
 
@@ -57,7 +57,7 @@ Testy: frontend typecheck/lint/build, vybrané komponentové testy, Playwright k
 
 ## Fáze 6 – soukromý GitHub a CI
 
-Zahájení jen po výslovném souhlasu s GitHubem. Rozsah: soukromý repozitář, první autorizovaný push, CI frontend/backend/PostgreSQL, kontrola migrací, build a vybrané E2E podle možností CI. Žádná automatická produkční deploy pipeline bez dalšího souhlasu.
+Vzdálené kroky jen po výslovném souhlasu s GitHubem. Pokyn z 3. 11. 2026 povoluje přípravu této fáze, ale zakazuje odesílání; nyní vzniká pouze lokálně ověřovaná příprava. Plný rozsah: soukromý repozitář, první autorizovaný push, CI frontend/backend/PostgreSQL, kontrola migrací, build a vybrané E2E podle možností CI. Žádná automatická produkční deploy pipeline bez dalšího souhlasu.
 
 Akceptace: repozitář je skutečně private, historie neobsahuje secrets/data/účtenky, lock soubory reprodukují instalaci, CI na čistém runneru prochází. Kontrola oprávnění workflow a případných secrets; žádné sdílené produkční credentials. Provedené CI běhy doložit odkazem a skutečným stavem, připravený YAML není úspěšný běh.
 

@@ -1,0 +1,6 @@
+# Stejné kontroly pomocných skriptů v CI i na pracovním počítači.
+target-version = "py314"
+line-length = 88
+[lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

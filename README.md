@@ -4,13 +4,15 @@
 
 ## Aktuální stav
 
+**Připravena lokální část fáze 6 – CI a audit repozitáře (3. 11. 2026).** Čtyři kontrolní úlohy pro historii/bezpečnost, backend s PostgreSQL, frontend a izolovaný Docker/E2E. Instalace z locků a testy byly ověřené v čistém exportu na tomto Macu. GitHub repozitář, push ani skutečný CI běh nebyly podle výslovného zákazu provedené. Celá fáze 6 proto ještě nesplňuje vzdálená akceptační kritéria. Přesné výsledky: [PHASE_6.md](docs/PHASE_6.md), opakování kontrol: [CI.md](docs/CI.md).
+
 **Implementována fáze 5 – responzivita, UX, přístupnost, PWA základ a bezpečnost (2. 11. 2026).** Instalovatelný veřejný shell, obecná offline stránka bez soukromých dat, potvrzované aktualizace, motiv podle zařízení i DB profilu, focus a popisky formulářů, tablet/mobil a odhlášení více oken. Navazuje na účty, vozidla, sdílení, tankování, soukromé účtenky, XLSX a analytiku fází 1–4. Akceptační ověření má níže uvedená omezení; nejde o schválení produkčního provozu.
 
 Podle doplňujícího požadavku jsou **všechna uložená aplikační data v PostgreSQL**. Cookie pouze identifikuje přihlášení; smazání cookies vás odhlásí, ale po přihlášení zůstane profil i nastavení stejné na všech zařízeních. Osobní data ani motiv nejsou v localStorage/IndexedDB. Originály i očištěné náhledy účtenek jsou v DB jako binární obsah. Citlivá konfigurace je v proměnných prostředí. Vzhled je neutrální modrý/šedý/bílý.
 
 OCR se zatím neimplementuje. VIN lze zadat ručně; automatické dohledání a požadované ilustrační fotografie modelu patří do fáze 8 podle [návrhu integrací](docs/INTEGRATIONS.md). Fáze 6 ani další nezačínají bez samostatného pokynu.
 
-**Ověření:** 192 backendových, 28 frontendových testů a 22 regresních E2E prošlo; dalších 6 E2E ověřilo skutečný lokální produkční build přes HTTPS nginx/Gunicorn (cookies, fallback, chyby, PWA, výpadek a retry). Prošly lint/typecheck/build, OpenAPI a konfigurace Compose. **Docker start/build/restart zůstává neověřený**, daemon chybí. Automatická přístupnost a ruční klávesnice prošly; skutečný zoom 200 %, poslech VoiceOver a reprezentativní měření člověkem nejsou ověřené. Přesné výsledky, příkazy a limity jsou v [předání fáze 5](docs/PHASE_5.md).
+**Ověření fáze 5:** 192 backendových, 28 frontendových testů a 22 regresních E2E prošlo; dalších 6 E2E ověřilo skutečný lokální produkční build přes HTTPS nginx/Gunicorn (cookies, fallback, chyby, PWA, výpadek a retry). Prošly lint/typecheck/build, OpenAPI a konfigurace Compose. **Docker start/build/restart zůstává neověřený**, daemon chybí. Automatická přístupnost a ruční klávesnice prošly; skutečný zoom 200 %, poslech VoiceOver a reprezentativní měření člověkem nejsou ověřené. Přesné výsledky, příkazy a limity jsou v [předání fáze 5](docs/PHASE_5.md).
 
 ## Lokální spuštění přes Docker
 
@@ -123,6 +125,8 @@ Docker zde není dostupný, ale již připravený místní náhled běží na `h
 
 | Dokument | Obsah |
 | --- | --- |
+| [Předání lokální části fáze 6](docs/PHASE_6.md) | CI, audit historie, čistá instalace a neprovedená vzdálená akceptace |
+| [CI](docs/CI.md) | Workflow, připnuté nástroje a bezpečné lokální ověření |
 | [Předání fáze 5](docs/PHASE_5.md) | PWA/UX/přístupnost, lokální HTTPS ověření, přesné příkazy a zbývající limity |
 | [Předání fáze 4](docs/PHASE_4.md) | Spotřeba, intervaly, dashboard, ověření a přesné příkazy |
 | [Předání fáze 3](docs/PHASE_3.md) | Tankování/účtenky/XLSX, aktuální ověření a přesné příkazy |
