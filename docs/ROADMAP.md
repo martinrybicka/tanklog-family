@@ -84,3 +84,7 @@ Implementace a skutečné výsledky jsou v [PHASE_8.md](PHASE_8.md). Chybějíc�
 5. Uvést změněné soubory, přesné provedené příkazy/výsledky, kroky pro ruční test a omezení. Po etapě se zastavit a čekat na další pokyn.
 
 Výkonové limity konkrétního serveru se měří na syntetických datech; nepřidávat cache, frontu nebo indexy jen kvůli předpokladu. Při chybě nástroje či chybějícím Dockeru se výsledek nezaměňuje za úspěšné běhové ověření.
+
+## Samostatný pokyn 4. 11. 2026 – jednodušší rodinné rozhraní
+
+Uživatel po fázi 8 výslovně požádal zachovat plnou verzi a implementovat jednodušší variantu se zaměřením na účtenky a správu rodiny administrátorem. Rozsah a ověření jsou v FAMILY_UI.md, změny modelu/API jsou popsány v příslušných dokumentech. Původní verze je v codex/tanklog-kompletni-faze-8, nový vývoj v codex/rodinne-rozhrani. Vzdálené fáze 6/7 nadále nejsou schválené k provedení a žádná další práce nezačíná automaticky.

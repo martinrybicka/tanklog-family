@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "apps.vehicles",
     "apps.refuelings",
     "apps.extensions",
+    "apps.family",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

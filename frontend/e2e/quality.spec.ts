@@ -49,7 +49,7 @@ test("přístupnost: login, formuláře, dashboard a dialog v obou motivech", as
   for (const mode of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: mode, reducedMotion: "reduce" });
     for (const path of [
-      "/",
+      "/prehled",
       "/auta",
       "/auta/nove",
       "/tankovani",
@@ -88,7 +88,7 @@ test("rozvržení: 360/390/768/1024/1440 a zvětšení 200 %", async ({ page }) 
   for (const width of [360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const path of [
-      "/",
+      "/prehled",
       "/auta",
       "/tankovani",
       "/tankovani/nove",
@@ -140,6 +140,8 @@ test("odhlášení ve druhém okně odstraní zobrazená soukromá data", async 
   await expect(
     second.getByRole("heading", { name: "Moje auta", exact: true }),
   ).toBeVisible();
+  if (await page.locator(".family-account summary").count())
+    await page.locator(".family-account summary").click();
   const logout = page.getByRole("button", { name: "Odhlásit se", exact: true });
   if (await logout.isVisible()) await logout.click();
   else

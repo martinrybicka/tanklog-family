@@ -10,6 +10,7 @@ handler404 = "apps.core.errors.not_found"
 handler500 = "apps.core.errors.server_error"
 
 urlpatterns = [
+    path("api/v1/family/", include("apps.family.urls")),
     path("api/v1/", include("apps.extensions.urls")),
     path("api/v1/", include("apps.analytics.urls")),
     path("api/v1/", include("apps.refuelings.urls")),

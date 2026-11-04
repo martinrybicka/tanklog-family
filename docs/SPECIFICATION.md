@@ -120,3 +120,11 @@ API, datový model a verze kontraktu v0.5.0 se nemění. Záloha musí zahrnout 
 Pozdější výslovný pokyn uživatele povolil všechna rozšíření a návrh jejich detailů. [PHASE_8_SPECIFICATION.md](PHASE_8_SPECIFICATION.md) zpřesňuje původní budoucí návrhy tohoto dokumentu; výsledky ověření jsou v [PHASE_8.md](PHASE_8.md). Primární CNG/ELECTRIC jsou nyní povolené, ale nemají litrovou normu ani plná–plná. Nákupy energie se evidují samostatnými událostmi v kg/kWh; existující kapalná historie se nepřepisuje. Servis, STK, pojištění a připomínky sdílejí historii auta a práva, nejsou nákupy paliva.
 
 VIN/OCR/import nikdy tiše nepřepíší evidenci: návrh, konkrétní výběr/potvrzení a standardní serverové uložení jsou oddělené kroky. Uložené návrhy a přílohy jsou v PostgreSQL. Offline zápis je výslovně neuložená práce v paměti aktuálního okna, nikoli garantované uchování na zařízení. Připomínky jsou pouze uvnitř aplikace; žádné e-maily/push/SMS. CSV má publikovanou pevnou šablonu, nevzniká obecný XLSX/PDF import. Servisní PDF a offline přílohy nejsou v tomto rozsahu.
+
+## Samostatně schválené rodinné rozhraní (4. 11. 2026)
+
+Uživatel požádal zachovat plnou verzi a postavit výrazně jednodušší každodenní rozhraní s ikonami/přechody. Výchozí přihlášená cesta má tři položky: Domů, Přidat účtenku, Historie. Správce ve Správě rodiny připraví účty, auta/granty a předvybrané auto konkrétnímu členovi; preference nevytváří oprávnění a musí odkazovat na aktivní dostupné auto s právem přidávat palivo. Uživatelský profil/heslo zůstávají dostupné.
+
+Nové tankování může začít nahráním obrázku: soukromý DB návrh bez účetního dopadu → lokální OCR → zkontrolovaný formulář → atomický zápis tankování i původní účtenky. Neúspěšné OCR dovolí ruční vyplnění; bez fotografie lze vyplnit jen datum/litry/částku. Datum je předvyplněné, tachometr nepovinný a plná nádrž vždy výslovná. Chybějící km/ostatní rizikové údaje dál vyžadují původní potvrzení varování, žádné tiché odhady.
+
+Fotka a OCR návrh jsou trvale v PostgreSQL a lze je znovu otevřít na jiném zařízení. Neuložené ruční změny formuláře se dosud neautosavují. Souhrny vycházejí ze skutečných přístupných dat, bez ilustračních statistik. Původní implementace je v zachované větvi, podrobný dashboard také na `/prehled`. Rozsah ani pokyn nepovolují GitHub, publikaci či produkční server. Viz [FAMILY_UI.md](FAMILY_UI.md).

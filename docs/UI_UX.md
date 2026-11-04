@@ -157,3 +157,11 @@ Mobilní asistovaný průchod: uložené auto a serverové datum, 42,350 l, 38,9
 Neutrální modrá/šedá/bílá paleta a oba motivy zůstávají. Detail auta přidává ilustrační foto s textovou atribucí, odkazy na servis/energii a import. VIN/OCR návrhy mají checkbox pro každé pole a explicitní použití; ruční formulář zůstává dostupný. Údaje z nejistého zdroje se netváří jako jistota.
 
 Události mají jasný druh, datum/km, částku, případný další termín/předstih a uzavření; přehled připomínek vysvětluje známý odečet. Energie uvádí kg/kWh odděleně. CSV náhled zobrazuje každý řádek, chyby a potvrzovaná varování před zápisem, posuvnou tabulku lze ovládat klávesnicí. Offline obrazovka zřetelně říká „neuloženo“, upozorňuje na ztrátu při zavření/reloadu, nabízí opravu, zahození a ruční synchronizaci. Nové funkce jsou dostupné i v mobilní navigaci.
+
+## Rodinné rozhraní – nové zadání 4. 11. 2026
+
+Pozdější pokyn výslovně povoluje modernější grafiku, jemné modrofialové přechody a pastelové barevné akcenty. Bílé karty, klidné pozadí, velké akční tlačítko, konzistentní Lucide ikony a vlastní jednoduchá SVG ilustrace. Bez externích grafických/fontových služeb. Souhrny jsou skutečná data; dekorativní auto neslouží jako identifikace konkrétního vozidla.
+
+Domů / Přidat účtenku / Historie, na mobilu tři stálé spodní položky. Účet a odhlášení v horním uživatelském panelu; Správa rodiny jen ADMIN. Podrobná analytika, sdílení, VIN/servis a import jsou v samostatné plné části a správce k nim má odkazy. Zařízení ani cookies nenesou preference auta.
+
+Účtenkový průvodce: zřetelné tři kroky, fotoaparát i samostatná volba existujícího souboru, ověřený soukromý náhled, předvyplněné auto/datum a rozpoznané návrhy. Před potvrzením se ukazují datum, litry a částka; km jsou nepovinné, plná nádrž není automatická. Volitelné další údaje se rozbalují. Ruční fallback je dostupný i bez fotografie/enginu. Úspěch zobrazí uloženou částku a historii; varování se nepotlačují. Foto a OCR podklady lze dokončit později, ruční neuložené úpravy se zatím nepřenášejí. Světlý/tmavý motiv a přístupnost se kontrolují skutečnými testy.

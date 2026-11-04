@@ -4,6 +4,8 @@
 
 ## Aktuální stav
 
+**Rodinné rozhraní (4. 11. 2026).** Po přihlášení se otevírá jednoduchá domovská stránka s cestou **účtenka → kontrola → uložení**. Rozpracovaná fotka i návrhy OCR jsou v DB; správce připraví členům auta, přístupy a výchozí auto. Moderní ikony, ilustrovaný přehled a jemné přechody nahrazují každodenní práci s rozsáhlou navigací. Podrobné nástroje jsou dál na `/prehled` a v administraci. Původní verze je zachovaná ve větvi `codex/tanklog-kompletni-faze-8` na `4f43558`; nový vývoj je ve větvi `codex/rodinne-rozhrani`. [Předání a ověření](docs/FAMILY_UI.md).
+
 **Fáze 8 – implementována všechna uživatelem schválená rozšíření (3. 11. 2026).** VIN návrhy s potvrzením polí, soukromé ilustrační fotografie s licencí, lokální OCR, servis/STK/pojištění, připomínky v aplikaci, energie kg/kWh, potvrzovaný CSV import a dočasná offline fronta. [Specifikace](docs/PHASE_8_SPECIFICATION.md), [předání, testy a ruční ověření](docs/PHASE_8.md). Živé VIN vyžaduje vlastní klíč RSV; hledání fotografií kontaktní User-Agent. Docker runtime a úplný živý VIN/foto průchod zde nejsou ověřené.
 
 **Připravena lokální část fáze 7 – produkční konfigurace, šifrované zálohy a izolovaná obnova (3. 11. 2026).** Záloha celé DB včetně účtenek do age, kontrolované nové cíle, oddělené DB role a šablona automatizace. Skutečné nativní cvičení ověřilo obnovu všech 19 tabulek do nového fyzického clusteru, přihlášení, přístupy a součty. Docker runtime, veřejný certifikát/NPM a automatická off-host záloha nejsou ověřené. Nic nebylo odesláno na server/GitHub a celá produkční akceptace fáze 7 není splněná. [Výsledky a příkazy](docs/PHASE_7.md), [provozní postup](docs/OPERATIONS.md).

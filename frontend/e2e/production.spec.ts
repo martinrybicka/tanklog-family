@@ -33,6 +33,15 @@ test("produkční nginx: fallback, JSON chyby, hlavičky, cookies a sanitizace p
   );
   expect(hugeReceipt.status()).toBe(413);
   expect((await hugeReceipt.json()).error.code).toBe("file_too_large");
+  const familyLarge = await page.request.post("/api/v1/family/receipts/", {
+    data: "x".repeat(2 * 1024 * 1024),
+  });
+  expect(familyLarge.status()).toBe(403);
+  const familyTooLarge = await page.request.post("/api/v1/family/receipts/", {
+    data: "x".repeat(13 * 1024 * 1024),
+  });
+  expect(familyTooLarge.status()).toBe(413);
+  expect((await familyTooLarge.json()).error.code).toBe("file_too_large");
   const csrfResponse = await page.request.get("/api/v1/auth/csrf/");
   const csrf = await csrfResponse.json();
   const noCsrf = await page.request.post("/api/v1/auth/login/", {
@@ -125,6 +134,8 @@ test("PWA: jen veřejná cache, offline bez soukromých údajů a odhlášení",
   await context.setOffline(false);
   await page.getByRole("link", { name: "Zkusit připojení znovu" }).click();
   await expect(page.getByRole("heading", { name: /Dobrý den/ })).toBeVisible();
+  if (await page.locator(".family-account summary").count())
+    await page.locator(".family-account summary").click();
   const logout = page.getByRole("button", { name: "Odhlásit se", exact: true });
   if (await logout.isVisible()) await logout.click();
   else

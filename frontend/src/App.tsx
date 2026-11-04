@@ -1,3 +1,8 @@
+import { FamilyShell } from "./family/FamilyShell";
+import { FamilyHome } from "./family/Home";
+import { ReceiptWizard } from "./family/ReceiptWizard";
+import { FamilyHistory, FamilyReceiptDetail } from "./family/History";
+import { FamilyAdmin } from "./family/Admin";
 import { Offline } from "./pages/Offline";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -108,6 +113,7 @@ function Theme({ value }: { value?: string }) {
 }
 
 function Protected() {
+  const location = useLocation();
   const session = useSession();
   if (session.isPending) return <Loading />;
   if (session.error && !session.data)
@@ -120,7 +126,15 @@ function Protected() {
   if (!session.data) return <Navigate to="/prihlaseni" replace />;
   if (session.data.must_change_password)
     return <Navigate to="/zmena-hesla" replace />;
-  return <Shell user={session.data} />;
+  const family =
+    ["/", "/uctenka", "/historie", "/profil", "/rodina"].includes(
+      location.pathname,
+    ) || location.pathname.startsWith("/historie/");
+  return family ? (
+    <FamilyShell user={session.data} />
+  ) : (
+    <Shell user={session.data} />
+  );
 }
 
 function Shell({ user }: { user: Session }) {
@@ -157,7 +171,7 @@ function Shell({ user }: { user: Session }) {
         </Link>
         <span className="nav-caption">VÁŠ DENÍK</span>
         <nav aria-label="Hlavní navigace">
-          <NavLink end to="/">
+          <NavLink end to="/prehled">
             <LayoutDashboard size={20} />
             Přehled
           </NavLink>
@@ -281,7 +295,7 @@ function Shell({ user }: { user: Session }) {
         </footer>
       </div>
       <nav className="mobile-nav" aria-label="Mobilní navigace">
-        <NavLink end to="/">
+        <NavLink end to="/prehled">
           <LayoutDashboard size={19} />
           Přehled
         </NavLink>
@@ -436,7 +450,13 @@ export function App() {
           <Route path="/prihlaseni" element={<LoginRoute />} />
           <Route path="/zmena-hesla" element={<PasswordRoute />} />
           <Route element={<Protected />}>
-            <Route index element={<Overview />} />
+            <Route index element={<FamilyHome />} />
+            <Route path="prehled" element={<Overview />} />
+            <Route path="uctenka" element={<ReceiptWizard />} />
+            <Route path="historie" element={<FamilyHistory />} />
+            <Route path="historie/:id" element={<FamilyReceiptDetail />} />
+            <Route path="rodina" element={<FamilyAdmin />} />
+            <Route path="profil" element={<Profile />} />
             <Route path="nastaveni" element={<Profile />} />
             <Route path="tankovani" element={<Refuelings />} />
             <Route path="tankovani/nove" element={<RefuelingEditor />} />

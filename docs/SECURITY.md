@@ -153,3 +153,9 @@ OCR: ověřený engine 5.5.4 a hashe ces/eng, soukromý očištěný grayscale v
 CSV je UTF-8, max. 128 KiB/200 řádků, whitelist polí a žádné vzdálené přílohy/role/owner/payer ID. Původní text zůstává soukromý v DB. Neaktivní/neaktuální přístup import nepotvrdí. Offline fronta je pouze neuložená paměť okna: výslovný opt-in, upozornění před zavřením, nové ověření účtu před synchronizací, purge při logoutu/změně účtu. Žádná soukromá SW/IndexedDB/localStorage cache ani automatická synchronizace.
 
 Úplný živý RSV/foto průchod, Linux image a skutečné provozní zatížení nejsou ověřené. Viz [PHASE_8.md](PHASE_8.md); tyto limity nelze nahrazovat fixture úspěchem.
+
+## Rodinná cesta
+
+Nahraný DB návrh je soukromý pro autora s přístupem k autu, včetně přímé fotografie. Upload a dokončení vyžadují právo vytvářet kapalné tankování; čtenář návrh nevytvoří. Data se znovu autorizují pod zámky a po OCR, originál má stejné ověření jako dosavadní účtenka. Nový upload podléhá kvótě, OCR sdílí původní globální sloty/limity a nikdy nejde do cloudu. Žádná veřejná registrace, JWT nebo browserová trvalá storage.
+
+ADMIN smí připravit výchozí auto člena, ale musí jít o jeho skutečně dostupné aktivní auto se zápisovým právem. Předvolba nevytváří grant; cílové ID nelze využít k prolomení přístupové matice. ETag brání přepsání souběžné konfigurace. Atomické dokončení a hash/idempotence brání duplicitám i částečnému uložení fotografie. Fotografie/OCR návrh se uchová přes odhlášení a nové zařízení v DB; neuložený ruční formulář se neukládá do browseru.

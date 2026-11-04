@@ -171,3 +171,10 @@ Analytika nezavádí nové trvalé entity ani migraci. PostgreSQL zůstává jed
 | IntegrationAttempt | Účet/provider/čas pro klouzavé minutové limity. |
 
 Fáze 8 má celkem 27 obnovovaných aplikačních/systémových tabulek ve zkušební DB. Celé JSON i bytea jsou součástí stejné šifrované DB zálohy a kontrolních součtů; OCR pomocný soubor není trvalým datovým úložištěm. Samotná klientská offline fronta nemá DB tabulku, protože ještě není uloženým záznamem.
+
+## Rodinné rozhraní – family/0001
+
+- FamilyPreference: OneToOne na účet, nullable FK na výchozí auto, kladná verze. Mění jen ADMIN; čtení vlastní předvolby znovu ověřuje dostupnost a aktivitu auta. Nenahrazuje VehicleAccess.
+- ReceiptDraft: UUID, autor/auto, upload UUID unikátní pro autora, originál a očištěný náhled bytea, metadata validované přílohy JSON, návrhy/raw OCR, verze, výsledné UUID tankování, hash potvrzeného těla a čas. Nehotový návrh není Refueling. Výsledné UUID není FK, aby opakování po smazání nikdy neobnovilo tankování.
+
+Návrhy čte pouze jejich autor s trvajícím přístupem k autu; samotná systémová role ADMIN je nezpřístupňuje jiným žadatelům. Po dokončení jsou fotografie součástí standardního ReceiptAttachment. Nová data jsou pouze v PostgreSQL a žádná původní tabulka se nepřepisuje. Návrhy zatím nemají automatickou retenci; raw originál/náhled zůstávají i po dokončení vedle běžné přílohy.

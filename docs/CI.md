@@ -83,3 +83,7 @@ Backend kontrola nyní zahrnuje infra/ops a 10 provozních regresí. Kontejnerov
 ## Doplnění fáze 8
 
 Kontejnerový pomocník před E2E vytvoří syntetické VIN/foto/OCR fixtures pouze v chráněné *_e2e DB a předá soukromý JSON přes E2E_EXTENSIONS_FIXTURE. Bez této proměnné se dva nové desktop/mobile testy výslovně přeskočí. OCR v nich používá skutečný lokální engine; RSV/foto jsou kontrolované fixtures. Backendové kontroly zahrnují infra/ocr a aktuální OpenAPI/migrace. Skutečný GitHub běh ani Docker build zde neproběhl, viz PHASE_8.md.
+
+## Rodinné rozhraní
+
+Kontejnerový pomocník navíc připraví `tests/prepare_family_e2e.py` ve chráněné *_e2e DB a předá `E2E_FAMILY_FIXTURE` jako privátní soubor. Obsahuje vlastní syntetické účty/auto/PNG, žádné skutečné rodinné doklady. Nové testy prověří běžného člena, foto→skutečné OCR→kontrola→DB, pokračování návrhu, ruční zadání/varování a konfiguraci správcem na mobilu i desktopu. Bez proměnné se výslovně přeskočí. Staré regresní testy používají pro plný dashboard cestu /prehled. Vzdálený CI a Docker runtime zůstávají neověřené.

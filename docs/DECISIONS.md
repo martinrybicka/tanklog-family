@@ -85,3 +85,12 @@ Fáze 1 byla poté výslovně zahájena uživatelem. Další fáze se nezahajuj�
 | ADR-058 | CSV náhled v DB a atomické potvrzení přes existující služby | Pevné šablony, revize historie, 24 h, idempotentní dávka a žádný částečný import. |
 | ADR-059 | Offline pouze výslovná neuložená fronta v paměti okna | Respektuje zákaz persistentních dat v prohlížeči; reload ji zruší, UI varuje. Účet/práva/varování se znovu ověří při ruční synchronizaci. |
 | ADR-060 | OCR build používá zamčené hashe a zmrazený Debian snapshot | Nové runtime knihovny jsou reprodukovatelné; skutečný Linux build nelze prohlásit za ověřený bez Docker daemonu. |
+
+## Rodinné rozhraní (4. 11. 2026)
+
+| ID | Rozhodnutí | Důsledek |
+| --- | --- | --- |
+| ADR-061 | Zachovat plnou verzi ve větvi a přidat rodinný shell do stejné aplikace | codex/tanklog-kompletni-faze-8 ukazuje na 4f43558; žádné kopie uživatelské DB, podrobný dashboard na /prehled. |
+| ADR-062 | Foto jako první: DB návrh před účetním záznamem | OCR může předvyplnit povinná pole, nezavádějí se fiktivní litry/částky; dokončení atomicky přes původní služby a idempotenci. |
+| ADR-063 | Správce připravuje výchozí auta členům v DB | Předvolba nemění práva, platí přes cookies/zařízení a nesmí odkazovat na nepřístupné auto. |
+| ADR-064 | Jemné přechody a vlastní inline SVG podle nového pokynu | Žádné externí fonty/fotobanky nebo další závislosti, tři navigační položky a mobilní prioritizace účtenky. |

@@ -13,6 +13,7 @@ async function signIn(page: Page, username = admin, secret = password) {
 }
 
 async function signOut(page: Page) {
+  await page.goto("/prehled");
   await page.getByRole("button", { name: /^Odhlásit se/ }).click();
   await expect(page).toHaveURL(/\/prihlaseni$/);
 }
@@ -24,7 +25,7 @@ test("přihlášení, profil a odhlášení", async ({ page }, info) => {
     path: `../.runtime/overview-${info.project.name}.png`,
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Nastavení", exact: true }).click();
+  await page.goto("/nastaveni");
   await expect(
     page.getByRole("heading", { name: "Osobní profil" }),
   ).toBeVisible();

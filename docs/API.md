@@ -207,3 +207,19 @@ Při vytvoření/úpravě auta lze přidat `lookup_id` a `lookup_fields` (seznam
 EventInput: povinné `kind`, `title`, `date`; volitelné `amount`, `odometer_km`, `due_date`, `due_odometer_km`, `notice_days` (30), `notice_km` (1000), `closed`, `note`, pro ENERGY také kladné `quantity` a `unit`. STK/pojištění vyžadují platnost, připomínka datum nebo km. CONTRIBUTOR vytváří/upravuje vlastní aktivní události; OWNER/ADMIN i archivované a mažou; VIEWER pouze čte.
 
 Externí chyby vracejí bezpečné 429/502/503/504 bez klíče či provider těla. Konfigurace serveru: `RSV_API_KEY`, `COMMONS_USER_AGENT` s kontaktem; OCR `OCR_BINARY`, `OCR_DATA`, `OCR_LOCK_FILE`. Klíče se nikdy neposílají frontendem. Offline klient používá běžný POST tankování a původní idempotency UUID, žádné alternativní API obcházející validaci.
+
+## Rodinná cesta – family
+
+Stejná plná session, aktivní účet, CSRF, objektová práva a private/no-store. Prefix `/api/v1/family/`:
+
+| Cesta | Kontrakt |
+| --- | --- |
+| `settings/` | GET vlastní `{default_vehicle_id}` a ETag; nepřístupná/archivovaná předvolba vrací null. |
+| `admin/settings/{user_id}/` | GET/PUT pouze ADMIN; PUT `{default_vehicle_id: UUID nebo null}` + If-Match. Aktivní cílový účet musí mít právo vytvářet tankování zvoleného auta. Žádný implicitní grant. |
+| `receipts/` | GET nejnovějších 20 vlastních nehotových dostupných návrhů; POST multipart `vehicle_id`, `file` + UUID Idempotency-Key. Pouze ověřený JPEG/PNG 10 MiB/24 MP, upload 20/účet/min a 40 sdíleně. Vytváří návrh, nikoli nákup. |
+| `receipts/{draft}/` | GET vlastní návrh a ETag; DELETE nehotový návrh s If-Match. |
+| `receipts/{draft}/image/` | GET autorizovaný očištěný JPEG náhled; žádná veřejná URL. |
+| `receipts/{draft}/recognize/` | POST `{}` + If-Match, lokální OCR se stávajícími limity/kvótou, nový návrh a ETag. Po skončení znovu zkontroluje účet, auto a revizi. |
+| `receipts/{draft}/complete/` | POST RefuelingInput + If-Match návrhu. Shodné auto, atomicky vytvoří tankování i účtenku; 409 vyžaduje potvrzení varování. Retry stejného těla vrací stejné ID, jiné tělo 409. Odstraněný výsledek 404, nikdy znovuvytvoření. |
+
+Upload vrací `id`, `vehicle_id`, `suggestions`, `result_id`, `created_at`, `preview_url`, ETag v hlavičce. Výstup dokončení je stávající Refueling. Neexistuje rozšířený zápis bez původní Decimal validace. Nová rodinná cesta ani preference nemění role nebo práva stávajících endpointů.

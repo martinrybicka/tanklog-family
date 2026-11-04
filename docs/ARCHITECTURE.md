@@ -172,3 +172,11 @@ OCR používá izolovaný podproces Tesseract 5.5.4 s privátním dočasným obr
 Import ukládá soukromý raw/normalizovaný návrh a revizi auta/historie; potvrzení celé dávky je atomické a využívá původní služby tankování nebo událostí. UUID odvozená z dávky a indexu chrání retry. Události mají samostatný ETag/idempotenci; jejich energie se nikdy nepřimíchá do litrové analytiky.
 
 Offline fronta je modulová paměť aktuálního okna (20 nových tankování), načtená před odpojením. Výslovné zařazení/synchronizace, původní UUID, nové ověření účtu a serverová validace; logout/změna účtu/reload ji ruší. Soukromé záznamy se neukládají do SW, IndexedDB ani localStorage. Uložená data a nastavení nadále vždy patří PostgreSQL.
+
+## Rodinné rozhraní
+
+Frontend `src/family` má samostatný shell a úvodní/účtenkové/historické/administrační obrazovky; používá stejné API/session/CSRF a existující React Query/ikony. Není to další aplikace ani databáze. Starý shell a nástroje dál fungují na původních cestách, podrobný úvod je přesunutý na `/prehled`; `/` je rodinná domovská stránka.
+
+Backend `apps/family` doplňuje jen FamilyPreference a ReceiptDraft. Návrh obsahuje ověřený originál/náhled a OCR podklady v DB, před dokončením nevytváří tankování ani náklad. Dokončení používá původní RefuelingInput, služby Decimal/varování, zámky a ukládání ReceiptAttachment ve společné transakci. Autoritativní idempotency UUID vychází z návrhu; retry kontroluje hash potvrzeného těla a vrací stejný výsledek. OCR používá stávající engine/kvótu/sloty; práva se kontrolují i po návratu podprocesu.
+
+Správce zapisuje předvolbu pod zámkem aktivních účtů a auta s optimistickým ETag. Předvolba není grant; odebrání přístupu způsobí ignorování neplatného výchozího auta. Žádná nová závislost, externí font/služba ani persistentní browser storage. Veškeré DB tabulky se automaticky účastní celodatabázové zálohy; tato úprava neopakuje produkční restore akceptaci.
