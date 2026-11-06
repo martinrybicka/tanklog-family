@@ -1,0 +1,15 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: infra/database.Dockerfile
+  backend:
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+      target: production
+  web:
+    build:
+      context: .
+      dockerfile: infra/frontend.Dockerfile
+      target: portainer

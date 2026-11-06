@@ -7,10 +7,10 @@
 Rodinná verze má samostatný `compose.portainer.yaml` pro čisté nasazení za Nginx Proxy Managerem. Spouští vlastní PostgreSQL bez publikovaného DB portu, automatické migrace a jednorázové vytvoření prvního správce v prohlížeči. Neobsahuje žádný automatický import ukázkových dat. Nastavte prostředí podle `.env.portainer.example` (čtyři nezávislá náhodná tajemství, instalační kód alespoň 32 znaků).
 
 ```sh
-docker compose --env-file .env.portainer -f compose.portainer.yaml up --build -d
+docker compose --env-file .env.portainer -f compose.portainer.yaml -f compose.build.yaml up --build -d
 ```
 
-V Portaineru použijte Repository, tento repozitář a soubor `compose.portainer.yaml`; zadejte proměnné prostředí. Před webem musí NPM ukončovat HTTPS. Veřejný origin je `https://<TANKLOG_DOMAIN>`, NPM přeposílá HTTP na port `TANKLOG_HTTP_PORT` (výchozí 8088). Nastavte certifikát, Force SSL a pro účtenky v Advanced `client_max_body_size 12m;`. Tento profil má externí HTTPS schéma pevně nastavené konfigurací a nepřebírá klientské X-Forwarded-Proto. Přímý HTTP port neslouží k přihlášení.
+Na cílovém Docker hostu nejprve sestavte image výše uvedeným příkazem (nebo stejnými dvěma Compose soubory s příkazem `build`). Potom v Portaineru použijte Repository, tento repozitář a soubor `compose.portainer.yaml`; zadejte stejný TANKLOG_IMAGE_TAG a proměnné prostředí. Samotný Portainer stack používá pouze lokálně připravené image a nic nestahuje z neexistujícího veřejného registru. Oddělený build je kompatibilní také s Edge Agentem. Před webem musí NPM ukončovat HTTPS. Veřejný origin je `https://<TANKLOG_DOMAIN>`, NPM přeposílá HTTP na port `TANKLOG_HTTP_PORT` (výchozí 8088). Nastavte certifikát, Force SSL a pro účtenky v Advanced `client_max_body_size 12m;`. Tento profil má externí HTTPS schéma pevně nastavené konfigurací a nepřebírá klientské X-Forwarded-Proto. Přímý HTTP port neslouží k přihlášení.
 
 Na prázdné instalaci se přihlašovací stránka automaticky přepne na První spuštění. Zadejte vlastní jméno/heslo správce a `TANKLOG_SETUP_TOKEN` z prostředí stacku. Po prvním vytvoření se možnost trvale uzavře; kód můžete poté z prostředí odstranit. Pro běžné účty dál platí vytváření správcem. Smazání účtů znovu neotevře instalaci. Nesdílejte produkční instalační kód ani hesla v issues/logách.
 
