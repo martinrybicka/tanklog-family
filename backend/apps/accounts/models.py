@@ -52,3 +52,13 @@ class User(AbstractUser):
     class Meta:
         constraints = [models.UniqueConstraint(Lower("username"), name="accounts_username_ci_unique")]
         ordering = ["username"]
+
+
+class Installation(models.Model):
+    """Trvalý jednorázový zámek úvodního nastavení; smazání účtů ho neotevře."""
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    completed_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(id=1), name="single_installation")]

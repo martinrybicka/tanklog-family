@@ -154,3 +154,6 @@ COMMONS_USER_AGENT = os.environ.get("COMMONS_USER_AGENT", "")
 OCR_BINARY = os.environ.get("OCR_BINARY", "tesseract")
 OCR_DATA = os.environ.get("OCR_DATA", str(BASE_DIR.parent / ".tools/ocr/tessdata"))
 OCR_LOCK_FILE = os.environ.get("OCR_LOCK_FILE", str(BASE_DIR.parent / "infra/ocr/dependencies.lock.json"))
+
+# Jednorázový instalační kód zůstává pouze v prostředí serveru.
+TANKLOG_SETUP_TOKEN = os.environ.get("TANKLOG_SETUP_TOKEN", "")

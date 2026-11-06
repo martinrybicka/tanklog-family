@@ -1,5 +1,7 @@
 # Pravidla práce na TankLog
 
+- Uživatel 6. 11. 2026 výslovně povolil veřejný GitHub rodinné verze a čisté nasazení přes Portainer na DOCKER01 pro tankovani.mrybicka.com. Toto povolení nahrazuje dřívější zákaz GitHub/produkce výhradně pro tuto aplikaci; ostatní služby a existující data se nemění. Webový port má být podle doplnění otevřený, DB port zůstává neveřejný. První správce se vytváří jednorázově s instalačním kódem z prostředí; žádné demo účty ani seed v produkci. Přístupové údaje zůstávají mimo soubory/Git/logy.
+
 - Komunikuj česky. Uživatelské texty, komentáře a projektovou dokumentaci piš česky; technické identifikátory mohou být anglicky.
 - Uživatel 4. 11. 2026 samostatně povolil jednodušší rodinné rozhraní, moderní grafiku a přechody, cestu účtenka → kontrola → uložení a nastavení rodiny správcem. Původní verze je zachovaná ve větvi codex/tanklog-kompletni-faze-8 (4f43558); nové práce jsou v codex/rodinne-rozhrani. Tento pokyn nahrazuje omezení další práce po fázi 8 pouze pro tento rozsah; po dokončení se zastav. Uživatel povolil celou fázi 8 včetně návrhu podrobné specifikace všech rozšíření; rozsah určuje docs/PHASE_8_SPECIFICATION.md. Zachovej zákaz GitHub/produkce. Offline fronta smí držet neuložené soukromé údaje pouze v paměti okna; připomínky jsou uvnitř aplikace, OCR lokální. Vzdálená akceptace fází 6–7 zůstává neprovedená. Po fázi 8 se zastav.
 - Přečti README a relevantní dokumenty v `docs/`. Udržuj specifikaci, API, model a rozhodnutí ve shodě. Návrhy neoznačuj za hotové funkce.

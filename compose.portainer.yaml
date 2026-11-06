@@ -1,0 +1,98 @@
+name: tanklog-family
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: tanklog-family-db:${TANKLOG_IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: infra/database.Dockerfile
+    environment:
+      POSTGRES_DB: tanklog
+      POSTGRES_USER: tanklog_bootstrap
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Nastavte samostatne nahodne heslo spravce DB}
+      TANKLOG_APP_DB_USER: tanklog
+      TANKLOG_APP_DB_PASSWORD: ${POSTGRES_PASSWORD:?Nastavte nahodne heslo aplikacni DB role}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U tanklog_bootstrap -d tanklog']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+    restart: unless-stopped
+
+  backend:
+    image: tanklog-family-backend:${TANKLOG_IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+      target: production
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DJANGO_DEBUG: "false"
+      DJANGO_SECURE_COOKIES: "true"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Nastavte nahodny Django secret}
+      DJANGO_ALLOWED_HOSTS: ${TANKLOG_DOMAIN:?Nastavte verejnou domenu},localhost,127.0.0.1
+      DJANGO_CSRF_TRUSTED_ORIGINS: https://${TANKLOG_DOMAIN}
+      DJANGO_HSTS_SECONDS: "0"
+      TANKLOG_SETUP_TOKEN: ${TANKLOG_SETUP_TOKEN:?Nastavte jednorazovy instalacni kod nejmene 32 znaku}
+      POSTGRES_DB: tanklog
+      POSTGRES_USER: tanklog
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      RSV_API_KEY: ${RSV_API_KEY:-}
+      COMMONS_USER_AGENT: ${COMMONS_USER_AGENT:-}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,mode=1777,size=268435456
+    networks: [application, database]
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    init: true
+    security_opt: [no-new-privileges:true]
+    logging: *logging
+    restart: unless-stopped
+
+  web:
+    image: tanklog-family-web:${TANKLOG_IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: infra/frontend.Dockerfile
+      target: portainer
+    ports:
+      - ${TANKLOG_BIND_ADDRESS:-0.0.0.0}:${TANKLOG_HTTP_PORT:-8088}:8080
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks: [application]
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:8080/']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    security_opt: [no-new-privileges:true]
+    logging: *logging
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  application:
+  database:
+    internal: true

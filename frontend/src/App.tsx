@@ -3,6 +3,8 @@ import { FamilyHome } from "./family/Home";
 import { ReceiptWizard } from "./family/ReceiptWizard";
 import { FamilyHistory, FamilyReceiptDetail } from "./family/History";
 import { FamilyAdmin } from "./family/Admin";
+import { useQuery } from "@tanstack/react-query";
+import { Bootstrap, setupStatus } from "./pages/Bootstrap";
 import { Offline } from "./pages/Offline";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -361,6 +363,12 @@ function AdminOnly() {
 
 function LoginRoute() {
   const session = useSession();
+  const installation = useQuery({
+    queryKey: ["installation"],
+    queryFn: setupStatus,
+  });
+  if (!session.data && installation.data?.data.available)
+    return <Navigate to="/prvni-spusteni" replace />;
   if (session.isPending) return <Loading />;
   return session.data ? (
     <Navigate
@@ -447,6 +455,7 @@ export function App() {
       <RouteFocus />
       <Suspense fallback={<Loading />}>
         <Routes>
+          <Route path="/prvni-spusteni" element={<Bootstrap />} />
           <Route path="/prihlaseni" element={<LoginRoute />} />
           <Route path="/zmena-hesla" element={<PasswordRoute />} />
           <Route element={<Protected />}>

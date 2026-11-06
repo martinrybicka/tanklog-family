@@ -19,3 +19,7 @@ COPY infra/nginx/proxy-api.conf /etc/nginx/tanklog/proxy-api.conf
 COPY infra/nginx/security-headers.conf /etc/nginx/tanklog/security-headers.conf
 COPY infra/nginx/production.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 8080
+
+# Samostatný profil pro Portainer a externí NPM přes publikovaný port.
+FROM production AS portainer
+COPY infra/nginx/portainer.conf.template /etc/nginx/templates/default.conf.template

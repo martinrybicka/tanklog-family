@@ -1,0 +1,36 @@
+# Vyhrazený HTTP vstup za NPM. Veřejný origin je výhradně HTTPS.
+# Schéma je určeno konfigurací serveru, klientské forwarded hlavičky se nepřebírají.
+server {
+    listen 8080;
+    server_name _;
+    access_log /var/log/nginx/access.log tanklog;
+    set $tanklog_proto https;
+    client_max_body_size 1m;
+    root /usr/share/nginx/html;
+    include /etc/nginx/tanklog/security-headers.conf;
+    include /etc/nginx/tanklog/proxy-api.conf;
+    location = /sw.js {
+        try_files $uri =404;
+        include /etc/nginx/tanklog/security-headers.conf;
+        add_header Cache-Control "no-cache, no-store" always;
+        add_header Service-Worker-Allowed "/" always;
+    }
+    location = /manifest.webmanifest {
+        try_files $uri =404;
+        default_type application/manifest+json;
+        include /etc/nginx/tanklog/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+    }
+    location /icons/ { try_files $uri =404; }
+    location /assets/ {
+        try_files $uri =404;
+        expires 1y;
+        include /etc/nginx/tanklog/security-headers.conf;
+        add_header Cache-Control "public, immutable";
+    }
+    location / {
+        try_files $uri $uri/ /index.html;
+        include /etc/nginx/tanklog/security-headers.conf;
+        add_header Cache-Control "no-store" always;
+    }
+}

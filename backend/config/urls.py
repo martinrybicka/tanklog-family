@@ -3,6 +3,7 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework.renderers import JSONRenderer
 
 from apps.accounts import views
+from apps.accounts.bootstrap import BootstrapView
 from apps.accounts.permissions import Administrator
 
 handler400 = "apps.core.errors.bad_request"
@@ -10,6 +11,7 @@ handler404 = "apps.core.errors.not_found"
 handler500 = "apps.core.errors.server_error"
 
 urlpatterns = [
+    path("api/v1/auth/setup/", BootstrapView.as_view()),
     path("api/v1/family/", include("apps.family.urls")),
     path("api/v1/", include("apps.extensions.urls")),
     path("api/v1/", include("apps.analytics.urls")),
