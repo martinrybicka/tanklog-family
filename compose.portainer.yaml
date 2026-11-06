@@ -43,7 +43,7 @@ services:
       DJANGO_ALLOWED_HOSTS: ${TANKLOG_DOMAIN:?Nastavte verejnou domenu},localhost,127.0.0.1
       DJANGO_CSRF_TRUSTED_ORIGINS: https://${TANKLOG_DOMAIN}
       DJANGO_HSTS_SECONDS: "0"
-      TANKLOG_SETUP_TOKEN: ${TANKLOG_SETUP_TOKEN:?Nastavte jednorazovy instalacni kod nejmene 32 znaku}
+      TANKLOG_SETUP_TOKEN: ${TANKLOG_SETUP_TOKEN:-}
       POSTGRES_DB: tanklog
       POSTGRES_USER: tanklog
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
