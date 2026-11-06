@@ -4,20 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0001_initial'),
+        ("accounts", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Installation',
+            name="Installation",
             fields=[
-                ('id', models.PositiveSmallIntegerField(default=1, editable=False, primary_key=True, serialize=False)),
-                ('completed_at', models.DateTimeField()),
+                (
+                    "id",
+                    models.PositiveSmallIntegerField(
+                        default=1, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("completed_at", models.DateTimeField()),
             ],
             options={
-                'constraints': [models.CheckConstraint(condition=models.Q(('id', 1)), name='single_installation')],
+                "constraints": [
+                    models.CheckConstraint(condition=models.Q(("id", 1)), name="single_installation")
+                ],
             },
         ),
     ]
