@@ -159,3 +159,6 @@ CSV je UTF-8, max. 128 KiB/200 řádků, whitelist polí a žádné vzdálené p
 Nahraný DB návrh je soukromý pro autora s přístupem k autu, včetně přímé fotografie. Upload a dokončení vyžadují právo vytvářet kapalné tankování; čtenář návrh nevytvoří. Data se znovu autorizují pod zámky a po OCR, originál má stejné ověření jako dosavadní účtenka. Nový upload podléhá kvótě, OCR sdílí původní globální sloty/limity a nikdy nejde do cloudu. Žádná veřejná registrace, JWT nebo browserová trvalá storage.
 
 ADMIN smí připravit výchozí auto člena, ale musí jít o jeho skutečně dostupné aktivní auto se zápisovým právem. Předvolba nevytváří grant; cílové ID nelze využít k prolomení přístupové matice. ETag brání přepsání souběžné konfigurace. Atomické dokončení a hash/idempotence brání duplicitám i částečnému uložení fotografie. Fotografie/OCR návrh se uchová přes odhlášení a nové zařízení v DB; neuložený ruční formulář se neukládá do browseru.
+
+
+Nasazení 6. 11. 2026: historický zmrazený Debian snapshot v linuxovém buildu nahradily oficiální podepsané Bookworm a Bookworm-security repozitáře kvůli nedostupnému stahování snapshot balíčků. Základní image zůstává připnutý digestem a zdroj Tesseract/modely mají stejné SHA-256; tranzitivní systémové knihovny získávají aktuální opravy Bookworm. Starší tvrzení o plně zmrazených OS balíčcích se tímto zpřesňuje.

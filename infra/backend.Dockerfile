@@ -1,7 +1,7 @@
 FROM python:3.14.10-slim-bookworm@sha256:516b51cb9db2ef061e465c803e50f64361b82cefd91e525b889b967b83e83527 AS ocr-build
 RUN rm -f /etc/apt/sources.list.d/debian.sources \
-    && printf 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20261103T000000Z bookworm main\ndeb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20261103T000000Z bookworm-security main\n' > /etc/apt/sources.list \
-    && apt-get update && apt-get install --no-install-recommends -y cmake build-essential pkg-config libleptonica-dev \
+    && printf 'deb [check-valid-until=no] https://deb.debian.org/debian bookworm main\ndeb [check-valid-until=no] https://deb.debian.org/debian-security bookworm-security main\n' > /etc/apt/sources.list \
+    && apt-get -o Acquire::Retries=3 -o Acquire::ForceIPv4=true update && apt-get install --no-install-recommends -y cmake build-essential pkg-config libleptonica-dev \
     && rm -rf /var/lib/apt/lists/*
 COPY infra/ocr/build_inputs.py infra/ocr/dependencies.lock.json /build-inputs/
 RUN python /build-inputs/build_inputs.py \
@@ -13,8 +13,8 @@ FROM python:3.14.10-slim-bookworm@sha256:516b51cb9db2ef061e465c803e50f64361b82ce
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
     UV_PROJECT_ENVIRONMENT=/opt/venv UV_NO_MANAGED_PYTHON=1 PATH="/opt/venv/bin:$PATH"
 RUN rm -f /etc/apt/sources.list.d/debian.sources \
-    && printf 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20261103T000000Z bookworm main\ndeb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20261103T000000Z bookworm-security main\n' > /etc/apt/sources.list \
-    && apt-get update && apt-get install --no-install-recommends -y liblept5 libstdc++6 fonts-dejavu-core \
+    && printf 'deb [check-valid-until=no] https://deb.debian.org/debian bookworm main\ndeb [check-valid-until=no] https://deb.debian.org/debian-security bookworm-security main\n' > /etc/apt/sources.list \
+    && apt-get -o Acquire::Retries=3 -o Acquire::ForceIPv4=true update && apt-get install --no-install-recommends -y liblept5 libstdc++6 fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=ocr-build /opt/ocr /opt/ocr
 RUN printf '/opt/ocr/lib\n' > /etc/ld.so.conf.d/tanklog-ocr.conf && ldconfig

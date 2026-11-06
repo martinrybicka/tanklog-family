@@ -23,3 +23,6 @@ Uživatel výslovně potvrdí model/generaci/karoserii; automatická přesnost n
 Jen již uložená autorizovaná JPEG/PNG účtenka; bez cloudu. Rozpoznání vrací raw text a návrhy data/litrů/ceny/částky/km/stanice s jistotou enginu, nikoli zárukou správnosti. Nejednoznačné hodnoty se vynechají; záměna l/I/1 má sníženou jistotu. Výsledek obsahuje hash/verzi původní přílohy. Výběr jednotlivých polí a následné standardní uložení vynucují Decimal, varování a ETag; starý výsledek se odmítne.
 
 15 s wall time, CPU 10 s, na macOS RSS dohled 512 MiB na macOS, Linux AS 1 GiB, výstup max. 2 MiB a nejvýše dva souběžné sloty; žádné automatické retry. Soukromý pomocný PNG se uklidí. Linux resource limity/image čekají na běhové ověření, macOS engine byl skutečně spuštěn. Srovnání PSM 6/11 na vlastní syntetické české účtence rozpoznalo u obou 6/6 očekávaných polí; není to měření přesnosti na reálných účtenkách. Při selhání zůstává ruční editace/originál.
+
+
+Nasazení 6. 11. 2026: historický zmrazený Debian snapshot v linuxovém buildu nahradily oficiální podepsané Bookworm a Bookworm-security repozitáře kvůli nedostupnému stahování snapshot balíčků. Základní image zůstává připnutý digestem a zdroj Tesseract/modely mají stejné SHA-256; tranzitivní systémové knihovny získávají aktuální opravy Bookworm. Starší tvrzení o plně zmrazených OS balíčcích se tímto zpřesňuje.

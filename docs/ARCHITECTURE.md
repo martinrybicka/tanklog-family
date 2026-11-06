@@ -180,3 +180,6 @@ Frontend `src/family` má samostatný shell a úvodní/účtenkové/historické/
 Backend `apps/family` doplňuje jen FamilyPreference a ReceiptDraft. Návrh obsahuje ověřený originál/náhled a OCR podklady v DB, před dokončením nevytváří tankování ani náklad. Dokončení používá původní RefuelingInput, služby Decimal/varování, zámky a ukládání ReceiptAttachment ve společné transakci. Autoritativní idempotency UUID vychází z návrhu; retry kontroluje hash potvrzeného těla a vrací stejný výsledek. OCR používá stávající engine/kvótu/sloty; práva se kontrolují i po návratu podprocesu.
 
 Správce zapisuje předvolbu pod zámkem aktivních účtů a auta s optimistickým ETag. Předvolba není grant; odebrání přístupu způsobí ignorování neplatného výchozího auta. Žádná nová závislost, externí font/služba ani persistentní browser storage. Veškeré DB tabulky se automaticky účastní celodatabázové zálohy; tato úprava neopakuje produkční restore akceptaci.
+
+
+Nasazení 6. 11. 2026: historický zmrazený Debian snapshot v linuxovém buildu nahradily oficiální podepsané Bookworm a Bookworm-security repozitáře kvůli nedostupnému stahování snapshot balíčků. Základní image zůstává připnutý digestem a zdroj Tesseract/modely mají stejné SHA-256; tranzitivní systémové knihovny získávají aktuální opravy Bookworm. Starší tvrzení o plně zmrazených OS balíčcích se tímto zpřesňuje.
