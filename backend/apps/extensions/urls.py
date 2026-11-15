@@ -1,8 +1,11 @@
 from django.urls import path
 
 from . import views
+from .settings_api import RsvSettingsView, RsvTestView
 
 urlpatterns = [
+    path("admin/integrations/rsv/", RsvSettingsView.as_view()),
+    path("admin/integrations/rsv/test/", RsvTestView.as_view()),
     path("vehicles/<uuid:vehicle_id>/events/", views.EventsView.as_view()),
     path(
         "vehicles/<uuid:vehicle_id>/events/<uuid:event_id>/",

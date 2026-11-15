@@ -223,3 +223,8 @@ Stejná plná session, aktivní účet, CSRF, objektová práva a private/no-sto
 | `receipts/{draft}/complete/` | POST RefuelingInput + If-Match návrhu. Shodné auto, atomicky vytvoří tankování i účtenku; 409 vyžaduje potvrzení varování. Retry stejného těla vrací stejné ID, jiné tělo 409. Odstraněný výsledek 404, nikdy znovuvytvoření. |
 
 Upload vrací `id`, `vehicle_id`, `suggestions`, `result_id`, `created_at`, `preview_url`, ETag v hlavičce. Výstup dokončení je stávající Refueling. Neexistuje rozšířený zápis bez původní Decimal validace. Nová rodinná cesta ani preference nemění role nebo práva stávajících endpointů.
+
+
+## Administrace RSV – 15. 11. 2026
+
+GET /api/v1/admin/integrations/rsv/ vrací configured, source (database/environment/none), updated_at a ETag. PUT na stejné cestě přijímá api_key a vyžaduje CSRF a If-Match (428 bez něj, 412 při konfliktu). Klíč je pouze zapisovatelný. POST /api/v1/admin/integrations/rsv/test/ přijímá nepovinné vin; vrací connected, vehicle_found a message. Bez VIN použije veřejný příklad z dokumentace RSV. Status 1 znamená úspěch, 3 nenalezený záznam při fungujícím spojení; neznámé odpovědi odmítáme. Všechny tři operace vyžadují aktivní plnou administrátorskou session. Chyby poskytovatele neobsahují jeho tělo ani klíč.

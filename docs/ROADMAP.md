@@ -88,3 +88,8 @@ Výkonové limity konkrétního serveru se měří na syntetických datech; nep�
 ## Samostatný pokyn 4. 11. 2026 – jednodušší rodinné rozhraní
 
 Uživatel po fázi 8 výslovně požádal zachovat plnou verzi a implementovat jednodušší variantu se zaměřením na účtenky a správu rodiny administrátorem. Rozsah a ověření jsou v FAMILY_UI.md, změny modelu/API jsou popsány v příslušných dokumentech. Původní verze je v codex/tanklog-kompletni-faze-8, nový vývoj v codex/rodinne-rozhrani. Vzdálené fáze 6/7 nadále nejsou schválené k provedení a žádná další práce nezačíná automaticky.
+
+
+## Samostatně schválené rozšíření – 15. 11. 2026
+
+Uživatel povolil dokončení administrace RSV, zveřejnění na existujícím GitHubu a aktualizaci stávajícího stacku tanklog-family bez smazání dat. Rozsah: šifrovaný klíč v DB, administrační formulář, test spojení a bezpečné nasazení. Podrobnosti a skutečné výsledky: RSV_SETTINGS.md.

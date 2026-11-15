@@ -128,3 +128,8 @@ Uživatel požádal zachovat plnou verzi a postavit výrazně jednodušší kaž
 Nové tankování může začít nahráním obrázku: soukromý DB návrh bez účetního dopadu → lokální OCR → zkontrolovaný formulář → atomický zápis tankování i původní účtenky. Neúspěšné OCR dovolí ruční vyplnění; bez fotografie lze vyplnit jen datum/litry/částku. Datum je předvyplněné, tachometr nepovinný a plná nádrž vždy výslovná. Chybějící km/ostatní rizikové údaje dál vyžadují původní potvrzení varování, žádné tiché odhady.
 
 Fotka a OCR návrh jsou trvale v PostgreSQL a lze je znovu otevřít na jiném zařízení. Neuložené ruční změny formuláře se dosud neautosavují. Souhrny vycházejí ze skutečných přístupných dat, bez ilustračních statistik. Původní implementace je v zachované větvi, podrobný dashboard také na `/prehled`. Rozsah ani pokyn nepovolují GitHub, publikaci či produkční server. Viz [FAMILY_UI.md](FAMILY_UI.md).
+
+
+## Správa klíče RSV – 15. 11. 2026
+
+Správce v rozhraní Správa rodiny může nahradit API klíč RSV a otestovat spojení, volitelně s konkrétním VIN. Test nevytváří vozidlo. Běžní uživatelé nastavení nevidí a API je odmítá. Uložený klíč je šifrovaný v PostgreSQL, nikdy se nevrací čtecím API. Prostředí RSV_API_KEY slouží jen jako výchozí hodnota, pokud klíč ještě nebyl uložen v DB.

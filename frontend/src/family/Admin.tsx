@@ -15,6 +15,7 @@ import { api, errorText } from "../lib/api";
 import type { Page, User } from "../lib/types";
 import { ErrorMessage, Loading } from "../components/ui";
 import { familyCars } from "./api";
+import { IntegrationSettings } from "./IntegrationSettings";
 function MemberSetting({ user }: { user: User }) {
   const client = useQueryClient();
   const query = useQuery({
@@ -158,6 +159,7 @@ export function FamilyAdmin() {
           </Link>
         ))}
       </div>
+      <IntegrationSettings />
       <section className="family-card family-admin-settings">
         <div className="family-section-heading">
           <h2>

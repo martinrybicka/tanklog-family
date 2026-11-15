@@ -4,9 +4,9 @@ Podrobný rozsah: [PHASE_8_SPECIFICATION.md](PHASE_8_SPECIFICATION.md), skutečn
 
 ## RSV – technické údaje podle VIN
 
-Oficiální [dokumentace RSV v1.0](https://dataovozidlech.cz/data/RSV_Verejna_API_DK_v1_0.pdf) ověřena 3. 11. 2026: `GET https://api.dataovozidlech.cz/vehicletechnicaldata/v2?vin=...`, hlavička `API_KEY`, dokumentovaný limit 27/min. Naše sdílená klouzavá kvóta je konzervativně 20/min a 5/účet/min, bez retry. `RSV_API_KEY` je pouze v prostředí backendu. Vyhledávání podle TP/ORV není implementované.
+Oficiální [dokumentace RSV v1.0](https://dataovozidlech.cz/data/RSV_Verejna_API_DK_v1_0.pdf) ověřena 3. 11. 2026: `GET https://api.dataovozidlech.cz/api/vehicletechnicaldata/v2?vin=...`, hlavička `API_KEY`, dokumentovaný limit 27/min. Naše sdílená klouzavá kvóta je konzervativně 20/min a 5/účet/min, bez retry. Správce nastavuje klíč ve Správě rodiny; šifrovaná hodnota v DB má přednost před výchozím `RSV_API_KEY` v prostředí. Vyhledávání podle TP/ORV není implementované.
 
-Kontroluje se Status a shodný VIN, normalizuje se značka/model/objem a pouze jednoznačný číselný výkon a známé palivo. Více hodnot, nejednoznačná spotřeba a první registrace se nepovažují za výrobní rok/normu. Raw snapshot v DB, mapovací verze rsv-1, čas a skutečně přijatá pole uchovávají původ. Uživatel vybírá jednotlivá pole, následně uloží auto obvyklým formulářem. Návrh platí 24 h; změněná práva/identita potvrzení zablokují. Chybějící klíč vrací 503 a ruční fallback. Živý autorizovaný RSV test zde nebyl možný, klíč chybí; testy používají syntetické odpovědi včetně chyb a limitu vráceného s HTTP 200.
+Kontroluje se Status a shodný VIN, normalizuje se značka/model/objem a pouze jednoznačný číselný výkon a známé palivo. Více hodnot, nejednoznačná spotřeba a první registrace se nepovažují za výrobní rok/normu. Raw snapshot v DB, mapovací verze rsv-1, čas a skutečně přijatá pole uchovávají původ. Uživatel vybírá jednotlivá pole, následně uloží auto obvyklým formulářem. Návrh platí 24 h; změněná práva/identita potvrzení zablokují. Chybějící klíč vrací 503 a ruční fallback. Původní akceptace fáze 8 neměla klíč; 15. 11. 2026 již živý dotaz se stávajícím produkčním klíčem vrátil Status 1 a vozidlo; testy používají syntetické odpovědi včetně chyb a limitu vráceného s HTTP 200.
 
 ## Wikimedia Commons – ilustrační fotografie
 

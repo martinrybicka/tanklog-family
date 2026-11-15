@@ -183,3 +183,8 @@ Správce zapisuje předvolbu pod zámkem aktivních účtů a auta s optimistick
 
 
 Nasazení 6. 11. 2026: historický zmrazený Debian snapshot v linuxovém buildu nahradily oficiální podepsané Bookworm a Bookworm-security repozitáře kvůli nedostupnému stahování snapshot balíčků. Základní image zůstává připnutý digestem a zdroj Tesseract/modely mají stejné SHA-256; tranzitivní systémové knihovny získávají aktuální opravy Bookworm. Starší tvrzení o plně zmrazených OS balíčcích se tímto zpřesňuje.
+
+
+## Šifrované integrační nastavení – 15. 11. 2026
+
+IntegrationSetting obsahuje název, autentizovaně šifrovaný klíč Fernet, verzi a čas změny. Šifrovací klíč je odvozen SHA-256 z DJANGO_SECRET_KEY a kontextu tanklog:rsv:v1. Při změně DJANGO_SECRET_KEY je nutné klíč RSV uložit znovu. Záloha DB sama k dešifrování nestačí; tajemství prostředí zálohujte odděleně. Globální transakční advisory zámek a If-Match chrání proti souběžnému přepsání. Test spojení sdílí kvótu VIN, neukládá odpověď poskytovatele ani VIN do auditu a po vzdáleném volání znovu ověřuje správce a nezměněný klíč. Závislost cryptography 50.0.2 je zamčená v uv.lock.

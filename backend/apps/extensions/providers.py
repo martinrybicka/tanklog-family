@@ -45,6 +45,12 @@ def fetch(url, headers=None, maximum=1024 * 1024):
             headers=headers or {},
         )
         response = connection.getresponse()
+        if parsed.hostname == "api.dataovozidlech.cz" and response.status in (401, 403):
+            raise Problem(
+                "provider_authentication_failed",
+                "Registr odmítl API klíč. Zkontrolujte jej v administraci.",
+                502,
+            )
         if response.status == 429:
             raise Problem(
                 "provider_limited",
@@ -129,7 +135,10 @@ def map_rsv(payload, vin):
 
 
 def rsv(vin):
-    if not settings.RSV_API_KEY:
+    from .settings_api import current_key
+
+    key = current_key()
+    if not key:
         raise Problem(
             "provider_not_configured",
             "Dohledání VIN zatím nemá nastavený API klíč. Vyplňte auto ručně.",
@@ -137,7 +146,7 @@ def rsv(vin):
         )
     payload = fetch_json(
         "https://api.dataovozidlech.cz/api/vehicletechnicaldata/v2?" + urlencode({"vin": vin}),
-        {"API_KEY": settings.RSV_API_KEY},
+        {"API_KEY": key},
     )
     if not isinstance(payload, dict):
         raise Problem("provider_invalid", "Neplatná odpověď registru.", 502)

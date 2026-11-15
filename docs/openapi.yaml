@@ -53,6 +53,61 @@ paths:
                 items:
                   $ref: '#/components/schemas/Audit'
           description: ''
+  /api/v1/admin/integrations/rsv/:
+    get:
+      operationId: admin_integrations_rsv_retrieve
+      tags:
+      - admin
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    put:
+      operationId: admin_integrations_rsv_update
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyInput'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/admin/integrations/rsv/test/:
+    post:
+      operationId: admin_integrations_rsv_test_create
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProbeInput'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/admin/system/:
     get:
       operationId: admin_system_retrieve
@@ -2916,6 +2971,16 @@ components:
       - next
       - previous
       - results
+    KeyInput:
+      type: object
+      properties:
+        api_key:
+          type: string
+          writeOnly: true
+          maxLength: 256
+          minLength: 8
+      required:
+      - api_key
     LiquidFuelTypeEnum:
       enum:
       - PETROL
@@ -3209,6 +3274,12 @@ components:
           nullable: true
       required:
       - default_vehicle_id
+    ProbeInput:
+      type: object
+      properties:
+        vin:
+          type: string
+          maxLength: 17
     PurchaseOutput:
       type: object
       properties:

@@ -132,3 +132,10 @@ class ReceiptExtraction(models.Model):
     raw_text = models.TextField()
     suggestions = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class IntegrationSetting(models.Model):
+    name = models.CharField(max_length=30, primary_key=True)
+    encrypted_secret = models.TextField()
+    version = models.PositiveIntegerField(default=1)
+    updated_at = models.DateTimeField(auto_now=True)

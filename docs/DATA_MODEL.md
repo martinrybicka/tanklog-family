@@ -178,3 +178,8 @@ Fáze 8 má celkem 27 obnovovaných aplikačních/systémových tabulek ve zkuš
 - ReceiptDraft: UUID, autor/auto, upload UUID unikátní pro autora, originál a očištěný náhled bytea, metadata validované přílohy JSON, návrhy/raw OCR, verze, výsledné UUID tankování, hash potvrzeného těla a čas. Nehotový návrh není Refueling. Výsledné UUID není FK, aby opakování po smazání nikdy neobnovilo tankování.
 
 Návrhy čte pouze jejich autor s trvajícím přístupem k autu; samotná systémová role ADMIN je nezpřístupňuje jiným žadatelům. Po dokončení jsou fotografie součástí standardního ReceiptAttachment. Nová data jsou pouze v PostgreSQL a žádná původní tabulka se nepřepisuje. Návrhy zatím nemají automatickou retenci; raw originál/náhled zůstávají i po dokončení vedle běžné přílohy.
+
+
+## IntegrationSetting – 15. 11. 2026
+
+Nová tabulka extensions_integrationsetting: name (PK), encrypted_secret (Fernet ciphertext), version, updated_at. Migrace 0003 pouze přidává tuto tabulku; nemění stávající uživatele, auta, účtenky ani tankování.

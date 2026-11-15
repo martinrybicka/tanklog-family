@@ -8,7 +8,7 @@ x-logging: &logging
 
 services:
   db:
-    image: tanklog-family-db:${TANKLOG_IMAGE_TAG:-latest}
+    image: tanklog-family-db:${TANKLOG_DB_IMAGE_TAG:-${TANKLOG_IMAGE_TAG:-latest}}
     pull_policy: never
     environment:
       POSTGRES_DB: tanklog

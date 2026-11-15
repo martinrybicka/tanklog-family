@@ -14,6 +14,8 @@ Na cílovém Docker hostu nejprve sestavte image výše uvedeným příkazem (ne
 
 Na prázdné instalaci se přihlašovací stránka automaticky přepne na První spuštění. Zadejte vlastní jméno/heslo správce a `TANKLOG_SETUP_TOKEN` z prostředí stacku. Po prvním vytvoření se možnost trvale uzavře; kód můžete poté z prostředí odstranit. Pro běžné účty dál platí vytváření správcem. Smazání účtů znovu neotevře instalaci. Nesdílejte produkční instalační kód ani hesla v issues/logách.
 
+Správce může ve **Správě rodiny** nastavit klíč RSV a tlačítkem **Otestovat spojení** ověřit registr. Klíč je šifrovaný v databázi a nikde se zpětně nezobrazuje. [Nastavení a ověření](docs/RSV_SETTINGS.md).
+
 ## Aktuální stav
 
 **Rodinné rozhraní (4. 11. 2026).** Po přihlášení se otevírá jednoduchá domovská stránka s cestou **účtenka → kontrola → uložení**. Rozpracovaná fotka i návrhy OCR jsou v DB; správce připraví členům auta, přístupy a výchozí auto. Moderní ikony, ilustrovaný přehled a jemné přechody nahrazují každodenní práci s rozsáhlou navigací. Podrobné nástroje jsou dál na `/prehled` a v administraci. Původní verze je zachovaná ve větvi `codex/tanklog-kompletni-faze-8` na `4f43558`; nový vývoj je ve větvi `codex/rodinne-rozhrani`. [Předání a ověření](docs/FAMILY_UI.md).
