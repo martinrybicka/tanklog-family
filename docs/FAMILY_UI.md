@@ -99,3 +99,5 @@ Docker/Linux image, vzdálený CI, skutečné nasazení a živé VIN/foto propoj
 ## Oprava obrysu hlavního obsahu – 15. 11. 2026
 
 Programový fokus po přihlášení nebo navigaci nadále oznamuje novou stránku čtečkám, ale `#main-content:focus` nemá obrys kolem celého obsahu. Fokus tlačítek, odkazů a formulářů při práci klávesnicí zůstává zvýrazněný. Změna je pouze v CSS, bez migrací a změn uložených dat. Lint, TypeScript a produkční build prošly.
+
+Ověření sestaveného CSS v Chromium na šířce 1280 i 375 px: programově zaměřený main má outline-style none; po Tab je tlačítko aktivní a outline-style solid. Oprava je zveřejněná v commitu e06b897. Web image 0.9.2, backend beze změny obsahu přetagovaný na 0.9.2; DB image i datový svazek zůstávají původní.
