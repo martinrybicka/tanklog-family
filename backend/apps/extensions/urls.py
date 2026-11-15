@@ -16,6 +16,7 @@ urlpatterns = [
     path("imports/<uuid:batch_id>/", views.ImportDetailView.as_view()),
     path("reminders/", views.ReminderView.as_view()),
     path("vehicle-lookups/", views.LookupView.as_view()),
+    path("vehicles/<uuid:vehicle_id>/photo-upload/", views.PhotoUploadView.as_view()),
     path("vehicles/<uuid:vehicle_id>/photo-search/", views.PhotoSearchView.as_view()),
     path("vehicles/<uuid:vehicle_id>/photo/", views.PhotoSelectView.as_view()),
     path("vehicle-images/<uuid:image_id>/", views.PhotoContentView.as_view()),

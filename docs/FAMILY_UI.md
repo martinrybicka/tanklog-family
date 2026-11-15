@@ -101,3 +101,8 @@ Docker/Linux image, vzdálený CI, skutečné nasazení a živé VIN/foto propoj
 Programový fokus po přihlášení nebo navigaci nadále oznamuje novou stránku čtečkám, ale `#main-content:focus` nemá obrys kolem celého obsahu. Fokus tlačítek, odkazů a formulářů při práci klávesnicí zůstává zvýrazněný. Změna je pouze v CSS, bez migrací a změn uložených dat. Lint, TypeScript a produkční build prošly.
 
 Ověření sestaveného CSS v Chromium na šířce 1280 i 375 px: programově zaměřený main má outline-style none; po Tab je tlačítko aktivní a outline-style solid. Oprava je zveřejněná v commitu e06b897. Web image 0.9.2, backend beze změny obsahu přetagovaný na 0.9.2; DB image i datový svazek zůstávají původní.
+
+
+## Vlastní fotografie auta – 15. 11. 2026
+
+Ve Správě rodiny otevřete auto (nebo klikněte na jeho název v Naší garáži). V detailu v části Fotografie auta vyberte vlastní JPEG/PNG a klikněte Nahrát fotografii. Povoleno správci a vlastníkovi, bez VIN a Wikimedia konfigurace. Po nahrání se snímek zobrazí na detailu, kartě i v rodinné garáži. Nahrání nahrazuje předchozí snímek; soubor smí mít nejvýše 10 MiB/24 MP. Uchovává se pouze očištěný JPEG bez EXIF do 1600 × 1600 px v DB. Tlačítkem Odebrat fotografii a návrhy lze snímek odstranit. Žádná migrace ani změna stávajících dat při aktualizaci není potřeba.

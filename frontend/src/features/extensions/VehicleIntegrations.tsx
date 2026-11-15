@@ -6,6 +6,7 @@ export type Photo = {
   id: string;
   url: string;
   metadata: {
+    kind?: "upload";
     author: string;
     credit?: string;
     attribution?: string;
@@ -132,10 +133,17 @@ export function Illustration({
     <figure className="vehicle-photo">
       <img
         src={photo.url}
-        alt="Ilustrační fotografie modelu vozidla"
+        alt={
+          photo.metadata.kind === "upload"
+            ? "Vlastní fotografie auta"
+            : "Ilustrační fotografie modelu vozidla"
+        }
         loading="lazy"
       />
-      {caption && (
+      {caption && photo.metadata.kind === "upload" && (
+        <figcaption>Vlastní fotografie auta</figcaption>
+      )}
+      {caption && photo.metadata.kind !== "upload" && (
         <figcaption>
           Ilustrační fotografie · {photo.metadata.author} ·{" "}
           <a href={photo.metadata.license_url} target="_blank" rel="noreferrer">
@@ -155,6 +163,78 @@ export function Illustration({
     </figure>
   );
 }
+function PhotoUpload({
+  vehicleId,
+  etag,
+  onChange,
+}: {
+  vehicleId: string;
+  etag: string;
+  onChange: () => Promise<unknown>;
+}) {
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [inputKey, setInputKey] = useState(0);
+  return (
+    <form
+      onSubmit={async (event) => {
+        event.preventDefault();
+        if (!file) return;
+        setBusy(true);
+        setError("");
+        setMessage("");
+        try {
+          if (file.size > 10 * 1024 * 1024)
+            throw new Error("Fotografie smí mít nejvýše 10 MiB.");
+          const body = new FormData();
+          body.append("file", file);
+          await api(`vehicles/${vehicleId}/photo-upload/`, {
+            method: "POST",
+            body,
+            etag,
+          });
+          setFile(null);
+          setInputKey(inputKey + 1);
+          await onChange();
+          setMessage("Vlastní fotografie byla uložena.");
+        } catch (e) {
+          setError(errorText(e));
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <h3>Vlastní fotografie auta</h3>
+      <p>
+        Nahrajte svůj snímek ve formátu JPEG nebo PNG, nejvýše 10 MiB a 24
+        megapixelů. Nahráním nahradíte současnou fotografii. Poloha a další EXIF
+        údaje se odstraní. Fotografie bude dostupná pouze lidem s přístupem k
+        autu.
+      </p>
+      <label>
+        Vybrat vlastní fotografii auta
+        <input
+          key={inputKey}
+          type="file"
+          accept="image/jpeg,image/png"
+          disabled={busy}
+          onChange={(e) => {
+            setFile(e.target.files?.[0] ?? null);
+            setError("");
+            setMessage("");
+          }}
+        />
+      </label>
+      <Button type="submit" disabled={busy || !file}>
+        {busy ? "Nahrávání…" : "Nahrát fotografii"}
+      </Button>
+      <ErrorMessage>{error}</ErrorMessage>
+      <p role="status">{message}</p>
+    </form>
+  );
+}
 export function PhotoPicker({
   vehicleId,
   etag,
@@ -171,7 +251,9 @@ export function PhotoPicker({
   const [confirmed, setConfirmed] = useState(false);
   return (
     <section className="panel">
-      <h2>Ilustrační fotografie</h2>
+      <h2>Fotografie auta</h2>
+      <PhotoUpload vehicleId={vehicleId} etag={etag} onChange={onChange} />
+      <h3>Ilustrační fotografie z databáze</h3>
       <p>
         Po potvrzeném dohledání VIN lze nabídnout model z Wikimedia Commons.
         Ověřte model, generaci i karoserii; fotografie nemusí odpovídat

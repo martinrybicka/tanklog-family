@@ -222,3 +222,34 @@ def photo_for(request, image_id):
     ):
         raise Problem("not_found", "Fotografie není dostupná.", 404)
     return image
+
+
+@transaction.atomic
+def save_uploaded_photo(request, vehicle_id, payload):
+    lock_users(request)
+    car = lock_vehicle(request, vehicle_id)
+    require_version(request, car)
+    # U vlastního snímku uchováváme jen očištěný obraz, bez EXIF a původního názvu.
+    clean = payload["preview_bytes"]
+    VehicleImage.objects.filter(vehicle=car).delete()
+    image = VehicleImage.objects.create(
+        vehicle=car,
+        applicant=request.user,
+        status="ACTIVE",
+        original=clean,
+        preview=clean,
+        content_type="image/jpeg",
+        metadata={
+            "kind": "upload",
+            "author": "Vlastní fotografie",
+            "license": "Soukromá fotografie",
+            "license_url": "",
+            "source": "",
+            "title": "Fotografie auta",
+            "modified": "Očištěný a zmenšený snímek bez EXIF.",
+        },
+        match=photo_match(car),
+    )
+    bump(car)
+    record(request, "vehicle.photo_uploaded", image, vehicle_id=car.pk)
+    return image

@@ -183,3 +183,6 @@ Návrhy čte pouze jejich autor s trvajícím přístupem k autu; samotná syst�
 ## IntegrationSetting – 15. 11. 2026
 
 Nová tabulka extensions_integrationsetting: name (PK), encrypted_secret (Fernet ciphertext), version, updated_at. Migrace 0003 pouze přidává tuto tabulku; nemění stávající uživatele, auta, účtenky ani tankování.
+
+
+Vlastní fotografie používá existující VehicleImage bez migrace. metadata.kind=upload odlišuje soukromý snímek od licencované ilustrace; original i preview obsahují očištěný JPEG nejvýše 1600 × 1600 px. EXIF, původní soubor a jeho název se neukládají. Identita make/model/VIN hash zůstává v match podle dosavadních pravidel; změna identity auta zneplatní zobrazení snímku.

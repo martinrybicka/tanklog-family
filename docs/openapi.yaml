@@ -2077,6 +2077,39 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/vehicles/{vehicle_id}/photo-upload/:
+    post:
+      operationId: vehicles_photo_upload_create
+      parameters:
+      - in: path
+        name: vehicle_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - vehicles
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+              - file
+      security:
+      - sessionAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/vehicles/{vehicle_id}/refueling-order/:
     get:
       operationId: vehicles_refueling_order_retrieve

@@ -133,3 +133,8 @@ Fotka a OCR návrh jsou trvale v PostgreSQL a lze je znovu otevřít na jiném z
 ## Správa klíče RSV – 15. 11. 2026
 
 Správce v rozhraní Správa rodiny může nahradit API klíč RSV a otestovat spojení, volitelně s konkrétním VIN. Test nevytváří vozidlo. Běžní uživatelé nastavení nevidí a API je odmítá. Uložený klíč je šifrovaný v PostgreSQL, nikdy se nevrací čtecím API. Prostředí RSV_API_KEY slouží jen jako výchozí hodnota, pokud klíč ještě nebyl uložen v DB.
+
+
+## Vlastní fotografie auta – 15. 11. 2026
+
+Správce nebo vlastník nahraje JPEG/PNG z detailu auta bez požadavku na VIN. Nahrání vědomě nahrazuje dosavadní snímek. Limit je 10 MiB / 24 MP, jeden neanimovaný soubor. Ukládá se pouze očištěný JPEG do PostgreSQL, bez EXIF a původního názvu. Fotografie se zobrazuje na kartě, detailu a v rodinné garáži, čtení podléhá právům k autu.

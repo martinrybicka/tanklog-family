@@ -26,3 +26,8 @@ Jen již uložená autorizovaná JPEG/PNG účtenka; bez cloudu. Rozpoznání vr
 
 
 Nasazení 6. 11. 2026: historický zmrazený Debian snapshot v linuxovém buildu nahradily oficiální podepsané Bookworm a Bookworm-security repozitáře kvůli nedostupnému stahování snapshot balíčků. Základní image zůstává připnutý digestem a zdroj Tesseract/modely mají stejné SHA-256; tranzitivní systémové knihovny získávají aktuální opravy Bookworm. Starší tvrzení o plně zmrazených OS balíčcích se tímto zpřesňuje.
+
+
+## Vlastní fotografie auta
+
+Nezávisle na Commons a VIN lze v detailu auta nahrát vlastní JPEG/PNG (10 MiB, 24 MP). Ukládá se jen očištěný JPEG nejvýše 1600 × 1600 px bez EXIF do DB; předchozí snímek se nahradí. Správce/vlastník nahrává, každý oprávněný čtenář auta vidí snímek. Odebrání je dostupné v témže panelu. Fotografie se objeví i v rodinné garáži, odkud název auta vede na jeho detail. Commons ilustrace v garáži zachovávají atribuci a licenční/zdrojové odkazy.

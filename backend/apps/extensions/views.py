@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiTypes, extend_schema
 from rest_framework import serializers
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -206,6 +207,39 @@ def image_output(item):
         "url": f"/api/v1/vehicle-images/{item.pk}/",
         "match": {key: value for key, value in item.match.items() if key != "vin_hash"},
     }
+
+
+class PhotoUploadView(APIView):
+    parser_classes = [MultiPartParser]
+
+    @extend_schema(
+        request={
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {"file": {"type": "string", "format": "binary"}},
+                "required": ["file"],
+            }
+        },
+        responses={201: OpenApiTypes.OBJECT},
+    )
+    def post(self, request, vehicle_id):
+        from apps.core.errors import Problem
+        from apps.refuelings.receipts import validate_image
+
+        car = integrations.manageable(request, vehicle_id)
+        require_version(request, car)
+        if int(request.META.get("CONTENT_LENGTH") or 0) > 12 * 1024**2:
+            raise Problem("file_too_large", "Požadavek přesahuje 12 MiB.", 413)
+        integrations.reserve(request, "photo-upload", 5, 20)
+        if set(request.data) != {"file"} or len(request.FILES.getlist("file")) != 1:
+            raise serializers.ValidationError({"file": "Nahrajte právě jednu fotografii."})
+        try:
+            payload = validate_image(request.FILES["file"])
+        except Problem as error:
+            raise Problem("file_too_large", "Fotografie smí mít nejvýše 10 MiB.", 413) from error
+        return Response(
+            image_output(integrations.save_uploaded_photo(request, vehicle_id, payload)), status=201
+        )
 
 
 class PhotoSearchView(APIView):

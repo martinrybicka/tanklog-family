@@ -16,6 +16,8 @@ Na prázdné instalaci se přihlašovací stránka automaticky přepne na První
 
 Správce může ve **Správě rodiny** nastavit klíč RSV a tlačítkem **Otestovat spojení** ověřit registr. Klíč je šifrovaný v databázi a nikde se zpětně nezobrazuje. [Nastavení a ověření](docs/RSV_SETTINGS.md).
 
+V detailu auta může správce nebo vlastník nahrát **vlastní fotografii** (JPEG/PNG, do 10 MiB), která se zobrazí i v rodinné garáži. Funguje bez VIN i externího zdroje; snímek se ukládá očištěný bez EXIF do DB.
+
 ## Aktuální stav
 
 **Rodinné rozhraní (4. 11. 2026).** Po přihlášení se otevírá jednoduchá domovská stránka s cestou **účtenka → kontrola → uložení**. Rozpracovaná fotka i návrhy OCR jsou v DB; správce připraví členům auta, přístupy a výchozí auto. Moderní ikony, ilustrovaný přehled a jemné přechody nahrazují každodenní práci s rozsáhlou navigací. Podrobné nástroje jsou dál na `/prehled` a v administraci. Původní verze je zachovaná ve větvi `codex/tanklog-kompletni-faze-8` na `4f43558`; nový vývoj je ve větvi `codex/rodinne-rozhrani`. [Předání a ověření](docs/FAMILY_UI.md).

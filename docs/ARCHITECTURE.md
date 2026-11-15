@@ -188,3 +188,6 @@ Nasazení 6. 11. 2026: historický zmrazený Debian snapshot v linuxovém buildu
 ## Šifrované integrační nastavení – 15. 11. 2026
 
 IntegrationSetting obsahuje název, autentizovaně šifrovaný klíč Fernet, verzi a čas změny. Šifrovací klíč je odvozen SHA-256 z DJANGO_SECRET_KEY a kontextu tanklog:rsv:v1. Při změně DJANGO_SECRET_KEY je nutné klíč RSV uložit znovu. Záloha DB sama k dešifrování nestačí; tajemství prostředí zálohujte odděleně. Globální transakční advisory zámek a If-Match chrání proti souběžnému přepsání. Test spojení sdílí kvótu VIN, neukládá odpověď poskytovatele ani VIN do auditu a po vzdáleném volání znovu ověřuje správce a nezměněný klíč. Závislost cryptography 50.0.2 je zamčená v uv.lock.
+
+
+Vlastní fotografie (15. 11. 2026) používá osvědčenou validaci obrázků účtenek (Pillow) a ukládá pouze očištěný výstup do VehicleImage. Vstup se ověří podle skutečného obsahu, MIME, velikosti, pixelů a animace. Práva/verze se ověřují před dekódováním i pod transakčním zámkem před nahrazením. Soukromý snímek nepoužívá externí poskytovatele ani licenční odkazy.

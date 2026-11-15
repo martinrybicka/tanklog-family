@@ -298,10 +298,24 @@ export function FamilyHome() {
               cars.data.slice(0, 3).map((car) => (
                 <div key={car.id} className="family-car">
                   <span className="family-car-icon">
-                    <CarFront size={32} strokeWidth={1.5} />
+                    {car.photo ? (
+                      <img
+                        className="family-car-photo"
+                        src={car.photo.url}
+                        alt={
+                          car.photo.metadata.kind === "upload"
+                            ? "Vlastní fotografie auta"
+                            : "Ilustrační fotografie modelu auta"
+                        }
+                      />
+                    ) : (
+                      <CarFront size={32} strokeWidth={1.5} />
+                    )}
                   </span>
                   <div>
-                    <strong>{car.name}</strong>
+                    <strong>
+                      <Link to={`/auta/${car.id}`}>{car.name}</Link>
+                    </strong>
                     <small>
                       {car.make} {car.model}
                     </small>
@@ -310,6 +324,33 @@ export function FamilyHome() {
                     </span>
                   </div>
                   <span className="family-car-status" aria-hidden="true" />
+                  {car.photo && car.photo.metadata.kind !== "upload" && (
+                    <small className="family-car-credit">
+                      Ilustrační fotografie · {car.photo.metadata.author} ·{" "}
+                      <a
+                        href={car.photo.metadata.license_url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {car.photo.metadata.license}
+                      </a>{" "}
+                      ·{" "}
+                      <a
+                        href={car.photo.metadata.source}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Zdroj
+                      </a>
+                      {car.photo.metadata.credit && (
+                        <span>{car.photo.metadata.credit}</span>
+                      )}
+                      {car.photo.metadata.attribution && (
+                        <span>{car.photo.metadata.attribution}</span>
+                      )}
+                      <span>{car.photo.metadata.modified}</span>
+                    </small>
+                  )}
                 </div>
               ))
             ) : (
