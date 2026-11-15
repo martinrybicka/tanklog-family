@@ -125,3 +125,13 @@ Omezení: vlastní upload nepodporuje HEIC/WebP; před nahráním použijte JPEG
 Historie → otevřít tankování → **Smazat tankování a účtenku** → zkontrolovat auto/datum/částku → **Potvrdit smazání**. Zrušit neprovede žádný DELETE. Odstraní se celý nákup včetně fotografie a kopií obrazu/OCR v původním návrhu; statistiky se přepočtou. Akci nelze v aplikaci vrátit. Audit a ochrana před duplicitou zůstávají, zálohy mají původní retenci.
 
 Běžný přispěvatel může smazat pouze nákup, který vytvořil sám na stále aktivním a zpřístupněném autě. Čtenář nemůže mazat; při archivaci nebo odebrání přístupu akce není povolená. Práva správce a vlastníka auta zůstávají zachována. Při konfliktu verze dialog nabídne načtení aktuálního záznamu.
+
+### Ověření a nasazení mazání
+
+Commit f2be12d je zveřejněný na main; backend/web 0.9.4 běží ve stávajícím stacku na DOCKER01. PostgreSQL nadále používá image 0.9.0 a původní svazek. Služby jsou healthy. Před nasazením byla pořízena age záloha do ignorované `.runtime/production-backup-20261115/tanklog-before-family-delete.dump.age` se stávající soukromou identitou. Hashe původních aplikačních dat jsou po nasazení a ověření shodné.
+
+Prošlo 257 backendových a 36 frontendových testů, Ruff, frontend lint/TypeScript/build, kontrola migrací (žádné nové), Compose config a serverový build/runtime. Gitleaks nad zveřejňovaným patchem nic nenašel. Nová backendová regrese ověřuje i součty před/po smazání, cizí záznam, CSRF, povinný/neshodný If-Match, odstranění fotografií/návrhu, audit a zablokování retry. Upravené starší očekávání E2E pro práva přispěvatele nebylo tímto během samostatně spuštěno; úplná starší E2E sada nebyla opakována.
+
+Produkční API bylo ověřeno v jedné vnější transakci s dočasným běžným uživatelem/grantem/autem: vlastní DELETE 204, cizí DELETE 403, příloha i kopie obrazu odstraněny, načtení starého náhledu i opakované dokončení 404. Transakce se celá vrátila zpět; žádný testovací účet, auto ani nákup nezůstaly uložené a žádné původní údaje nebyly smazány.
+
+Nasazené rodinné UI bylo ověřeno na syntetické odpovědi detailu a zachyceném DELETE bez změny skutečných dat: Zrušit neodeslalo DELETE, potvrzení poslalo jeden DELETE se správným If-Match a vrátilo do historie. Mobilní dialog na 375 px neměl vodorovné přetečení a byl vizuálně zkontrolovaný. Ověřovací relace byla odhlášena a build kontejner odstraněn.
