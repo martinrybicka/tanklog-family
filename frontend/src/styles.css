@@ -66,6 +66,10 @@ button:disabled {
   outline: 3px solid var(--primary);
   outline-offset: 4px;
 }
+/* Hlavní obsah dostává fokus po změně stránky pro čtečky, bez obrysu celého panelu. */
+#main-content:focus {
+  outline: none;
+}
 h1,
 h2,
 h3,

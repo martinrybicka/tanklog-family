@@ -95,3 +95,7 @@ OCR zůstává pomocník s povinnou kontrolou, skutečné fotografie mohou potř
 Nehotové návrhy zatím nemají automatickou retenci, seznam nabízí nejnovějších 20 a dokončené podklady zůstávají vedle přílohy v DB. Ruční změny polí nejsou automaticky ukládané; trvale uložené jsou fotografie a původní OCR návrhy, pak potvrzený záznam. Již uložená tankování se opravují původním formulářem. Plná správa účtů/grantů stále používá existující administrační obrazovky.
 
 Docker/Linux image, vzdálený CI, skutečné nasazení a živé VIN/foto propojení zůstávají v dříve popsaném stavu, nejsou touto UI úpravou ověřené ani povolené. Běží jen místní náhled; pro dokončení nebyly použité skutečné doklady ani produkční data.
+
+## Oprava obrysu hlavního obsahu – 15. 11. 2026
+
+Programový fokus po přihlášení nebo navigaci nadále oznamuje novou stránku čtečkám, ale `#main-content:focus` nemá obrys kolem celého obsahu. Fokus tlačítek, odkazů a formulářů při práci klávesnicí zůstává zvýrazněný. Změna je pouze v CSS, bez migrací a změn uložených dat. Lint, TypeScript a produkční build prošly.
