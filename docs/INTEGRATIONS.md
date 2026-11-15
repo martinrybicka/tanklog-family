@@ -37,3 +37,13 @@ Nezávisle na Commons a VIN lze v detailu auta nahrát vlastní JPEG/PNG (10 MiB
 Parser nyní přijímá mezery tisíců v celkové částce (i nezalomitelné), celý popisek „Celkem k úhradě“ a množství za názvem paliva včetně oktanového čísla. U palivového řádku umí rozpoznat cenu za litr, pokud násobení Decimal souhlasí s částkou řádku do 0,01 Kč. Záměnu jednotky l za číslici 1 přijme pouze při této číselné kontrole a se sníženou jistotou, nikoli jako dodatečnou desetinnou číslici. Hodnoty DPH, neplatné skupiny číslic a konfliktní množství/částky se nepřebírají jako jistý výsledek. Návrhy stále vyžadují uživatelskou kontrolu.
 
 Na obrázku dodaném uživatelem bylo skutečně spuštěno lokální Tesseract 5.5.4 se zamčenými ces+eng modely a dosavadním PSM 6. Původní výstup neměl litry a celkovou částku zkrátil na 1. Po opravě stejný obrázek vrací datum 2025-01-17, litry 42.37, cenu 36.90 a celkovou částku 1563.45. Obrázek ani úplný OCR přepis se nepřidávají do repozitáře; regresní testy obsahují pouze syntetické řádky bez osobních údajů.
+
+### Nasazení a skutečné ověření OCR
+
+Oprava je zveřejněná v commitech 86cc735 a a8bafc2 a nasazená jako backend 0.9.5 ve stávajícím stacku na DOCKER01. Frontend je obsahově nezměněný, pouze přetagovaný; PostgreSQL zůstává 0.9.0 a všechny služby jsou healthy. Žádné migrace ani nové závislosti. Před aktualizací vznikla šifrovaná záloha v ignorovaném souboru `.runtime/production-backup-20261115/tanklog-before-ocr-numbers.dump.age` se stávající soukromou identitou. Kontrolní hashe stávajících aplikačních dat jsou shodné.
+
+Skutečné výsledky: celá sada 269 backendových testů prošla; po doplnění podpory slovní jednotky litru prošlo dalších 21 cílených regresí (včetně všech 13 nových případů). Ruff, formátování, Gitleaks nad zveřejňovaným patchem, Compose config a serverový build/runtime prošly. Frontend se neměnil a jeho testy nebyly znovu spouštěny.
+
+Dodaný ilustrativní obrázek byl skutečně zpracován také linuxovým Tesseractem v nově nasazeném backendu se zamčenými modely a původním PSM 6. Výsledky byly programově ověřené: datum 2025-01-17, litry 42.37, cena za litr 36.90, částka 1563.45. Dočasný obrazový obsah byl po testu odstraněn; nevzniklo testovací tankování, účet ani návrh účtenky. Test neodesílal obrázek žádnému externímu OCR. Jediný ilustrativní snímek nedokládá přesnost všech typů účtenek; nejednoznačné návrhy se nadále potvrzují ručně.
+
+Dříve uložené výsledky OCR se automaticky nepřepisují. V rozpracované rodinné účtence použijte **Přečíst znovu**, u uloženého tankování v podrobném rozhraní **Rozpoznat účtenku** a následně potvrďte vybraná pole.
