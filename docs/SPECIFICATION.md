@@ -138,3 +138,7 @@ Správce v rozhraní Správa rodiny může nahradit API klíč RSV a otestovat s
 ## Vlastní fotografie auta – 15. 11. 2026
 
 Správce nebo vlastník nahraje JPEG/PNG z detailu auta bez požadavku na VIN. Nahrání vědomě nahrazuje dosavadní snímek. Limit je 10 MiB / 24 MP, jeden neanimovaný soubor. Ukládá se pouze očištěný JPEG do PostgreSQL, bez EXIF a původního názvu. Fotografie se zobrazuje na kartě, detailu a v rodinné garáži, čtení podléhá právům k autu.
+
+## Přesnější čísla z OCR – 15. 11. 2026
+
+Rozpoznání podporuje palivový tabulkový řádek s označením typu Natural 95, mezery tisíců v ceně a běžnou záměnu jednotky l/1. Nejednoznačná jednotka 1 vyžaduje souhlas litrů × ceny s částkou palivového řádku v Decimal a zůstává méně jistým návrhem. OCR nadále neukládá nákup bez potvrzení a při různých kandidátech hodnotu vynechá. Žádné nové závislosti, cloudová služba ani změna datového modelu.

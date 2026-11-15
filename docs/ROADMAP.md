@@ -96,3 +96,5 @@ Uživatel povolil dokončení administrace RSV, zveřejnění na existujícím G
 
 
 15. 11. 2026 – samostatně schválené mazání vlastního tankování v rodinném rozhraní, včetně přílohy, potvrzení a přepočtu. Centrální oprávnění CONTRIBUTOR jsou rozšířena pouze pro vlastní aktivní záznamy. Nejde o zahájení další projektové fáze.
+
+15. 11. 2026 – samostatně požadované zlepšení OCR pro litry a celkovou částku. Oprava parseru stávajícího lokálního enginu, testovaná také na uživatelem dodaném ilustrativním snímku; nejde o novou projektovou fázi.

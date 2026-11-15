@@ -29,6 +29,37 @@ from apps.vehicles.selectors import vehicle_for
 from .integrations import reserve
 from .models import IntegrationGate, ReceiptExtraction
 
+# Mezery tisíců se přijímají jen ve skupinách po třech, ne jako oddělovač sloupců.
+MONEY_NUMBER = r"(?:\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d+)(?:[.,]\d{1,2})?(?![\d.,])"
+
+
+def decimal_text(value):
+    return re.sub(r"\s", "", value).replace(",", ".")
+
+
+def fuel_row(text):
+    """Množství za názvem paliva; nejednoznačnou číslici 1 ověřuje cena × litry."""
+    if not re.search(r"\b(?:benz[ií]n|nafta|diesel|natural)\b", text, re.I):
+        return {}
+    quantity = re.search(r"(?<![\d.,+-])(\d{1,4}[.,]\d{1,3})\s*([lI1])\.?(?=\s|$)", text, re.I)
+    if not quantity:
+        return {}
+    liters = decimal_text(quantity[1])
+    if Decimal(liters) <= 0:
+        return {}
+    money = re.findall(r"(?<![\d.,])(" + MONEY_NUMBER + r")\s*(?:K[čc]|CZK)\b", text[quantity.end() :], re.I)
+    consistent = False
+    if len(money) == 2:
+        price, amount = (Decimal(decimal_text(value)) for value in money)
+        consistent = price > 0 and abs(Decimal(liters) * price - amount) <= Decimal("0.01")
+    ambiguous = quantity[2] in ["1", "I", "i"]
+    if quantity[2] == "1" and not consistent:
+        return {}
+    result = {"liters": (liters, ambiguous)}
+    if consistent:
+        result["unit_price_entered"] = (decimal_text(money[0]), ambiguous)
+    return result
+
 
 def parse_tsv(tsv):
     lines = {}
@@ -46,9 +77,13 @@ def parse_tsv(tsv):
     raw = "\n".join(" ".join(word for word, _ in tokens) for tokens in lines.values())[:60000]
     suggestions = {}
     patterns = {
-        "liters": r"(?:litry|litru|mnozstvi|množství|objem|benz[ií]n|nafta|diesel|natural)\s*[:=]?\s*(\d+[.,]\d{1,3})\s*(?:lit(?:ru|rů|ry)?|[lI1])\b",
+        "liters": r"(?:litry|litru|mnozstvi|množství|objem)\s*[:=]?\s*(\d+[.,]\d{1,3})\s*(?:lit(?:ru|rů|ry)?|[lI1])\b",
         "unit_price_entered": r"(?:cena\s*(?:za\s*)?(?:litr|/l)|kc/l|kč/l)\s*[:=]?\s*(\d+[.,]\d{1,4})",
-        "total_amount": r"(?:celkem|celkova castka|celková částka|total|k\s*[úu]hrad[eě])\s*[:=]?\s*(\d+(?:[.,]\d{1,2})?)",
+        "total_amount": (
+            r"\b(?:celkem(?:\s+k\s*[úu]hrad[eě])?|celkova castka|celková částka|total|k\s*[úu]hrad[eě])\s*[:=]?\s*("
+            + MONEY_NUMBER
+            + r")(?=\s*(?:K[čc]\b|CZK\b|$|[|&=]))"
+        ),
         "odometer_km": r"(?:tachometr|stav km|km)\s*[:=]?\s*(\d{1,8})\b",
     }
     found = {}
@@ -58,7 +93,7 @@ def parse_tsv(tsv):
         for field, pattern in patterns.items():
             match = re.search(pattern, text, re.I)
             if match:
-                value = match[1].replace(",", ".")
+                value = decimal_text(match[1])
                 found.setdefault(field, []).append(
                     {
                         "value": value,
@@ -70,6 +105,14 @@ def parse_tsv(tsv):
                         "source": text[:250],
                     }
                 )
+        for field, (value, ambiguous) in fuel_row(text).items():
+            found.setdefault(field, []).append(
+                {
+                    "value": value,
+                    "confidence": str(min(confidence, 50) if ambiguous else confidence),
+                    "source": text[:250],
+                }
+            )
         match = re.search(r"\b(\d{1,2})[./](\d{1,2})[./](20\d{2})\b", text)
         if match:
             try:

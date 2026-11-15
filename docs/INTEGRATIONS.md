@@ -31,3 +31,9 @@ Nasazení 6. 11. 2026: historický zmrazený Debian snapshot v linuxovém buildu
 ## Vlastní fotografie auta
 
 Nezávisle na Commons a VIN lze v detailu auta nahrát vlastní JPEG/PNG (10 MiB, 24 MP). Ukládá se jen očištěný JPEG nejvýše 1600 × 1600 px bez EXIF do DB; předchozí snímek se nahradí. Správce/vlastník nahrává, každý oprávněný čtenář auta vidí snímek. Odebrání je dostupné v témže panelu. Fotografie se objeví i v rodinné garáži, odkud název auta vede na jeho detail. Commons ilustrace v garáži zachovávají atribuci a licenční/zdrojové odkazy.
+
+## Oprava čtení čísel účtenek – 15. 11. 2026
+
+Parser nyní přijímá mezery tisíců v celkové částce (i nezalomitelné), celý popisek „Celkem k úhradě“ a množství za názvem paliva včetně oktanového čísla. U palivového řádku umí rozpoznat cenu za litr, pokud násobení Decimal souhlasí s částkou řádku do 0,01 Kč. Záměnu jednotky l za číslici 1 přijme pouze při této číselné kontrole a se sníženou jistotou, nikoli jako dodatečnou desetinnou číslici. Hodnoty DPH, neplatné skupiny číslic a konfliktní množství/částky se nepřebírají jako jistý výsledek. Návrhy stále vyžadují uživatelskou kontrolu.
+
+Na obrázku dodaném uživatelem bylo skutečně spuštěno lokální Tesseract 5.5.4 se zamčenými ces+eng modely a dosavadním PSM 6. Původní výstup neměl litry a celkovou částku zkrátil na 1. Po opravě stejný obrázek vrací datum 2025-01-17, litry 42.37, cenu 36.90 a celkovou částku 1563.45. Obrázek ani úplný OCR přepis se nepřidávají do repozitáře; regresní testy obsahují pouze syntetické řádky bez osobních údajů.
