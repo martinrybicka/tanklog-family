@@ -41,7 +41,9 @@ def fuel_row(text):
     """Množství za názvem paliva; nejednoznačnou číslici 1 ověřuje cena × litry."""
     if not re.search(r"\b(?:benz[ií]n|nafta|diesel|natural)\b", text, re.I):
         return {}
-    quantity = re.search(r"(?<![\d.,+-])(\d{1,4}[.,]\d{1,3})\s*([lI1])\.?(?=\s|$)", text, re.I)
+    quantity = re.search(
+        r"(?<![\d.,+-])(\d{1,4}[.,]\d{1,3})\s*(lit(?:ru|rů|ry)?|[lI1])\.?(?=\s|$)", text, re.I
+    )
     if not quantity:
         return {}
     liters = decimal_text(quantity[1])

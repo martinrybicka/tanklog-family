@@ -35,6 +35,7 @@ def test_payment_total_with_thousands_grouping(space):
     [
         "Benzín NATURAL 95 42,37 l 36,90 Kč 1 563,45 Kč",
         "Nafta Diesel 42,37 L 36,90 Kč 1563,45 Kč",
+        "Nafta 42,37 litru 36,90 Kč 1563,45 Kč",
     ],
 )
 def test_fuel_row_quantity_is_not_grade_or_price(line):
