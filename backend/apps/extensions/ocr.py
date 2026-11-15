@@ -39,7 +39,7 @@ def decimal_text(value):
 
 def fuel_row(text):
     """Množství za názvem paliva; nejednoznačnou číslici 1 ověřuje cena × litry."""
-    if not re.search(r"\b(?:benz[ií]n|nafta|diesel|natural)\b", text, re.I):
+    if not re.search(r"\b(?:benz[ií]n|nafta|diesel|natural|lpg|autoplyn|ethanol|e85)\b", text, re.I):
         return {}
     quantity = re.search(
         r"(?<![\d.,+-])(\d{1,4}[.,]\d{1,3})\s*(lit(?:ru|rů|ry)?|[lI1])\.?(?=\s|$)", text, re.I
@@ -89,6 +89,7 @@ def parse_tsv(tsv):
         "odometer_km": r"(?:tachometr|stav km|km)\s*[:=]?\s*(\d{1,8})\b",
     }
     found = {}
+    merchant_header = True
     for tokens in lines.values():
         text = " ".join(word for word, _ in tokens)
         confidence = round(min(value for _, value in tokens), 1)
@@ -107,7 +108,41 @@ def parse_tsv(tsv):
                         "source": text[:250],
                     }
                 )
-        for field, (value, ambiguous) in fuel_row(text).items():
+        row = fuel_row(text)
+        if row or re.search(r"\b(?:palivo|produkt)\s*[:=]", text, re.I):
+            for kind, pattern in {
+                "PETROL": r"\b(?:benz[ií]n|natural)\b",
+                "DIESEL": r"\b(?:nafta|diesel)\b",
+                "LPG": r"\b(?:lpg|autoplyn)\b",
+                "ETHANOL": r"\b(?:ethanol|e85)\b",
+            }.items():
+                if re.search(pattern, text, re.I):
+                    found.setdefault("fuel_type", []).append(
+                        {
+                            "value": kind,
+                            "confidence": str(confidence),
+                            "source": text[:250],
+                        }
+                    )
+        if row:
+            merchant_header = False
+        if merchant_header:
+            merchant = re.search(
+                r"(?<!\w)([^\W\d_][\w&'’.-]*(?:\s+[\w&'’.-]+){0,6})\s+"
+                r"(?:s\.?\s*r\.?\s*o\.?|a\.?\s*s\.?)(?=\s|$|[|=])",
+                re.sub(r"(?i)\b(?:provozovatel|prodávající|dodavatel)\s*[:=-]?\s*", "", text),
+            )
+            explicit = re.search(r"název\s+(?:čerpací\s+)?stanice\s*[:=]\s*([^|=]{3,80})", text, re.I)
+            name = (merchant[1] if merchant else explicit[1].strip() if explicit else "").strip()
+            if name and len(name) <= 120:
+                found.setdefault("station_custom_name", []).append(
+                    {
+                        "value": name,
+                        "confidence": str(confidence),
+                        "source": text[:250],
+                    }
+                )
+        for field, (value, ambiguous) in row.items():
             found.setdefault(field, []).append(
                 {
                     "value": value,
@@ -141,6 +176,11 @@ def parse_tsv(tsv):
     for field, values in found.items():
         if len({item["value"] for item in values}) == 1:
             suggestions[field] = max(values, key=lambda item: Decimal(item["confidence"]))
+    # Známý řetězec a vlastní název jsou v API vzájemně výlučné.
+    if "station_code" in found:
+        suggestions.pop("station_custom_name", None)
+    elif "station_custom_name" in suggestions:
+        suggestions["station_code"] = {**suggestions["station_custom_name"], "value": "OTHER"}
     return raw, suggestions
 
 

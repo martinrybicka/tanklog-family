@@ -47,3 +47,13 @@ Skutečné výsledky: celá sada 269 backendových testů prošla; po doplnění
 Dodaný ilustrativní obrázek byl skutečně zpracován také linuxovým Tesseractem v nově nasazeném backendu se zamčenými modely a původním PSM 6. Výsledky byly programově ověřené: datum 2025-01-17, litry 42.37, cena za litr 36.90, částka 1563.45. Dočasný obrazový obsah byl po testu odstraněn; nevzniklo testovací tankování, účet ani návrh účtenky. Test neodesílal obrázek žádnému externímu OCR. Jediný ilustrativní snímek nedokládá přesnost všech typů účtenek; nejednoznačné návrhy se nadále potvrzují ručně.
 
 Dříve uložené výsledky OCR se automaticky nepřepisují. V rozpracované rodinné účtence použijte **Přečíst znovu**, u uloženého tankování v podrobném rozhraní **Rozpoznat účtenku** a následně potvrďte vybraná pole.
+
+## OCR paliva a názvu stanice – 15. 11. 2026
+
+Návrhy zahrnují fuel_type z palivového řádku nebo explicitního označení paliva: benzín/Natural → PETROL, nafta/Diesel → DIESEL, LPG/autoplyn → LPG, ethanol/E85 → ETHANOL. Pouhý seznam paliv v reklamě se nepřebírá; různé typy z více položek se neodhadují jako jednoznačný druh.
+
+Známé řetězce používají stávající station_code. Pro neznámou stanici se z hlavičky obchodníka s právní formou nebo explicitního názvu stanice nabídne station_custom_name a station_code OTHER. Názvy/adresy se nezískávají z internetu. Lokalita typu Praha 5 není zaměněna za název stanice. Více různých názvů vede k vynechání návrhu; známý řetězec má přednost před názvem provozovatele.
+
+Rodinná kontrola účtenky nově předvyplní palivo, stanici i její vlastní název, otevře příslušné doplňující údaje a po uživatelském potvrzení je odešle stejnému API. Vše lze opravit. Při změně na známý řetězec se původní vlastní název neposílá, aby nedošlo ke konfliktu validace. Bez návrhu se používá primární palivo auta. Neshoda paliva nadále vyžaduje standardní potvrzení upozornění. Původní podrobný formulář podporuje stejné návrhy jednotlivých polí.
+
+Na dodaném ilustrativním snímku lokální engine skutečně doplnil PETROL a název PetrolFlex (OTHER) při zachování data, litrů a cen. Obrázek není ve verzovaných souborech.

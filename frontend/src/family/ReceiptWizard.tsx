@@ -29,6 +29,8 @@ type Form = {
   total_amount: string;
   odometer_km: string;
   station_code: string;
+  station_custom_name: string;
+  fuel_type: string;
   note: string;
   is_full_tank: boolean;
 };
@@ -38,6 +40,8 @@ const emptyForm = (): Form => ({
   total_amount: "",
   odometer_km: "",
   station_code: "",
+  station_custom_name: "",
+  fuel_type: "",
   note: "",
   is_full_tank: false,
 });
@@ -97,6 +101,8 @@ export function ReceiptWizard() {
       "total_amount",
       "odometer_km",
       "station_code",
+      "station_custom_name",
+      "fuel_type",
     ] as const) {
       if (result.data.suggestions[key])
         next[key] = String(result.data.suggestions[key].value);
@@ -185,6 +191,9 @@ export function ReceiptWizard() {
         odometer_km: form.odometer_km || null,
         is_full_tank: form.is_full_tank,
         station_code: form.station_code,
+        station_custom_name:
+          form.station_code === "OTHER" ? form.station_custom_name : "",
+        fuel_type: form.fuel_type || car?.fuel_type,
         note: form.note,
         ...(confirm
           ? { confirmed_warning_codes: warnings.map((w) => w.code) }
@@ -479,17 +488,43 @@ export function ReceiptWizard() {
                   <small>Zaškrtněte jen při skutečně plné nádrži.</small>
                 </span>
               </label>
-              <details className="family-extra">
+              <details
+                className="family-extra"
+                open={
+                  !!(
+                    draft?.data.suggestions.fuel_type ||
+                    draft?.data.suggestions.station_code
+                  )
+                }
+              >
                 <summary>
-                  Stanice a poznámka
+                  Palivo, stanice a poznámka
                   <ChevronDown size={15} />
                 </summary>
+                <label className="family-field">
+                  Druh paliva
+                  <select
+                    value={form.fuel_type}
+                    disabled={busy}
+                    onChange={(e) => change("fuel_type", e.target.value)}
+                  >
+                    <option value="">Podle nastavení auta</option>
+                    <option value="PETROL">Benzín</option>
+                    <option value="DIESEL">Nafta</option>
+                    <option value="LPG">LPG</option>
+                    <option value="ETHANOL">Ethanol</option>
+                    <option value="OTHER_LIQUID">Jiné kapalné palivo</option>
+                  </select>
+                </label>
                 <label className="family-field">
                   Čerpací stanice
                   <select
                     value={form.station_code}
                     disabled={busy}
-                    onChange={(e) => change("station_code", e.target.value)}
+                    onChange={(e) => {
+                      change("station_code", e.target.value);
+                      change("station_custom_name", "");
+                    }}
                   >
                     {[
                       "",
@@ -502,11 +537,27 @@ export function ReceiptWizard() {
                       "OTHER",
                     ].map((code) => (
                       <option value={code} key={code}>
-                        {code || "Nevybráno"}
+                        {code === "OTHER"
+                          ? "Jiná stanice"
+                          : code.replace("_", " ") || "Nevybráno"}
                       </option>
                     ))}
                   </select>
                 </label>
+                {form.station_code === "OTHER" && (
+                  <label className="family-field">
+                    Název čerpací stanice
+                    <input
+                      required
+                      maxLength={120}
+                      value={form.station_custom_name}
+                      disabled={busy}
+                      onChange={(e) =>
+                        change("station_custom_name", e.target.value)
+                      }
+                    />
+                  </label>
+                )}
                 <label className="family-field">
                   Poznámka
                   <textarea

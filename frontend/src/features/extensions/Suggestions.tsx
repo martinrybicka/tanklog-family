@@ -17,6 +17,7 @@ const labels: Record<string, string> = {
   total_amount: "Částka",
   odometer_km: "Tachometr",
   station_code: "Stanice",
+  station_custom_name: "Název čerpací stanice",
 };
 export function Suggestions({
   values,

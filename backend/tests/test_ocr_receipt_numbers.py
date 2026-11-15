@@ -72,3 +72,42 @@ def test_malformed_grouping_and_tax_values_do_not_become_total():
 def test_invalid_or_signed_quantities_are_not_positive_suggestions(quantity):
     _, result = parse_tsv(tsv(f"Natural 95 {quantity} l 36,90 Kč 369,00 Kč"))
     assert "liters" not in result
+
+
+@pytest.mark.parametrize(
+    "line,expected",
+    [
+        ("Benzín NATURAL 95 42,37 l 36,90 Kč 1563,45 Kč", "PETROL"),
+        ("Nafta Diesel 42,37 l 36,90 Kč 1563,45 Kč", "DIESEL"),
+        ("LPG 42,37 l 36,90 Kč 1563,45 Kč", "LPG"),
+        ("Palivo: Ethanol E85", "ETHANOL"),
+    ],
+)
+def test_fuel_type_from_purchase_or_explicit_label(line, expected):
+    _, fields = parse_tsv(tsv(line))
+    assert fields["fuel_type"]["value"] == expected
+
+
+def test_unknown_station_merchant_name_and_other_code():
+    _, fields = parse_tsv(
+        tsv(
+            "3 | PetrolFlex s.r.o. =",
+            "Čerpací stanice: Praha 5 - Jinonice",
+            "Benzín NATURAL 95 42,37 l 36,90 Kč 1563,45 Kč",
+        )
+    )
+    assert fields["station_custom_name"]["value"] == "PetrolFlex"
+    assert fields["station_code"]["value"] == "OTHER"
+
+
+def test_known_station_does_not_get_incompatible_custom_name():
+    _, fields = parse_tsv(tsv("SHELL", "Provozovatel: Ukázková firma s.r.o.", "Nafta Diesel 10,00 l"))
+    assert fields["station_code"]["value"] == "SHELL"
+    assert "station_custom_name" not in fields
+
+
+def test_promotional_fuels_and_conflicting_station_names_are_not_guessed():
+    _, fields = parse_tsv(tsv("Nabízíme benzín, diesel a LPG", "První firma s.r.o.", "Druhá firma a.s."))
+    assert "fuel_type" not in fields
+    assert "station_code" not in fields
+    assert "station_custom_name" not in fields

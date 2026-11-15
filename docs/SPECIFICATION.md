@@ -142,3 +142,7 @@ Správce nebo vlastník nahraje JPEG/PNG z detailu auta bez požadavku na VIN. N
 ## Přesnější čísla z OCR – 15. 11. 2026
 
 Rozpoznání podporuje palivový tabulkový řádek s označením typu Natural 95, mezery tisíců v ceně a běžnou záměnu jednotky l/1. Nejednoznačná jednotka 1 vyžaduje souhlas litrů × ceny s částkou palivového řádku v Decimal a zůstává méně jistým návrhem. OCR nadále neukládá nákup bez potvrzení a při různých kandidátech hodnotu vynechá. Žádné nové závislosti, cloudová služba ani změna datového modelu.
+
+## OCR paliva a stanice – 15. 11. 2026
+
+Rozpoznaný druh paliva a název stanice se v rodinné kontrole předvyplní spolu s datem, litry a částkou. Vlastní stanice používá OTHER + station_custom_name, známý řetězec svůj kód. Uživatel hodnoty kontroluje a může změnit; žádné automatické uložení ani přepis dřívějších záznamů. Chybějící palivo přebírá nastavení auta. Datový model a veřejné oprávnění se nemění.

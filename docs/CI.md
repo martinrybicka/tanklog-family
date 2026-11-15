@@ -87,3 +87,7 @@ Kontejnerový pomocník před E2E vytvoří syntetické VIN/foto/OCR fixtures po
 ## Rodinné rozhraní
 
 Kontejnerový pomocník navíc připraví `tests/prepare_family_e2e.py` ve chráněné *_e2e DB a předá `E2E_FAMILY_FIXTURE` jako privátní soubor. Obsahuje vlastní syntetické účty/auto/PNG, žádné skutečné rodinné doklady. Nové testy prověří běžného člena, foto→skutečné OCR→kontrola→DB, pokračování návrhu, ruční zadání/varování a konfiguraci správcem na mobilu i desktopu. Bez proměnné se výslovně přeskočí. Staré regresní testy používají pro plný dashboard cestu /prehled. Vzdálený CI a Docker runtime zůstávají neověřené.
+
+## Oprava frontendové kontroly – 15. 11. 2026
+
+Běh 43701488970 uspěl v lint/test/build, ale skončil na Prettier --check u src/family/IntegrationSettings.test.tsx (po zjednodušení callbacku zůstal starý víceřádkový řetězec volání). Soubor byl přeformátován připnutým Prettierem; kontroly ani workflow se nevypínají. Pro lokální ověření používejte celý `python3 infra/ci/run_checks.py frontend`, který na rozdíl od samotného build zahrnuje formátování. Skutečný nový vzdálený výsledek je uveden v záznamu ověření níže.

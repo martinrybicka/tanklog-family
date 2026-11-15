@@ -6,16 +6,14 @@ import * as apiModule from "../lib/api";
 import { IntegrationSettings } from "./IntegrationSettings";
 
 it("uloží klíč, vyprázdní citlivé pole a otestuje až uložené nastavení", async () => {
-  const api = vi
-    .spyOn(apiModule, "api")
-    .mockImplementation(async (_path) => {
-      if (_path.endsWith("test/"))
-        return { data: { message: "Spojení funguje." }, etag: null };
-      return {
-        data: { configured: true, source: "database" },
-        etag: '"rsv-setting:1"',
-      };
-    });
+  const api = vi.spyOn(apiModule, "api").mockImplementation(async (_path) => {
+    if (_path.endsWith("test/"))
+      return { data: { message: "Spojení funguje." }, etag: null };
+    return {
+      data: { configured: true, source: "database" },
+      etag: '"rsv-setting:1"',
+    };
+  });
   render(
     <QueryClientProvider client={new QueryClient()}>
       <IntegrationSettings />

@@ -233,3 +233,5 @@ GET /api/v1/admin/integrations/rsv/ vrací configured, source (database/environm
 ## Vlastní fotografie auta
 
 POST `/api/v1/vehicles/{id}/photo-upload/` přijímá multipart s jediným polem `file`. Plná session, CSRF, právo vlastník/správce a If-Match verze vozidla jsou povinné. Vrací 201 se stejným image_output jako Commons, metadata.kind=upload. Zapisuje ACTIVE snímek a zvyšuje verzi auta; předchozí fotografie/návrhy stejného auta se nahradí. Přístup k binárnímu obsahu i odebrání používají stávající endpointy. Limit 10 MiB/24 MP JPEG/PNG, kvóta 5/účet a 20 globálně za minutu; chybný soubor či konflikt nemění původní snímek.
+
+OCR suggestions nově obsahují také fuel_type a pro neznámou stanici dvojici station_code=OTHER / station_custom_name. Čtení uloženého návrhu má stejnou strukturu value/confidence/source. Rodinný klient je po kontrole posílá stávajícímu complete endpointu, který je validuje jako běžné RefuelingInput. Známý kód a vlastní název jsou vzájemně výlučné. Nejednoznačná pole se vynechávají.
