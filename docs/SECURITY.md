@@ -15,7 +15,7 @@ Každá akce vyžaduje aktivní účet a plnou session, pokud není výslovně u
 | Upravit vlastní tankování v aktivním autě | Ne | Ano | Ano | Ano |
 | Upravit cizí tankování | Ne | Ne | Ano | Ano |
 | Upravit historii archivovaného auta | Ne | Ne | Ano | Ano |
-| Smazat tankování | Ne | Ne | Ano | Ano |
+| Smazat tankování | Ne | Vlastní záznam aktivního auta | Ano | Ano |
 | Přidat/nahradit/smazat účtenku | Ne | Ke svému aktivnímu záznamu | Ano | Ano |
 | Změnit pozici vlastního záznamu při jeho editaci | Ne | Ano, aktivní auto | Ano | Ano |
 | Přeuspořádat celý den | Ne | Ne | Ano | Ano |
@@ -162,3 +162,6 @@ ADMIN smí připravit výchozí auto člena, ale musí jít o jeho skutečně do
 
 
 Nasazení 6. 11. 2026: historický zmrazený Debian snapshot v linuxovém buildu nahradily oficiální podepsané Bookworm a Bookworm-security repozitáře kvůli nedostupnému stahování snapshot balíčků. Základní image zůstává připnutý digestem a zdroj Tesseract/modely mají stejné SHA-256; tranzitivní systémové knihovny získávají aktuální opravy Bookworm. Starší tvrzení o plně zmrazených OS balíčcích se tímto zpřesňuje.
+
+
+Upřesnění 15. 11. 2026: vlastní tankování určuje created_by, nikoli plátce nebo autor fotografie. Smazání přes rodinný detail vyžaduje potvrzení, CSRF a aktuální If-Match; znovu se kontroluje aktivní účet, session, grant, archivace a autor pod zámkem. Cizí záznam CONTRIBUTOR nesmaže. Kopie přílohy i OCR v dokončeném ReceiptDraft se vyprázdní; zachová se result_id/hash a upload klíč proti opakovanému založení. Návrh ani jeho obraz už po smazání výsledku nejsou dostupné. Historické zálohy podléhají původní retenční politice.

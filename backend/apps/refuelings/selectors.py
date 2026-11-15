@@ -27,7 +27,7 @@ def rights(user, vehicle, item=None):
         and vehicle.fuel_type not in ["CNG", "ELECTRIC"]
         and (manage or contribute),
         "edit": manage or (contribute and item is not None and item.created_by_id == user.pk),
-        "delete": manage,
+        "delete": manage or (contribute and item is not None and item.created_by_id == user.pk),
         "reorder": manage,
     }
 

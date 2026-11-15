@@ -288,6 +288,14 @@ def delete(request, item_id):
     item, vehicle = locked_item(request, item_id)
     authorize(request.user, vehicle, "delete", item)
     audit(request, "refueling.deleted", item, snapshot(item))
+    # Rodinný návrh drží kopii přílohy; po smazání zůstane jen ochrana proti opakování.
+    from apps.family.models import ReceiptDraft
+
+    for draft in ReceiptDraft.objects.select_for_update().filter(result_id=item.pk):
+        draft.original, draft.preview, draft.raw_text, draft.suggestions = b"", b"", "", {}
+        draft.metadata = {"sha256": draft.metadata.get("sha256", "")}
+        draft.version += 1
+        draft.save(update_fields=["original", "preview", "raw_text", "suggestions", "metadata", "version"])
     date = item.date
     item.delete()
     renumber(request, vehicle, date)

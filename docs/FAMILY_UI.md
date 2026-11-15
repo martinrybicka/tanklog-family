@@ -118,3 +118,10 @@ Na produkčním backendu proběhl test APIClient se skutečným CSRF, If-Match a
 Nasazený frontend byl zkontrolovaný přes veřejné HTTPS v prohlížeči s výslovně syntetickou odpovědí karty: snímek v garáži se načetl, název vedl na detail a upload formulář byl viditelný bez vodorovného přetečení při šířkách 1280 a 375 px. To není tvrzení o uložení skutečné fotografie uživatele přes prohlížeč; serverové uložení ověřil uvedený transakční test. Ověřovací prohlížečová relace byla odhlášena a dočasný build kontejner odstraněn.
 
 Omezení: vlastní upload nepodporuje HEIC/WebP; před nahráním použijte JPEG/PNG. Nenahrazuje chybějící konfiguraci Wikimedia a neprovádí automatický výběr veřejné ilustrace podle VIN.
+
+
+## Smazání vlastního tankování a účtenky – 15. 11. 2026
+
+Historie → otevřít tankování → **Smazat tankování a účtenku** → zkontrolovat auto/datum/částku → **Potvrdit smazání**. Zrušit neprovede žádný DELETE. Odstraní se celý nákup včetně fotografie a kopií obrazu/OCR v původním návrhu; statistiky se přepočtou. Akci nelze v aplikaci vrátit. Audit a ochrana před duplicitou zůstávají, zálohy mají původní retenci.
+
+Běžný přispěvatel může smazat pouze nákup, který vytvořil sám na stále aktivním a zpřístupněném autě. Čtenář nemůže mazat; při archivaci nebo odebrání přístupu akce není povolená. Práva správce a vlastníka auta zůstávají zachována. Při konfliktu verze dialog nabídne načtení aktuálního záznamu.

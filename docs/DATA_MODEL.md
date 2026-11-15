@@ -100,7 +100,7 @@ Povinný DB CHECK pro kladné litry, nezápornou částku/cenu/tachometr, kladn�
 
 Efektivní jednotková cena `total_amount / liters`, varování a kvalita měření jsou odvozené hodnoty, ne druhá autoritativní pole. V databázi se neukládá jedna „spotřeba tankování“, protože interval může obsahovat několik nákupů a mění se po zpětné editaci.
 
-Odstranění záznamu provádí OWNER/ADMIN s potvrzením, auditem a přepočtem. Audit uchová povolená účetní pole pro dohledání, ale ne obsah obrázku. Nejde o uživatelskou funkci obnovení smazaného záznamu. K vymazání dat ze záloh platí retenční postup, nikoli přepis starých záloh při každém DELETE.
+Odstranění záznamu provádí OWNER/ADMIN nebo od 15. 11. 2026 CONTRIBUTOR u vlastního záznamu aktivního auta, s potvrzením, auditem a přepočtem. Audit uchová povolená účetní pole pro dohledání, ale ne obsah obrázku. Nejde o uživatelskou funkci obnovení smazaného záznamu. K vymazání dat ze záloh platí retenční postup, nikoli přepis starých záloh při každém DELETE.
 
 ## 6. ReceiptAttachment
 
@@ -186,3 +186,6 @@ Nová tabulka extensions_integrationsetting: name (PK), encrypted_secret (Fernet
 
 
 Vlastní fotografie používá existující VehicleImage bez migrace. metadata.kind=upload odlišuje soukromý snímek od licencované ilustrace; original i preview obsahují očištěný JPEG nejvýše 1600 × 1600 px. EXIF, původní soubor a jeho název se neukládají. Identita make/model/VIN hash zůstává v match podle dosavadních pravidel; změna identity auta zneplatní zobrazení snímku.
+
+
+Při smazání tankování se ve stejné transakci vyprázdní také original/preview/raw_text/suggestions a metadata kromě SHA-256 v ReceiptDraft s odpovídajícím result_id. Tombstone obsahuje nadále upload_key/result_id/completion_hash; zabraňuje obnovení smazaného nákupu opakovaným uploadem či potvrzením. Žádná migrace není potřeba.

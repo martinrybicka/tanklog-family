@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,9 +9,15 @@ import {
   Droplets,
   ReceiptText,
   Wallet,
+  Trash2,
 } from "lucide-react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ErrorMessage, Loading } from "../components/ui";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import { Button, ErrorMessage, Loading, Modal } from "../components/ui";
 import { api, errorText } from "../lib/api";
 import type { Page, Refueling } from "../lib/types";
 import { dateText, decimalText } from "../features/analytics/format";
@@ -110,6 +117,11 @@ export function FamilyHistory() {
 }
 export function FamilyReceiptDetail() {
   const { id } = useParams();
+  const client = useQueryClient();
+  const navigate = useNavigate();
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const query = useQuery({
     queryKey: ["refuelings", id],
     queryFn: () => api<Refueling>(`refuelings/${id}/`),
@@ -191,6 +203,86 @@ export function FamilyReceiptDetail() {
                 Opravit údaje
                 <ArrowRight size={16} />
               </Link>
+            )}
+            {item.permissions.delete && (
+              <>
+                <button
+                  type="button"
+                  className="family-text-button"
+                  onClick={() => {
+                    setError("");
+                    setConfirm(true);
+                  }}
+                >
+                  <Trash2 size={17} /> Smazat tankování a účtenku
+                </button>
+                <Modal
+                  open={confirm}
+                  onClose={() => {
+                    if (!busy) setConfirm(false);
+                  }}
+                  title="Smazat tankování a účtenku?"
+                  description={`${dateText(item.date)} · ${item.vehicle_name} · ${decimalText(item.total_amount)} Kč. Trvale se odstraní celé tankování i fotografie účtenky a upraví se statistiky. Tuto akci nelze vrátit zpět.`}
+                >
+                  <ErrorMessage>{error}</ErrorMessage>
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => setConfirm(false)}
+                  >
+                    Zrušit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError("");
+                      try {
+                        await api(`refuelings/${id}/`, {
+                          method: "DELETE",
+                          etag: query.data?.etag ?? undefined,
+                        });
+                        setConfirm(false);
+                        client.removeQueries({
+                          queryKey: ["refuelings", id],
+                          exact: true,
+                        });
+                        navigate("/historie", { replace: true });
+                        await Promise.all([
+                          client.invalidateQueries({
+                            queryKey: ["refuelings"],
+                          }),
+                          client.invalidateQueries({ queryKey: ["refueling"] }),
+                          client.invalidateQueries({ queryKey: ["analytics"] }),
+                          client.invalidateQueries({ queryKey: ["vehicles"] }),
+                          client.invalidateQueries({
+                            queryKey: ["family-drafts"],
+                          }),
+                        ]);
+                      } catch (e) {
+                        setError(errorText(e));
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    {busy ? "Mazání…" : "Potvrdit smazání"}
+                  </Button>
+                  {error && (
+                    <Button
+                      variant="secondary"
+                      disabled={busy}
+                      onClick={() => {
+                        void query.refetch();
+                        setError("");
+                      }}
+                    >
+                      Načíst aktuální záznam
+                    </Button>
+                  )}
+                </Modal>
+              </>
             )}
           </section>
         )

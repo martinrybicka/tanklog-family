@@ -92,7 +92,7 @@ Norma a technické údaje odpovídají datovému modelu. Neexistuje veřejný se
 | POST `refuelings/` | CONTRIBUTOR/OWNER/ADMIN na aktivním autě; povinný `Idempotency-Key` UUID; 201 |
 | GET `refuelings/{id}/` | VIEWER+, detail s ETag a oprávněními |
 | PATCH `refuelings/{id}/` | CONTRIBUTOR vlastní na aktivním autě, OWNER/ADMIN libovolné i archivované; If-Match |
-| DELETE `refuelings/{id}/` | OWNER/ADMIN + If-Match, 204; audit a nové intervaly |
+| DELETE `refuelings/{id}/` | CONTRIBUTOR vlastní na aktivním autě, OWNER/ADMIN libovolné; If-Match + CSRF, 204; audit a nové intervaly |
 | GET `vehicles/{id}/refueling-order/` | VIEWER+, `date=YYYY-MM-DD`; aktuální seznam ID a ETag historie |
 | PUT `vehicles/{id}/refueling-order/` | OWNER/ADMIN + If-Match historie; `{date, ordered_ids}` musí obsahovat přesně všechna ID dne jednou |
 | GET `refuelings/export/` | VIEWER+, shodné filtry/řazení jako seznam, bez paginace; XLSX |

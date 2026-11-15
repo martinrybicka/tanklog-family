@@ -183,7 +183,9 @@ def test_permissions(users, client, admin_client, vehicle, role, own, archived, 
     deleted = client.delete(
         BASE + str(item.pk) + "/", HTTP_X_CSRFTOKEN=csrf(client), HTTP_IF_MATCH=etag(item)
     )
-    assert deleted.status_code == (204 if role in ["OWNER", "ADMIN"] else 403)
+    assert deleted.status_code == (
+        204 if role in ["OWNER", "ADMIN"] or (role == "CONTRIBUTOR" and own and not archived) else 403
+    )
     assert create(client, vehicle).status_code == (
         201 if role in ["CONTRIBUTOR", "OWNER", "ADMIN"] and not archived else 403
     )

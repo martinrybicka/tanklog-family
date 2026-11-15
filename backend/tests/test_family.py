@@ -196,3 +196,56 @@ def test_draft_completion_cannot_target_different_vehicle_or_bypass_csrf(client,
         == 400
     )
     assert not Refueling.objects.exists()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_contributor_deletes_own_purchase_attachment_and_draft_copy(client, users, car):
+    from apps.audit.models import AuditEvent
+
+    login(client, "user")
+    foreign = post(
+        client,
+        "/api/v1/refuelings/",
+        data(car, date="2026-01-02", odometer_km=1100),
+        HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()),
+    )
+    assert foreign.status_code == 201
+    VehicleAccess.objects.create(
+        vehicle=car, user=users["other"], role="CONTRIBUTOR", granted_by=users["admin"]
+    )
+    login(client, "other")
+    key = uuid.uuid4()
+    draft = upload(client, car, key)
+    path = f"/api/v1/family/receipts/{draft.json()['id']}/"
+    own = post(client, path + "complete/", data(car), HTTP_IF_MATCH=draft["ETag"])
+    assert own.status_code == 201
+    url = f"/api/v1/refuelings/{own.json()['id']}/"
+    current = client.get(url)
+    assert current.json()["permissions"]["delete"] is True
+    foreign_url = f"/api/v1/refuelings/{foreign.json()['id']}/"
+    other = client.get(foreign_url)
+    assert other.json()["permissions"]["delete"] is False
+    assert (
+        client.delete(foreign_url, HTTP_X_CSRFTOKEN=csrf(client), HTTP_IF_MATCH=other["ETag"]).status_code
+        == 403
+    )
+    assert client.delete(url, HTTP_IF_MATCH=current["ETag"]).status_code == 403
+    assert client.delete(url, HTTP_X_CSRFTOKEN=csrf(client)).status_code == 428
+    assert client.delete(url, HTTP_X_CSRFTOKEN=csrf(client), HTTP_IF_MATCH='"old"').status_code == 412
+    assert client.get("/api/v1/dashboard/?anchor_date=2026-01-10").json()["purchases"]["count"] == 2
+    assert client.delete(url, HTTP_X_CSRFTOKEN=csrf(client), HTTP_IF_MATCH=current["ETag"]).status_code == 204
+    assert not ReceiptAttachment.objects.exists()
+    assert Refueling.objects.count() == 1 and Refueling.objects.filter(pk=foreign.json()["id"]).exists()
+    assert client.get(url).status_code == 404
+    assert client.get(url + "receipt/").status_code == 404
+    cleared = ReceiptDraft.objects.get()
+    assert bytes(cleared.original) == bytes(cleared.preview) == b""
+    assert not cleared.raw_text and not cleared.suggestions
+    assert set(cleared.metadata) == {"sha256"}
+    assert client.get(path + "image/").status_code == 404
+    assert post(client, path + "complete/", data(car), HTTP_IF_MATCH=draft["ETag"]).status_code == 404
+    assert upload(client, car, key).status_code == 404
+    assert Refueling.objects.count() == 1
+    totals = client.get("/api/v1/dashboard/?anchor_date=2026-01-10").json()["purchases"]
+    assert totals["count"] == 1 and totals["amount"] == "480.10"
+    assert AuditEvent.objects.filter(action="refueling.deleted", entity_id=own.json()["id"]).exists()

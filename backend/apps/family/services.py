@@ -31,6 +31,8 @@ def draft_tag(draft):
 def draft_for(request, draft_id):
     draft = get_object_or_404(ReceiptDraft, pk=draft_id, user=request.user)
     vehicle_for(request.user, draft.vehicle_id)
+    if draft.result_id:
+        refueling_for(request.user, draft.result_id)
     return draft
 
 
@@ -76,6 +78,8 @@ def upload(request, vehicle_id, payload):
         raise ValidationError("Vyžadováno UUID Idempotency-Key.") from error
     previous = ReceiptDraft.objects.filter(user=request.user, upload_key=key).first()
     if previous:
+        if previous.result_id:
+            refueling_for(request.user, previous.result_id)
         if previous.vehicle_id != car.pk or previous.metadata["sha256"] != payload["sha256"]:
             raise Problem("idempotency_conflict", "Tento požadavek již patří jiné účtence.", 409)
         return previous

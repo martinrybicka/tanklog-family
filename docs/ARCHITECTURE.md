@@ -191,3 +191,6 @@ IntegrationSetting obsahuje název, autentizovaně šifrovaný klíč Fernet, ve
 
 
 Vlastní fotografie (15. 11. 2026) používá osvědčenou validaci obrázků účtenek (Pillow) a ukládá pouze očištěný výstup do VehicleImage. Vstup se ověří podle skutečného obsahu, MIME, velikosti, pixelů a animace. Práva/verze se ověřují před dekódováním i pod transakčním zámkem před nahrazením. Soukromý snímek nepoužívá externí poskytovatele ani licenční odkazy.
+
+
+Mazání vlastního tankování (15. 11. 2026) rozšiřuje centrální refuelings.selectors.rights pro CONTRIBUTOR/created_by na aktivním autě. Rodinný i původní detail používají stejný DELETE se zámky, If-Match a auditem. CASCADE odstraní ReceiptAttachment a OCR, servis navíc očistí dokončené ReceiptDraft. Po úspěchu rodinný klient odstraní detail z cache, přejde do historie a invaliduje tankování, analytiku, auta a návrhy.

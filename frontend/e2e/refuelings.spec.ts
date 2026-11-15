@@ -218,7 +218,7 @@ test("sdílené tankování: přispěvatel upravuje jen vlastní, archivace a od
     ).toBeVisible();
     await expect(
       driver.getByRole("button", { name: "Smazat tankování", exact: true }),
-    ).toHaveCount(0);
+    ).toBeVisible();
     await driver.getByLabel("Přiložit účtenku", { exact: true }).setInputFiles({
       name: "synthetic.png",
       mimeType: "image/png",

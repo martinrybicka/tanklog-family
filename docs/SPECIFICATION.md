@@ -19,7 +19,7 @@ Navržené omezení MVP: CZK, kilometry a litry; paliva PETROL, DIESEL, LPG, ETH
 - Dočasné heslo platí nejvýše 24 hodin a po použití dovolí pouze nastavit nové heslo v omezené session. Proces a zneplatnění sessions popisuje [bezpečnost](SECURITY.md).
 - ADMIN je systémová role spravující všechny objekty. USER má pouze přístup k vlastním a sdíleným vozidlům.
 - OWNER je právě jeden vlastník na vozidle. VIEWER a CONTRIBUTOR jsou granty sdílení. Práva se nekopírují do jednotlivých tankování.
-- CONTRIBUTOR přidává a upravuje vlastní tankování, ale podle navrženého konzervativního pravidla je nemaže. OWNER a ADMIN upravují a mažou všechna tankování vozidla. Sdílení i převod vlastnictví provádí pouze ADMIN. Úplná matice je v [SECURITY.md](SECURITY.md).
+- CONTRIBUTOR přidává, upravuje a podle pokynu z 15. 11. 2026 také maže vlastní tankování aktivního auta. OWNER a ADMIN upravují a mažou všechna tankování vozidla. Sdílení i převod vlastnictví provádí pouze ADMIN. Úplná matice je v [SECURITY.md](SECURITY.md).
 
 Odebráním sdílení končí i přístup k záznamům, které uživatel dříve sám vytvořil. Autorství samo není oprávněním k cizímu vozidlu. Nové sdílení zpřístupní celou historii včetně účtenek; omezení sdílení na období není součást MVP.
 
@@ -77,7 +77,7 @@ Sekce Uživatelé, Všechna vozidla, Sdílení, Systém a audit. Účty se deakt
 | Spotřeba z nákupů nezjistí únik, odčerpání nebo jinou jízdu bez evidence | Uvést předpoklady metody a přerušit měření při známé mezeře |
 | Nové ceny neoceňují přesně již spálené zásoby | Kartu označit jako nákupní náklady v intervalech; žádné tvrzení o přesné ceně spáleného paliva |
 | Jednotky a více nádrží nejsou v původním modelu vyřešeny | Omezení kapalného paliva / jedné nádrže pro spotřebu; rozšíření později |
-| Požadavek na mazání CONTRIBUTOR není určen | Navržená pouze editace vlastních záznamů; mazání OWNER/ADMIN |
+| Mazání CONTRIBUTOR (upřesněno 15. 11. 2026) | Vlastní záznamy aktivního auta; OWNER/ADMIN všechny |
 | Sdílení zpřístupní citlivé účtenky a celou historii | Výslovně vysvětlit ADMIN při přidání přístupu |
 | Deklarovaný hot reload nebo HTTPS nezaručí funkčnost | Ověřit Compose, prohlížeč, cookies a skutečné hlavičky samostatně v příslušné fázi |
 

@@ -93,3 +93,6 @@ Uživatel po fázi 8 výslovně požádal zachovat plnou verzi a implementovat j
 ## Samostatně schválené rozšíření – 15. 11. 2026
 
 Uživatel povolil dokončení administrace RSV, zveřejnění na existujícím GitHubu a aktualizaci stávajícího stacku tanklog-family bez smazání dat. Rozsah: šifrovaný klíč v DB, administrační formulář, test spojení a bezpečné nasazení. Podrobnosti a skutečné výsledky: RSV_SETTINGS.md.
+
+
+15. 11. 2026 – samostatně schválené mazání vlastního tankování v rodinném rozhraní, včetně přílohy, potvrzení a přepočtu. Centrální oprávnění CONTRIBUTOR jsou rozšířena pouze pro vlastní aktivní záznamy. Nejde o zahájení další projektové fáze.
