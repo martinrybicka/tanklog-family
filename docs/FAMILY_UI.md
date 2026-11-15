@@ -106,3 +106,15 @@ Ověření sestaveného CSS v Chromium na šířce 1280 i 375 px: programově za
 ## Vlastní fotografie auta – 15. 11. 2026
 
 Ve Správě rodiny otevřete auto (nebo klikněte na jeho název v Naší garáži). V detailu v části Fotografie auta vyberte vlastní JPEG/PNG a klikněte Nahrát fotografii. Povoleno správci a vlastníkovi, bez VIN a Wikimedia konfigurace. Po nahrání se snímek zobrazí na detailu, kartě i v rodinné garáži. Nahrání nahrazuje předchozí snímek; soubor smí mít nejvýše 10 MiB/24 MP. Uchovává se pouze očištěný JPEG bez EXIF do 1600 × 1600 px v DB. Tlačítkem Odebrat fotografii a návrhy lze snímek odstranit. Žádná migrace ani změna stávajících dat při aktualizaci není potřeba.
+
+### Ověření a nasazení vlastních fotografií
+
+Implementace c2ef9c5 je na veřejném main a nasazená na DOCKER01 jako backend/web 0.9.3. Databáze zůstává na 0.9.0 se svazkem tanklog-family_postgres_data, všechny služby jsou healthy. Před nasazením vznikla nová age záloha v soukromém ignorovaném souboru `.runtime/production-backup-20261115/tanklog-before-photo-upload.dump.age`; používá již uloženou soukromou identitu z této složky. Kontrolní hashe stávajících aplikačních záznamů před a po aktualizaci zůstaly shodné.
+
+Skutečné výsledky: 256 backendových testů, 33 frontendových testů, Ruff, frontend lint/TypeScript/build, validace OpenAPI, kontrola migrací (žádné nové), Compose config a serverový build/runtime prošly. Gitleaks nad zveřejňovaným patchem nenašel tajemství.
+
+Na produkčním backendu proběhl test APIClient se skutečným CSRF, If-Match a existujícím oprávněným správcem: upload 201, načtení snímku 200, EXIF odstraněno a fotografie přítomná ve výstupu karty. Celý test byl vnější transakcí vrácen zpět včetně dočasného auta, fotografie, auditu i přihlašovací relace. Produkce tedy neobsahuje žádné přidané testovací auto/fotografii.
+
+Nasazený frontend byl zkontrolovaný přes veřejné HTTPS v prohlížeči s výslovně syntetickou odpovědí karty: snímek v garáži se načetl, název vedl na detail a upload formulář byl viditelný bez vodorovného přetečení při šířkách 1280 a 375 px. To není tvrzení o uložení skutečné fotografie uživatele přes prohlížeč; serverové uložení ověřil uvedený transakční test. Ověřovací prohlížečová relace byla odhlášena a dočasný build kontejner odstraněn.
+
+Omezení: vlastní upload nepodporuje HEIC/WebP; před nahráním použijte JPEG/PNG. Nenahrazuje chybějící konfiguraci Wikimedia a neprovádí automatický výběr veřejné ilustrace podle VIN.
