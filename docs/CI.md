@@ -91,3 +91,5 @@ Kontejnerový pomocník navíc připraví `tests/prepare_family_e2e.py` ve chrá
 ## Oprava frontendové kontroly – 15. 11. 2026
 
 Běh 43701488970 uspěl v lint/test/build, ale skončil na Prettier --check u src/family/IntegrationSettings.test.tsx (po zjednodušení callbacku zůstal starý víceřádkový řetězec volání). Soubor byl přeformátován připnutým Prettierem; kontroly ani workflow se nevypínají. Pro lokální ověření používejte celý `python3 infra/ci/run_checks.py frontend`, který na rozdíl od samotného build zahrnuje formátování. Skutečný nový vzdálený výsledek je uveden v záznamu ověření níže.
+
+Po opravě formátování v běhu 43705198275 prošly kontroly repozitáře, backend i frontend. Nově spuštěný Docker/E2E odhalil chybu ověření HTTPS při instalaci age v operations image: spravovaný Python neměl cestu k systémovým CA. Operations image nyní explicitně instaluje ca-certificates a nastavuje SSL_CERT_FILE na systémový bundle. HTTPS ani SHA-256 archivu se neobchází; povinná Docker/E2E kontrola zůstává zapnutá. Tato změna nemění běžící aplikační data ani konfiguraci klíče RSV.
