@@ -93,3 +93,9 @@ Kontejnerový pomocník navíc připraví `tests/prepare_family_e2e.py` ve chrá
 Běh 43701488970 uspěl v lint/test/build, ale skončil na Prettier --check u src/family/IntegrationSettings.test.tsx (po zjednodušení callbacku zůstal starý víceřádkový řetězec volání). Soubor byl přeformátován připnutým Prettierem; kontroly ani workflow se nevypínají. Pro lokální ověření používejte celý `python3 infra/ci/run_checks.py frontend`, který na rozdíl od samotného build zahrnuje formátování. Skutečný nový vzdálený výsledek je uveden v záznamu ověření níže.
 
 Po opravě formátování v běhu 43705198275 prošly kontroly repozitáře, backend i frontend. Nově spuštěný Docker/E2E odhalil chybu ověření HTTPS při instalaci age v operations image: spravovaný Python neměl cestu k systémovým CA. Operations image nyní explicitně instaluje ca-certificates a nastavuje SSL_CERT_FILE na systémový bundle. HTTPS ani SHA-256 archivu se neobchází; povinná Docker/E2E kontrola zůstává zapnutá. Tato změna nemění běžící aplikační data ani konfiguraci klíče RSV.
+
+## Izolace provozních kvót v E2E – 17. 11. 2026
+
+V následném běhu 43705751978 již všechny image prošly sestavením, ale společná IP automatických prohlížečů vyčerpávala Nginx limit přihlášení/setup (10/min, burst 10) a následné testy dostávaly 429. Totéž se zopakovalo přes místní Nginx: 15 rychlých GET setup vrátilo 11×200 a 4×429. Přes přímý místní backend všechny tři účtové E2E prošly.
+
+Pouze compose.ci.yaml proto připojuje read-only ci-http.conf se zvýšenými proxy kvótami pro hromadné syntetické testy. Host port CI zůstává na 127.0.0.1; produkční common-http.conf, Portainer profil, CSRF, Django session/granty i databázová ochrana přihlášení se nemění. Kontroly nebyly přeskočené ani odstraněné. Místní proxy se stejnou CI konfigurací úspěšně obsloužila 15 dotazů s krátkým odstupem bez 429. Nativní ověření používá místní Nginx 1.31.7; finální Docker job používá zamčený Nginx 1.30.2.

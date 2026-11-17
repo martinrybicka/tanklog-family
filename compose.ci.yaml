@@ -9,6 +9,8 @@ services:
     volumes:
       - ./backend/tests:/app/tests:ro
   web:
+    volumes:
+      - ./infra/nginx/ci-http.conf:/etc/nginx/conf.d/00-common.conf:ro
     ports:
       - 127.0.0.1:18080:8080
     environment:
