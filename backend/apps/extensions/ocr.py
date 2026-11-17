@@ -42,7 +42,7 @@ def fuel_row(text):
     if not re.search(r"\b(?:benz[ií]n|nafta|diesel|natural|lpg|autoplyn|ethanol|e85)\b", text, re.I):
         return {}
     quantity = re.search(
-        r"(?<![\d.,+-])(\d{1,4}[.,]\d{1,3})\s*(lit(?:ru|rů|ry)?|[lI1])\.?(?=\s|$)", text, re.I
+        r"(?<![\d.,+-])(\d{1,4}[.,]\d{1,3})\s*(lit(?:ru|rů|ry)?|[lI1|])\.?(?=\s|$)", text, re.I
     )
     if not quantity:
         return {}
@@ -54,7 +54,7 @@ def fuel_row(text):
     if len(money) == 2:
         price, amount = (Decimal(decimal_text(value)) for value in money)
         consistent = price > 0 and abs(Decimal(liters) * price - amount) <= Decimal("0.01")
-    ambiguous = quantity[2] in ["1", "I", "i"]
+    ambiguous = quantity[2] in ["1", "I", "i", "|"]
     if quantity[2] == "1" and not consistent:
         return {}
     result = {"liters": (liters, ambiguous)}
@@ -79,7 +79,7 @@ def parse_tsv(tsv):
     raw = "\n".join(" ".join(word for word, _ in tokens) for tokens in lines.values())[:60000]
     suggestions = {}
     patterns = {
-        "liters": r"(?:litry|litru|mnozstvi|množství|objem)\s*[:=]?\s*(\d+[.,]\d{1,3})\s*(?:lit(?:ru|rů|ry)?|[lI1])\b",
+        "liters": r"(?:litry|litru|mnozstvi|množství|objem)\s*[:=]?\s*(\d+[.,]\d{1,3})\s*(?:lit(?:ru|rů|ry)?|[lI1|])(?=\s|$|[.,;])",
         "unit_price_entered": r"(?:cena\s*(?:za\s*)?(?:litr|/l)|kc/l|kč/l)\s*[:=]?\s*(\d+[.,]\d{1,4})",
         "total_amount": (
             r"\b(?:celkem(?:\s+k\s*[úu]hrad[eě])?|celkova castka|celková částka|total|k\s*[úu]hrad[eě])\s*[:=]?\s*("
@@ -102,7 +102,7 @@ def parse_tsv(tsv):
                         "value": value,
                         "confidence": str(
                             min(confidence, 50)
-                            if field == "liters" and re.search(r"\d\s*[I1]\b", text)
+                            if field == "liters" and re.search(r"\d\s*[I1|](?=\s|$|[.,;])", text)
                             else confidence
                         ),
                         "source": text[:250],

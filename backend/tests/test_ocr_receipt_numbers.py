@@ -111,3 +111,16 @@ def test_promotional_fuels_and_conflicting_station_names_are_not_guessed():
     assert "fuel_type" not in fields
     assert "station_code" not in fields
     assert "station_custom_name" not in fields
+
+
+def test_linux_font_vertical_bar_is_liter_unit_not_missing_quantity():
+    _, result = parse_tsv(tsv("MNOŽSTVÍ 10,500 |", "CENA/L 40,0000", "CELKEM 420,00"))
+    assert result["liters"]["value"] == "10.500"
+    assert float(result["liters"]["confidence"]) <= 50
+    assert result["total_amount"]["value"] == "420.00"
+
+
+def test_vertical_bar_unit_in_fuel_row_has_reduced_confidence():
+    _, result = parse_tsv(tsv("Natural 95 10,500 | 40,00 Kč 420,00 Kč"))
+    assert result["liters"]["value"] == "10.500"
+    assert float(result["liters"]["confidence"]) <= 50
