@@ -57,3 +57,11 @@ Známé řetězce používají stávající station_code. Pro neznámou stanici 
 Rodinná kontrola účtenky nově předvyplní palivo, stanici i její vlastní název, otevře příslušné doplňující údaje a po uživatelském potvrzení je odešle stejnému API. Vše lze opravit. Při změně na známý řetězec se původní vlastní název neposílá, aby nedošlo ke konfliktu validace. Bez návrhu se používá primární palivo auta. Neshoda paliva nadále vyžaduje standardní potvrzení upozornění. Původní podrobný formulář podporuje stejné návrhy jednotlivých polí.
 
 Na dodaném ilustrativním snímku lokální engine skutečně doplnil PETROL a název PetrolFlex (OTHER) při zachování data, litrů a cen. Obrázek není ve verzovaných souborech.
+
+## Automatické čtení mobilních fotografií – 26. 11. 2026
+
+Rodinný formulář po vyfocení nebo výběru fotky rovnou nahraje soukromý návrh a spustí čtení. Pokud je nutné vybrat auto, čtení počká na výběr. Uživatel kontroluje zjištěné údaje před uložením. Při prázdném výsledku formulář výslovně nabídne zopakování nebo ruční doplnění.
+
+První průchod zachovává PSM 6 a rozlišení nejvýše 2000 px. Při chybějícím datu, litrech nebo částce následuje nejvýše jeden podrobnější průchod v PSM 4 do 3800 px. Oba sdílejí patnáctisekundový limit rozpoznávání. Neúspěšný druhý průchod ponechá první návrhy. Parser zpracovává doslovné uvozovky v TSV jako znak, aby se nesloučily sousední řádky. Rozdělené palivové tabulky bez čitelné jednotky předvyplní množství jen při jednoznačném souhlasu sloupce množství, druhu paliva, ceny a částky. Návrh má sníženou jistotu. Název stanice se při nejednoznačném textu vynechá.
+
+Ověření nad jedinou skutečnou uloženou účtenkou běželo jen v paměti na aplikačním serveru. První průchod nenabídl použitelná pole. Upravené zpracování přečetlo datum, litry, celkovou částku a druh paliva. Název stanice spolehlivě neurčilo. Fotografie ani surový OCR výstup nejsou součástí repozitáře a ověření záznam neměnilo.

@@ -6,7 +6,7 @@ import { expect, it, vi } from "vitest";
 import * as apiModule from "../lib/api";
 import { ReceiptWizard } from "./ReceiptWizard";
 
-function setup() {
+function setup(startWithPhoto = false) {
   const api = vi.spyOn(apiModule, "api").mockImplementation(async (path) => {
     if (path.startsWith("vehicles/"))
       return {
@@ -30,6 +30,11 @@ function setup() {
         data: { id: "saved", total_amount: "1563.45", liters: "42.37" },
         etag: null,
       };
+    if (path === "family/receipts/")
+      return {
+        data: { id: "draft", vehicle_id: "car", suggestions: {} },
+        etag: '"upload:1"',
+      };
     return {
       data: {
         id: "draft",
@@ -50,7 +55,9 @@ function setup() {
   });
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <MemoryRouter initialEntries={["/uctenka?draft=draft"]}>
+      <MemoryRouter
+        initialEntries={[startWithPhoto ? "/uctenka" : "/uctenka?draft=draft"]}
+      >
         <ReceiptWizard />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -108,5 +115,28 @@ it("dovolí opravit OCR a při volbě řetězce neposílá starý vlastní náze
         station_custom_name: "",
       }),
     }),
+  );
+});
+
+it("po vyfocení automaticky nahraje fotku, spustí OCR a vyplní návrhy", async () => {
+  const api = setup(true);
+  await userEvent
+    .setup()
+    .upload(
+      await screen.findByLabelText(/Vyfotit účtenku JPG/),
+      new File(["fotka"], "uctenka.jpg", { type: "image/jpeg" }),
+    );
+  expect(await screen.findByLabelText("Natankováno (l)")).toHaveValue("42.37");
+  expect(screen.getByLabelText("Zaplaceno (Kč)")).toHaveValue("1563.45");
+  expect(screen.getByLabelText("Druh paliva")).toHaveValue("PETROL");
+  expect(screen.getByLabelText("Název čerpací stanice")).toHaveValue(
+    "PetrolFlex",
+  );
+  expect(
+    api.mock.calls.filter(([path]) => path === "family/receipts/"),
+  ).toHaveLength(1);
+  expect(api).toHaveBeenCalledWith(
+    "family/receipts/draft/recognize/",
+    expect.objectContaining({ method: "POST", etag: '"upload:1"' }),
   );
 });

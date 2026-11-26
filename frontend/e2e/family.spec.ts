@@ -54,9 +54,6 @@ test("rodina: fotka jako první, skutečné OCR, návrat k návrhu a uložení",
       mimeType: "image/png",
       buffer: Buffer.from(fixtures!.image_base64, "base64"),
     });
-  await page
-    .getByRole("button", { name: "Přečíst účtenku", exact: true })
-    .click();
   await expect(
     page.getByRole("heading", { name: "Vypadá všechno správně?" }),
   ).toBeVisible();

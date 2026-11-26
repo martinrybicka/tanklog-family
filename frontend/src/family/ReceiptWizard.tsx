@@ -77,6 +77,7 @@ export function ReceiptWizard() {
   );
   const [saved, setSaved] = useState<Refueling | null>(null);
   const [uploadKey, setUploadKey] = useState(() => crypto.randomUUID());
+  const reading = useRef(false);
   const [manualKey] = useState(() => crypto.randomUUID());
   const loaded = useRef<string | null>(null);
   const client = useQueryClient();
@@ -134,30 +135,33 @@ export function ReceiptWizard() {
       setFile(null);
       return;
     }
+    const key = crypto.randomUUID();
     setFile(selected);
-    setUploadKey(crypto.randomUUID());
+    setUploadKey(key);
+    if (selected && vehicle) void read(selected, vehicle, key);
   }
   function change<K extends keyof Form>(name: K, value: Form[K]) {
     setForm((current) => ({ ...current, [name]: value }));
     setWarnings([]);
     setError("");
   }
-  async function read() {
-    if (!file || !vehicle) return;
+  async function read(photo: File, vehicleId: string, key: string) {
+    if (reading.current) return;
+    reading.current = true;
     setBusy(true);
     setError("");
     setNotice("");
     try {
       const data = new FormData();
-      data.set("file", file);
-      data.set("vehicle_id", vehicle);
+      data.set("file", photo);
+      data.set("vehicle_id", vehicleId);
       const uploaded = await api<Draft>("family/receipts/", {
         method: "POST",
         body: data,
-        headers: { "Idempotency-Key": uploadKey },
+        headers: { "Idempotency-Key": key },
       });
       setDraft(uploaded);
-      await client.invalidateQueries({ queryKey: ["family-drafts"] });
+      void client.invalidateQueries({ queryKey: ["family-drafts"] });
       try {
         apply(
           await api<Draft>(`family/receipts/${uploaded.data.id}/recognize/`, {
@@ -175,6 +179,7 @@ export function ReceiptWizard() {
     } catch (e) {
       setError(errorText(e));
     } finally {
+      reading.current = false;
       setBusy(false);
     }
   }
@@ -278,7 +283,15 @@ export function ReceiptWizard() {
                   <select
                     disabled={busy}
                     value={vehicle}
-                    onChange={(e) => setVehicle(e.target.value)}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setVehicle(next);
+                      if (file && next && next !== vehicle) {
+                        const key = crypto.randomUUID();
+                        setUploadKey(key);
+                        void read(file, next, key);
+                      }
+                    }}
                     required
                   >
                     <option value="">Vyberte auto</option>
@@ -309,7 +322,9 @@ export function ReceiptWizard() {
                   <ImagePlus size={32} />
                 </span>
                 <strong>{file ? file.name : "Vyfotit účtenku"}</strong>
-                <small>JPG nebo PNG · nejvýše 10 MB</small>
+                <small>
+                  JPG nebo PNG · po výběru se účtenka načte automaticky
+                </small>
               </label>
               <label className="family-file-library">
                 <ImagePlus size={16} />
@@ -326,7 +341,9 @@ export function ReceiptWizard() {
               <button
                 className="family-primary"
                 disabled={busy || !file || !vehicle}
-                onClick={read}
+                onClick={() => {
+                  if (file && vehicle) void read(file, vehicle, uploadKey);
+                }}
               >
                 {busy ? (
                   <LoaderCircle className="spin" size={20} />
@@ -338,7 +355,7 @@ export function ReceiptWizard() {
               </button>
               <button
                 className="family-text-button"
-                disabled={busy || !vehicle}
+                disabled={busy || !vehicle || !!file}
                 onClick={() => {
                   setStep(2);
                   setNotice("");
@@ -423,10 +440,12 @@ export function ReceiptWizard() {
                   {notice}
                 </p>
               )}
-              {draft && Object.keys(draft.data.suggestions).length > 0 && (
-                <p className="family-scan-status">
+              {draft && !notice && (
+                <p className="family-scan-status" role="status">
                   <Sparkles size={16} />
-                  Údaje načteny. Vy máte poslední slovo.
+                  {Object.keys(draft.data.suggestions).length
+                    ? "Zkontrolujte předvyplněné návrhy a doplňte chybějící údaje."
+                    : "Z fotky se nepodařilo přečíst údaje. Zkuste ji přečíst znovu nebo vyplňte údaje ručně."}
                 </p>
               )}
               <label className="family-field">

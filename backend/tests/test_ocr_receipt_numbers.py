@@ -124,3 +124,33 @@ def test_vertical_bar_unit_in_fuel_row_has_reduced_confidence():
     _, result = parse_tsv(tsv("Natural 95 10,500 | 40,00 Kč 420,00 Kč"))
     assert result["liters"]["value"] == "10.500"
     assert float(result["liters"]["confidence"]) <= 50
+
+
+def test_fuel_table_in_separate_lines_and_card_payment():
+    _, result = parse_tsv(
+        tsv(
+            "TYP: PRODEJ : 1474.10 CZK",
+            "Položka Množství Cena",
+            "Natural 95",
+            '"',
+            "39.85 36,99",
+        )
+    )
+    assert result["liters"]["value"] == "39.85"
+    assert float(result["liters"]["confidence"]) <= 50
+    assert result["fuel_type"]["value"] == "PETROL"
+    assert result["total_amount"]["value"] == "1474.10"
+    assert "unit_price_entered" not in result
+
+
+def test_unrelated_card_payment_does_not_supply_liters():
+    _, result = parse_tsv(
+        tsv(
+            "TYP: PRODEJ : 1474.10 CZK",
+            "Položka Množství Cena",
+            "Natural 95",
+            "30.00 36,99",
+        )
+    )
+    assert "liters" not in result
+    assert "fuel_type" not in result
