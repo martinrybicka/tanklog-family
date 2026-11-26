@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { PwaInstallButton } from "../components/Pwa";
 import { Button, ErrorMessage, Field, Input, Logo } from "../components/ui";
 import { api, errorText, refreshCsrf } from "../lib/api";
 import type { Session } from "../lib/types";
@@ -113,6 +114,7 @@ export function Login() {
               <ArrowRight size={18} />
             </Button>
           </form>
+          <PwaInstallButton className="w-full" />
           <div className="login-help">
             <ShieldCheck size={17} />
             <p>

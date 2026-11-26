@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { Download } from "lucide-react";
 import { Button, Modal } from "./ui";
 interface InstallPrompt extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: string }>;
 }
 let installer: InstallPrompt | null = null;
+let installedInPage = false;
 let waiting: ServiceWorker | null = null;
 export function PwaNotice() {
   const [online, setOnline] = useState(navigator.onLine);
@@ -19,6 +21,7 @@ export function PwaNotice() {
       window.dispatchEvent(new Event("tanklog:install"));
     };
     const installed = () => {
+      installedInPage = true;
       installer = null;
       window.dispatchEvent(new Event("tanklog:install"));
     };
@@ -94,40 +97,101 @@ export function PwaNotice() {
     </>
   );
 }
-export function PwaSettings() {
-  const [available, setAvailable] = useState(!!installer);
-  const [error, setError] = useState("");
+function installHelp() {
+  const agent = navigator.userAgent;
+  if (
+    /iPhone|iPad|iPod/i.test(agent) ||
+    (/Macintosh/i.test(agent) && navigator.maxTouchPoints > 1)
+  ) {
+    return "V Safari otevřete Sdílet → Přidat na plochu. Pokud se zobrazí volba Otevřít jako webovou aplikaci, zapněte ji a klepněte na Přidat.";
+  }
+  if (/Macintosh.*Safari/i.test(agent) && !/Chrome|Chromium|Edg/i.test(agent)) {
+    return "V Safari otevřete Sdílet → Přidat do Docku a potvrďte tlačítkem Přidat.";
+  }
+  return "V nabídce prohlížeče vyhledejte volbu Nainstalovat aplikaci nebo Přidat na plochu. Pokud ji prohlížeč nenabízí, otevřete TankLog v Chrome, Edge nebo Safari.";
+}
+
+function runningAsApp() {
+  return (
+    installedInPage ||
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+}
+
+export function PwaInstallButton({ className }: { className?: string }) {
+  const [hidden, setHidden] = useState(runningAsApp);
+  const [showHelp, setShowHelp] = useState(false);
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
-    const update = () => setAvailable(!!installer);
+    const mode = window.matchMedia("(display-mode: standalone)");
+    const update = () => {
+      const standalone = runningAsApp();
+      setHidden(standalone);
+      if (standalone) setShowHelp(false);
+    };
     window.addEventListener("tanklog:install", update);
-    return () => window.removeEventListener("tanklog:install", update);
+    mode.addEventListener("change", update);
+    update();
+    return () => {
+      window.removeEventListener("tanklog:install", update);
+      mode.removeEventListener("change", update);
+    };
   }, []);
+
+  if (hidden) return null;
+  return (
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        className={className}
+        disabled={busy}
+        onClick={async () => {
+          const request = installer;
+          if (!request) {
+            setShowHelp(true);
+            return;
+          }
+          // Prohlížeč dovoluje použít jednu instalační výzvu jen jednou.
+          installer = null;
+          setBusy(true);
+          try {
+            await request.prompt();
+            if ((await request.userChoice).outcome === "accepted") {
+              installedInPage = true;
+              window.dispatchEvent(new Event("tanklog:install"));
+            }
+          } catch {
+            setShowHelp(true);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <Download size={17} aria-hidden="true" />
+        Nainstalovat aplikaci
+      </Button>
+      <Modal
+        open={showHelp}
+        onClose={() => setShowHelp(false)}
+        title="Nainstalovat TankLog"
+        description={installHelp()}
+      >
+        <Button type="button" onClick={() => setShowHelp(false)}>
+          Rozumím
+        </Button>
+      </Modal>
+    </>
+  );
+}
+
+export function PwaSettings() {
   return (
     <section className="panel pwa-settings">
       <h2>Aplikace v zařízení</h2>
-      <p>
-        TankLog lze přidat na plochu přes nabídku prohlížeče, pokud to zařízení
-        podporuje. Přihlášení, údaje i tankování vyžadují připojení k serveru.
-      </p>
-      {available && (
-        <Button
-          onClick={async () => {
-            try {
-              await installer?.prompt();
-              await installer?.userChoice;
-              installer = null;
-              setAvailable(false);
-            } catch {
-              setError(
-                "Instalace se nezdařila. Použijte nabídku prohlížeče nebo pokračujte online.",
-              );
-            }
-          }}
-        >
-          Nainstalovat TankLog
-        </Button>
-      )}
-      {error && <p role="alert">{error}</p>}
+      <p>Přihlášení, údaje i tankování vyžadují připojení k serveru.</p>
+      <PwaInstallButton />
     </section>
   );
 }

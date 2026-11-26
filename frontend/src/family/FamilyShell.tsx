@@ -13,6 +13,7 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { api, errorText, forgetCsrf } from "../lib/api";
 import { announceLogout } from "../lib/sessionEvents";
 import { clearOutbox } from "../lib/outbox";
+import { PwaInstallButton } from "../components/Pwa";
 import { ErrorMessage } from "../components/ui";
 import type { Session } from "../lib/types";
 import "./family.css";
@@ -71,6 +72,7 @@ export function FamilyShell({ user }: { user: Session }) {
                 Správa rodiny
               </Link>
             )}
+            <PwaInstallButton />
             <button
               disabled={busy}
               onClick={async () => {
